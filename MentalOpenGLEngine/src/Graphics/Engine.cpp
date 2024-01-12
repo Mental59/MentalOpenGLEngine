@@ -18,6 +18,11 @@ Graphics::Engine::~Engine()
 	glfwTerminate();
 }
 
+void OnResizeCallback(GLFWwindow* window, int width, int height)
+{
+	Graphics::Engine::GetInstance()->OnResize(window, width, height);
+}
+
 Graphics::Engine::InitResult Graphics::Engine::Init()
 {
 	glfwInit();
@@ -77,9 +82,4 @@ void Graphics::Engine::OnRender()
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glfwSwapBuffers(mWindow);
-}
-
-void Graphics::OnResizeCallback(GLFWwindow* window, int width, int height)
-{
-	Graphics::Engine::GetInstance()->OnResize(window, width, height);
 }

@@ -39,6 +39,4 @@ namespace Graphics
 
 		GLFWwindow* mWindow;
 	};
-
-	void OnResizeCallback(GLFWwindow* window, int width, int height);
 }
