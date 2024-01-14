@@ -77,7 +77,7 @@ GLuint Graphics::Engine::BuildShaderProgram()
 	glAttachShader(shaderProgram, fragmentShader.GetID());
 	glLinkProgram(shaderProgram);
 
-	int programLinkStatus;
+	GLint programLinkStatus;
 	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &programLinkStatus);
 
 	if (programLinkStatus == GL_FALSE)
