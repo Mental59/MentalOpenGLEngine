@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+#include <glad/glad.h>
 
 struct GLFWwindow;
 
@@ -9,12 +9,6 @@ namespace Graphics
 	class Engine
 	{
 	public:
-		struct InitResult
-		{
-			bool isSuccessfull;
-			std::string errorDescription;
-		};
-
 		Engine(const int windowWidth, const int windowHeight, const char* title);
 
 		Engine(const Engine& other) = delete;
@@ -24,7 +18,9 @@ namespace Graphics
 
 		static inline Engine* GetInstance() { return mInstance; }
 
-		InitResult Init();
+		bool Init();
+		GLuint BuildShaderProgram();
+		void BuildBuffers();
 		void Run();
 
 		virtual void OnResize(GLFWwindow* window, int width, int height);
@@ -38,5 +34,7 @@ namespace Graphics
 		const char* mTitle;
 
 		GLFWwindow* mWindow;
+		GLuint mShaderProgram;
+		GLuint mVBO, mVAO, mEBO;
 	};
 }
