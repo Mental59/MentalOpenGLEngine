@@ -57,7 +57,8 @@ bool Graphics::Engine::Init()
 
 	glfwSetFramebufferSizeCallback(mWindow, OnResizeCallback);
 
-	mShaderProgram = BuildShaderProgram();
+	mShaderProgram = BuildShaderProgram("src/Shaders/vertexShader.vert", "src/Shaders/fragmentShader.frag");
+	mShaderProgram2 = BuildShaderProgram("src/Shaders/vertexShader.vert", "src/Shaders/fragmentShader2.frag");
 	BuildBuffers();
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe mode
@@ -65,10 +66,13 @@ bool Graphics::Engine::Init()
 	return true;
 }
 
-GLuint Graphics::Engine::BuildShaderProgram()
+GLuint Graphics::Engine::BuildShaderProgram(
+	const char* vertexShaderPath,
+	const char* fragmentShaderPath
+)
 {
-	Shader vertexShader("src/Shaders/vertexShader.vert", GL_VERTEX_SHADER);
-	Shader fragmentShader("src/Shaders/fragmentShader.frag", GL_FRAGMENT_SHADER);
+	Shader vertexShader(vertexShaderPath, GL_VERTEX_SHADER);
+	Shader fragmentShader(fragmentShaderPath, GL_FRAGMENT_SHADER);
 
 	GLuint shaderProgram;
 	shaderProgram = glCreateProgram();
@@ -108,6 +112,18 @@ void Graphics::Engine::BuildBuffers()
 		-0.5f, 0.5f, 0.0f // top left
 	};
 
+	GLfloat vertices1[] = {
+		-0.5f, -0.5f, 0.0f,
+		-0.25f, 0.5f, 0.0f,
+		0.f, -0.5f, 0.0f,
+	};
+
+	GLfloat vertices2[] = {
+		0.25f, -0.5f, 0.0f,
+		0.5f, 0.5f, 0.0f,
+		0.75f, -0.5f, 0.0f,
+	};
+
 	GLuint indices[] = {
 		0, 1, 3,
 		1, 2, 3
@@ -118,7 +134,7 @@ void Graphics::Engine::BuildBuffers()
 	glGenBuffers(1, &mEBO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, mVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices1), vertices1, GL_STATIC_DRAW);
 
 	// VAO stores calls to glVertexAttribPointer, glEnableVertexAttribArray, glDisableVertexAttribArray, glBindBuffer for GL_ELEMENT_ARRAY_BUFFER
 	glBindVertexArray(mVAO);
@@ -128,6 +144,20 @@ void Graphics::Engine::BuildBuffers()
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (const void*)0); // VBO must be bound before calling this function
 	glEnableVertexAttribArray(0);
+
+
+
+	glGenVertexArrays(1, &mVAO2);
+	glGenBuffers(1, &mVBO2);
+
+	glBindBuffer(GL_ARRAY_BUFFER, mVBO2);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2), vertices2, GL_STATIC_DRAW);
+
+	glBindVertexArray(mVAO2);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (const void*)0);
+	glEnableVertexAttribArray(0);
+
 
 	glBindVertexArray(0); // unbind VAO
 
@@ -171,7 +201,12 @@ void Graphics::Engine::OnRender()
 
 	glUseProgram(mShaderProgram);
 	glBindVertexArray(mVAO);
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+
+	glUseProgram(mShaderProgram2);
+	glBindVertexArray(mVAO2);
+	glDrawArrays(GL_TRIANGLES, 0, 3);
 
 	glfwSwapBuffers(mWindow);
 }

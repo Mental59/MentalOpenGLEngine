@@ -19,7 +19,7 @@ namespace Graphics
 		static inline Engine* GetInstance() { return mInstance; }
 
 		bool Init();
-		GLuint BuildShaderProgram();
+		GLuint BuildShaderProgram(const char* vertexShaderPath, const char* fragmentShaderPath);
 		void BuildBuffers();
 		void Run();
 
@@ -36,5 +36,8 @@ namespace Graphics
 		GLFWwindow* mWindow;
 		GLuint mShaderProgram;
 		GLuint mVBO, mVAO, mEBO;
+
+		GLuint mVBO2, mVAO2, mEBO2;
+		GLuint mShaderProgram2;
 	};
 }
