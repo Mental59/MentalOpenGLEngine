@@ -57,7 +57,7 @@ bool Graphics::Engine::Init()
 
 	glfwSetFramebufferSizeCallback(mWindow, OnResizeCallback);
 
-	mShaderProgram = BuildShaderProgram();
+	mShaderProgram = BuildShaderProgram("src/Shaders/vertexShader.vert", "src/Shaders/fragmentShader.frag");
 	BuildBuffers();
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe mode
@@ -65,10 +65,13 @@ bool Graphics::Engine::Init()
 	return true;
 }
 
-GLuint Graphics::Engine::BuildShaderProgram()
+GLuint Graphics::Engine::BuildShaderProgram(
+	const char* vertexShaderPath,
+	const char* fragmentShaderPath
+)
 {
-	Shader vertexShader("src/Shaders/vertexShader.vert", GL_VERTEX_SHADER);
-	Shader fragmentShader("src/Shaders/fragmentShader.frag", GL_FRAGMENT_SHADER);
+	Shader vertexShader(vertexShaderPath, GL_VERTEX_SHADER);
+	Shader fragmentShader(fragmentShaderPath, GL_FRAGMENT_SHADER);
 
 	GLuint shaderProgram;
 	shaderProgram = glCreateProgram();

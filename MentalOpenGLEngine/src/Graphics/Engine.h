@@ -19,7 +19,10 @@ namespace Graphics
 		static inline Engine* GetInstance() { return mInstance; }
 
 		bool Init();
-		GLuint BuildShaderProgram();
+		GLuint BuildShaderProgram(
+			const char* vertexShaderPath,
+			const char* fragmentShaderPath
+		);
 		void BuildBuffers();
 		void Run();
 
