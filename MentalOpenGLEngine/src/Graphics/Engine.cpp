@@ -55,12 +55,16 @@ bool Graphics::Engine::Init()
 		return false;
 	}
 
+	int nrAttributes;
+	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
+	std::cout << "Maximum nr of vertex attributes supported: " << nrAttributes << std::endl;
+
 	glfwSetFramebufferSizeCallback(mWindow, OnResizeCallback);
 
 	mShaderProgram.Build("src/Shaders/vertexShader.vert", "src/Shaders/fragmentShader.frag");
 	BuildBuffers();
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe mode
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe mode
 
 	return true;
 }
@@ -132,10 +136,15 @@ void Graphics::Engine::OnInput()
 
 void Graphics::Engine::OnRender()
 {
-	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // set color for clearing
+	glClear(GL_COLOR_BUFFER_BIT); // use set color to clear color buffer
 
+	float greenValue = (sin(glfwGetTime()) / 2.0f) + 0.5f;
+
+	GLint vertexColorLocation = glGetUniformLocation(mShaderProgram.GetID(), "vertexColor");
 	mShaderProgram.Bind();
+	glUniform4f(vertexColorLocation, 0.5f, greenValue, 0.3f, 1.0f);
+
 	glBindVertexArray(mVAO);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
