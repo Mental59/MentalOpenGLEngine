@@ -7,8 +7,7 @@
 Shader::Shader(const char* sourcePath, GLenum type) :
 	mType(type)
 {
-	mSource = ReadShaderSource(sourcePath);
-	mID = CompileShader(mSource.c_str(), type);
+	mSource = ReadSource(sourcePath);
 }
 
 Shader::~Shader()
@@ -16,7 +15,12 @@ Shader::~Shader()
 	glDeleteShader(mID);
 }
 
-std::string Shader::ReadShaderSource(const char* sourcePath)
+void Shader::Compile()
+{
+	mID = Compile(mSource.c_str(), mType);
+}
+
+std::string Shader::ReadSource(const char* sourcePath)
 {
 	std::ifstream stream(sourcePath);
 	std::stringstream sourceStream;
@@ -24,7 +28,7 @@ std::string Shader::ReadShaderSource(const char* sourcePath)
 	return sourceStream.str();
 }
 
-GLuint Shader::CompileShader(const char* source, GLenum type)
+GLuint Shader::Compile(const char* source, GLenum type)
 {
 	GLuint id = glCreateShader(type);
 

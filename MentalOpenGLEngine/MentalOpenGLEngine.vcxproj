@@ -160,11 +160,13 @@
     <ClCompile Include="src\External\glad.c" />
     <ClCompile Include="src\Graphics\Engine.cpp" />
     <ClCompile Include="src\Graphics\Shader.cpp" />
+    <ClCompile Include="src\Graphics\ShaderProgram.cpp" />
     <ClCompile Include="src\Main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Graphics\Engine.h" />
     <ClInclude Include="src\Graphics\Shader.h" />
+    <ClInclude Include="src\Graphics\ShaderProgram.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\Shaders\fragmentShader.frag" />

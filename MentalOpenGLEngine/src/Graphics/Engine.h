@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glad/glad.h>
+#include "ShaderProgram.h"
 
 struct GLFWwindow;
 
@@ -19,10 +20,6 @@ namespace Graphics
 		static inline Engine* GetInstance() { return mInstance; }
 
 		bool Init();
-		GLuint BuildShaderProgram(
-			const char* vertexShaderPath,
-			const char* fragmentShaderPath
-		);
 		void BuildBuffers();
 		void Run();
 
@@ -37,7 +34,7 @@ namespace Graphics
 		const char* mTitle;
 
 		GLFWwindow* mWindow;
-		GLuint mShaderProgram;
+		ShaderProgram mShaderProgram;
 		GLuint mVBO, mVAO, mEBO;
 	};
 }

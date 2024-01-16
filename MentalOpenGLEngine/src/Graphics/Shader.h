@@ -13,9 +13,11 @@ public:
 	inline GLuint GetID() const { return mID; }
 	inline GLenum GetType() const { return mType; }
 
+	void Compile();
+
 private:
-	std::string ReadShaderSource(const char* sourcePath);
-	GLuint CompileShader(const char* source, GLenum type);
+	std::string ReadSource(const char* sourcePath);
+	GLuint Compile(const char* source, GLenum type);
 
 	std::string mSource;
 	GLenum mType;
