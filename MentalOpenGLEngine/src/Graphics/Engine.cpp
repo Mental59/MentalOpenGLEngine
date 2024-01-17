@@ -72,10 +72,10 @@ bool Graphics::Engine::Init()
 void Graphics::Engine::BuildBuffers()
 {
 	GLfloat vertices[] = {
-		0.5f, 0.5f, 0.0f, // top right
-		0.5f, -0.5f, 0.0f, // bottom right
-		-0.5f, -0.5f, 0.0f, // bottom left
-		-0.5f, 0.5f, 0.0f // top left
+		0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // top right
+		0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom right
+		-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom left
+		-0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 1.0f // top left
 	};
 
 	GLuint indices[] = {
@@ -96,8 +96,11 @@ void Graphics::Engine::BuildBuffers()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (const void*)0); // VBO must be bound before calling this function
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (const void*)0); // VBO must be bound before calling this function
 	glEnableVertexAttribArray(0);
+
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (const void*)(3 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(1);
 
 	glBindVertexArray(0); // unbind VAO
 
@@ -142,7 +145,6 @@ void Graphics::Engine::OnRender()
 	float greenValue = (sin(glfwGetTime()) / 2.0f) + 0.5f;
 
 	mShaderProgram.Bind();
-	mShaderProgram.SetUniform4f("vertexColor", 0.5f, greenValue, 0.3f, 1.0f);
 
 	glBindVertexArray(mVAO);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
