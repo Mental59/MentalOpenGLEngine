@@ -141,9 +141,8 @@ void Graphics::Engine::OnRender()
 
 	float greenValue = (sin(glfwGetTime()) / 2.0f) + 0.5f;
 
-	GLint vertexColorLocation = glGetUniformLocation(mShaderProgram.GetID(), "vertexColor");
 	mShaderProgram.Bind();
-	glUniform4f(vertexColorLocation, 0.5f, greenValue, 0.3f, 1.0f);
+	mShaderProgram.SetUniform4f("vertexColor", 0.5f, greenValue, 0.3f, 1.0f);
 
 	glBindVertexArray(mVAO);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
