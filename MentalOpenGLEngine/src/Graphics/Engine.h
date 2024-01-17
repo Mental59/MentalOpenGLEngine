@@ -21,6 +21,7 @@ namespace Graphics
 
 		bool Init();
 		void BuildBuffers();
+		void BuildTextures();
 		void Run();
 
 		virtual void OnResize(GLFWwindow* window, int width, int height);
@@ -36,5 +37,7 @@ namespace Graphics
 		GLFWwindow* mWindow;
 		ShaderProgram mShaderProgram;
 		GLuint mVBO, mVAO, mEBO;
+
+		GLuint mTextureID;
 	};
 }

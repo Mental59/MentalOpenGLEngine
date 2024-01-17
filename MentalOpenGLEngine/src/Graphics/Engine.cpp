@@ -3,6 +3,7 @@
 #include <iostream>
 #include <glad/glad.h>
 #include <glfw3.h>
+#include "External/stb_image.h"
 #include "Shader.h"
 
 Graphics::Engine* Graphics::Engine::mInstance(nullptr);
@@ -13,7 +14,7 @@ Graphics::Engine::Engine(const int windowWidth, const int windowHeight, const ch
 	mTitle(title),
 	mWindow(nullptr),
 	mShaderProgram(),
-	mVBO(0), mVAO(0), mEBO(0)
+	mVBO(0), mVAO(0), mEBO(0), mTextureID(0)
 {
 	mInstance = this;
 }
@@ -24,6 +25,8 @@ Graphics::Engine::~Engine()
 
 	glDeleteBuffers(1, &mVBO);
 	glDeleteBuffers(1, &mEBO);
+
+	glDeleteTextures(1, &mTextureID);
 
 	glfwTerminate();
 }
@@ -63,6 +66,7 @@ bool Graphics::Engine::Init()
 
 	mShaderProgram.Build("src/Shaders/vertexShader.vert", "src/Shaders/fragmentShader.frag");
 	BuildBuffers();
+	BuildTextures();
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe mode
 
@@ -71,14 +75,15 @@ bool Graphics::Engine::Init()
 
 void Graphics::Engine::BuildBuffers()
 {
-	GLfloat vertices[] = {
-		0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // top right
-		0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom right
-		-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom left
-		-0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 1.0f // top left
+	GLfloat rectangleVertices[] = {
+		//positions          //colors            //texture coords
+		0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
+		0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
+	   -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
+	   -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f, // top left
 	};
 
-	GLuint indices[] = {
+	GLuint rectangleIndices[] = {
 		0, 1, 3,
 		1, 2, 3
 	};
@@ -88,25 +93,54 @@ void Graphics::Engine::BuildBuffers()
 	glGenBuffers(1, &mEBO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, mVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(rectangleVertices), rectangleVertices, GL_STATIC_DRAW);
 
 	// VAO stores calls to glVertexAttribPointer, glEnableVertexAttribArray, glDisableVertexAttribArray, glBindBuffer for GL_ELEMENT_ARRAY_BUFFER
 	glBindVertexArray(mVAO);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(rectangleIndices), rectangleIndices, GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (const void*)0); // VBO must be bound before calling this function
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (const void*)0); // VBO must be bound before calling this function
 	glEnableVertexAttribArray(0);
 
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (const void*)(3 * sizeof(GLfloat)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (const void*)(3 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(1);
+
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (const void*)(6 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(2);
 
 	glBindVertexArray(0); // unbind VAO
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0); // unbind VBO
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // unbind EBO (do it after unbinding VAO otherwise VAO will store unbind call)
+}
+
+void Graphics::Engine::BuildTextures()
+{
+	glGenTextures(1, &mTextureID);
+	glBindTexture(GL_TEXTURE_2D, mTextureID);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	int width, height, numChannels;
+	unsigned char* data = stbi_load("resources/textures/container.jpg", &width, &height, &numChannels, 0);
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		std::cout << "Failed to load the texture" << std::endl;
+	}
+
+	stbi_image_free(data);
 }
 
 void Graphics::Engine::Run()
@@ -145,6 +179,10 @@ void Graphics::Engine::OnRender()
 	float greenValue = (sin(glfwGetTime()) / 2.0f) + 0.5f;
 
 	mShaderProgram.Bind();
+
+	//glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, mTextureID);
+	//mShaderProgram.SetUniform1i("uTexture1", 0);
 
 	glBindVertexArray(mVAO);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
