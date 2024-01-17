@@ -1,6 +1,7 @@
 #include "Engine.h"
 
 #include <iostream>
+#include <format>
 #include <glad/glad.h>
 #include <glfw3.h>
 #include "External/stb_image.h"
@@ -14,7 +15,7 @@ Graphics::Engine::Engine(const int windowWidth, const int windowHeight, const ch
 	mTitle(title),
 	mWindow(nullptr),
 	mShaderProgram(),
-	mVBO(0), mVAO(0), mEBO(0), mTextureID(0)
+	mVBO(0), mVAO(0), mEBO(0)
 {
 	mInstance = this;
 }
@@ -26,7 +27,7 @@ Graphics::Engine::~Engine()
 	glDeleteBuffers(1, &mVBO);
 	glDeleteBuffers(1, &mEBO);
 
-	glDeleteTextures(1, &mTextureID);
+	glDeleteTextures(mTextureIDs.size(), mTextureIDs.data());
 
 	glfwTerminate();
 }
@@ -66,7 +67,15 @@ bool Graphics::Engine::Init()
 
 	mShaderProgram.Build("src/Shaders/vertexShader.vert", "src/Shaders/fragmentShader.frag");
 	BuildBuffers();
-	BuildTextures();
+
+	stbi_set_flip_vertically_on_load(true);
+
+	constexpr size_t nTextures = 2;
+	BuildTextureOptions optionList[nTextures]{
+		{"resources/textures/container.jpg", GL_RGB, GL_RGB},
+		{"resources/textures/awesomeface.png", GL_RGBA, GL_RGBA }
+	};
+	BuildTextures(optionList, nTextures);
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe mode
 
@@ -117,30 +126,45 @@ void Graphics::Engine::BuildBuffers()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // unbind EBO (do it after unbinding VAO otherwise VAO will store unbind call)
 }
 
-void Graphics::Engine::BuildTextures()
+void Graphics::Engine::BuildTextures(BuildTextureOptions optionList[], size_t n)
 {
-	glGenTextures(1, &mTextureID);
-	glBindTexture(GL_TEXTURE_2D, mTextureID);
+	mTextureIDs.reserve(n);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	mShaderProgram.Bind();
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	int width, height, numChannels;
-	unsigned char* data = stbi_load("resources/textures/container.jpg", &width, &height, &numChannels, 0);
-	if (data)
+	for (size_t i = 0; i < n; i++)
 	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-	{
-		std::cout << "Failed to load the texture" << std::endl;
+		GLuint textureID;
+
+		glGenTextures(1, &textureID);
+		glBindTexture(GL_TEXTURE_2D, textureID);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		int width, height, numChannels;
+		unsigned char* data = stbi_load(optionList[i].path, &width, &height, &numChannels, 0);
+		if (data)
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, optionList[i].internalFormat, width, height, 0, optionList[i].format, GL_UNSIGNED_BYTE, data);
+			glGenerateMipmap(GL_TEXTURE_2D);
+		}
+		else
+		{
+			std::cout << std::format("Failed to load the texture {}", optionList[i].path) << std::endl;
+		}
+
+		mShaderProgram.SetUniform1i(std::format("uTexture{}", i + 1), i);
+
+		mTextureIDs.push_back(textureID);
+
+		stbi_image_free(data);
 	}
 
-	stbi_image_free(data);
+	mShaderProgram.Unbind();
 }
 
 void Graphics::Engine::Run()
@@ -180,9 +204,11 @@ void Graphics::Engine::OnRender()
 
 	mShaderProgram.Bind();
 
-	//glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, mTextureID);
-	//mShaderProgram.SetUniform1i("uTexture1", 0);
+	for (size_t i = 0; i < mTextureIDs.size(); i++)
+	{
+		glActiveTexture(GL_TEXTURE0 + i);
+		glBindTexture(GL_TEXTURE_2D, mTextureIDs[i]);
+	}
 
 	glBindVertexArray(mVAO);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);

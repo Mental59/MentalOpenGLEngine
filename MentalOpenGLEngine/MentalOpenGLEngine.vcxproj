@@ -165,6 +165,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\External\stb_image.h" />
+    <ClInclude Include="src\Graphics\DataTypes.h" />
     <ClInclude Include="src\Graphics\Engine.h" />
     <ClInclude Include="src\Graphics\Shader.h" />
     <ClInclude Include="src\Graphics\ShaderProgram.h" />
@@ -172,6 +173,11 @@
   <ItemGroup>
     <None Include="src\Shaders\fragmentShader.frag" />
     <None Include="src\Shaders\vertexShader.vert" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="resources\textures\awesomeface.png" />
+    <Image Include="resources\textures\container.jpg" />
+    <Image Include="resources\textures\wall.jpg" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,6 +1,8 @@
 #pragma once
 
+#include <vector>
 #include <glad/glad.h>
+#include "DataTypes.h"
 #include "ShaderProgram.h"
 
 struct GLFWwindow;
@@ -21,7 +23,7 @@ namespace Graphics
 
 		bool Init();
 		void BuildBuffers();
-		void BuildTextures();
+		void BuildTextures(BuildTextureOptions optionList[], size_t n);
 		void Run();
 
 		virtual void OnResize(GLFWwindow* window, int width, int height);
@@ -38,6 +40,6 @@ namespace Graphics
 		ShaderProgram mShaderProgram;
 		GLuint mVBO, mVAO, mEBO;
 
-		GLuint mTextureID;
+		std::vector<GLuint> mTextureIDs;
 	};
 }
