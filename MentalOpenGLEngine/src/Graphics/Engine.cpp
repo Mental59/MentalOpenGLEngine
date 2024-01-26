@@ -9,6 +9,8 @@
 
 Graphics::Engine* Graphics::Engine::mInstance(nullptr);
 
+static float gMixAlpha = 0.2f;
+
 Graphics::Engine::Engine(const int windowWidth, const int windowHeight, const char* title) :
 	mWindowWidth(windowWidth),
 	mWindowHeight(windowHeight),
@@ -193,10 +195,22 @@ void Graphics::Engine::OnInput()
 	{
 		glfwSetWindowShouldClose(mWindow, true);
 	}
+
+	if (glfwGetKey(mWindow, GLFW_KEY_UP) == GLFW_PRESS)
+	{
+		gMixAlpha = gMixAlpha > 1.0f ? 1.0f : gMixAlpha + 0.001f;
+	}
+
+	if (glfwGetKey(mWindow, GLFW_KEY_DOWN) == GLFW_PRESS)
+	{
+		gMixAlpha = gMixAlpha < 0.0f ? 0.0f : gMixAlpha - 0.001f;
+	}
 }
 
 void Graphics::Engine::OnRender()
 {
+	std::cout << gMixAlpha << std::endl;
+
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // set color for clearing
 	glClear(GL_COLOR_BUFFER_BIT); // use set color to clear color buffer
 
@@ -209,6 +223,8 @@ void Graphics::Engine::OnRender()
 		glActiveTexture(GL_TEXTURE0 + i);
 		glBindTexture(GL_TEXTURE_2D, mTextureIDs[i]);
 	}
+
+	mShaderProgram.SetUniform1f("uMixAlpha", gMixAlpha);
 
 	glBindVertexArray(mVAO);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
