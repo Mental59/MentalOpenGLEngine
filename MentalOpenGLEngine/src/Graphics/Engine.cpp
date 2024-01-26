@@ -4,6 +4,9 @@
 #include <format>
 #include <glad/glad.h>
 #include <glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include "External/stb_image.h"
 #include "Shader.h"
 
@@ -209,12 +212,13 @@ void Graphics::Engine::OnInput()
 
 void Graphics::Engine::OnRender()
 {
-	std::cout << gMixAlpha << std::endl;
-
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // set color for clearing
 	glClear(GL_COLOR_BUFFER_BIT); // use set color to clear color buffer
 
-	float greenValue = (sin(glfwGetTime()) / 2.0f) + 0.5f;
+	glm::mat4 transform = glm::mat4(1.0f);
+	transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
+	transform = glm::rotate(transform, static_cast<float>(glfwGetTime()), glm::vec3(0.7071f, 0.0f, 0.7071f));
+	transform = glm::scale(transform, glm::vec3(1.5f, 1.5f, 1.5f));
 
 	mShaderProgram.Bind();
 
@@ -225,6 +229,7 @@ void Graphics::Engine::OnRender()
 	}
 
 	mShaderProgram.SetUniform1f("uMixAlpha", gMixAlpha);
+	mShaderProgram.SetUniformMatrix4fv("uTransform", glm::value_ptr(transform));
 
 	glBindVertexArray(mVAO);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);

@@ -13,7 +13,7 @@ void main()
 {
 	FragColor = mix(
 		texture(uTexture1, texCoords),
-		texture(uTexture2, vec2(1 - texCoords.x, texCoords.y)),
+		texture(uTexture2, texCoords),
 		uMixAlpha
 	);
 }
