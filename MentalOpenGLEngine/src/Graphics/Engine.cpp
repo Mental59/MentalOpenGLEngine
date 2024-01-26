@@ -215,10 +215,12 @@ void Graphics::Engine::OnRender()
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // set color for clearing
 	glClear(GL_COLOR_BUFFER_BIT); // use set color to clear color buffer
 
+	float time = static_cast<float>(glfwGetTime());
+
 	glm::mat4 transform = glm::mat4(1.0f);
 	transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
-	transform = glm::rotate(transform, static_cast<float>(glfwGetTime()), glm::vec3(0.7071f, 0.0f, 0.7071f));
-	transform = glm::scale(transform, glm::vec3(1.5f, 1.5f, 1.5f));
+	transform = glm::rotate(transform, time, glm::vec3(0.7071f, 0.0f, 0.7071f));
+	transform = glm::scale(transform, glm::vec3(1.0f, 1.0f, 1.0f));
 
 	mShaderProgram.Bind();
 
@@ -232,6 +234,15 @@ void Graphics::Engine::OnRender()
 	mShaderProgram.SetUniformMatrix4fv("uTransform", glm::value_ptr(transform));
 
 	glBindVertexArray(mVAO);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+	transform = glm::mat4(1.0f);
+	transform = glm::translate(transform, glm::vec3(-0.5f, 0.5f, 0.0f));
+	//transform = glm::rotate(transform, static_cast<float>(glfwGetTime()), glm::vec3(0.7071f, 0.0f, 0.7071f));
+	transform = glm::scale(transform, glm::vec3(1.0f) * sin(time));
+
+	mShaderProgram.SetUniformMatrix4fv("uTransform", glm::value_ptr(transform));
+
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 	glfwSwapBuffers(mWindow);
