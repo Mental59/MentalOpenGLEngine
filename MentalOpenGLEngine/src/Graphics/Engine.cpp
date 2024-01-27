@@ -13,6 +13,19 @@
 Graphics::Engine* Graphics::Engine::mInstance(nullptr);
 
 static float gMixAlpha = 0.2f;
+static constexpr int CUBE_COUNT = 10;
+static glm::vec3 CUBE_POSITIONS[CUBE_COUNT] = {
+	glm::vec3(0.0f, 0.0f, 0.0f),
+	glm::vec3(2.0f, 5.0f, -15.0f),
+	glm::vec3(-1.5f, -2.2f, -2.5f),
+	glm::vec3(-3.8f, -2.0f, -12.3f),
+	glm::vec3(2.4f, -0.4f, -3.5f),
+	glm::vec3(-1.7f, 3.0f, -7.5f),
+	glm::vec3(1.3f, -2.0f, -2.5f),
+	glm::vec3(1.5f, 2.0f, -2.5f),
+	glm::vec3(1.5f, 0.2f, -1.5f),
+	glm::vec3(-1.3f, 1.0f, -1.5f)
+};
 
 Graphics::Engine::Engine(const int windowWidth, const int windowHeight, const char* title) :
 	mWindowWidth(windowWidth),
@@ -83,23 +96,56 @@ bool Graphics::Engine::Init()
 	BuildTextures(optionList, nTextures);
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe mode
+	glEnable(GL_DEPTH_TEST);
 
 	return true;
 }
 
 void Graphics::Engine::BuildBuffers()
 {
-	GLfloat rectangleVertices[] = {
-		//positions          //colors            //texture coords
-		0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
-		0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
-	   -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
-	   -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f, // top left
-	};
+	GLfloat cubeVertices[] = {
+		// positions          // texture coordinates
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+		 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
 
-	GLuint rectangleIndices[] = {
-		0, 1, 3,
-		1, 2, 3
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 	};
 
 	glGenVertexArrays(1, &mVAO);
@@ -107,22 +153,19 @@ void Graphics::Engine::BuildBuffers()
 	glGenBuffers(1, &mEBO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, mVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(rectangleVertices), rectangleVertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
 
 	// VAO stores calls to glVertexAttribPointer, glEnableVertexAttribArray, glDisableVertexAttribArray, glBindBuffer for GL_ELEMENT_ARRAY_BUFFER
 	glBindVertexArray(mVAO);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(rectangleIndices), rectangleIndices, GL_STATIC_DRAW);
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEBO);
+	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(rectangleIndices), rectangleIndices, GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (const void*)0); // VBO must be bound before calling this function
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (const void*)0); // VBO must be bound before calling this function
 	glEnableVertexAttribArray(0);
 
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (const void*)(3 * sizeof(GLfloat)));
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (const void*)(3 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(1);
-
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (const void*)(6 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(2);
 
 	glBindVertexArray(0); // unbind VAO
 
@@ -213,14 +256,20 @@ void Graphics::Engine::OnInput()
 void Graphics::Engine::OnRender()
 {
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // set color for clearing
-	glClear(GL_COLOR_BUFFER_BIT); // use set color to clear color buffer
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // use set color to clear color buffer
 
 	float time = static_cast<float>(glfwGetTime());
 
-	glm::mat4 transform = glm::mat4(1.0f);
-	transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
-	transform = glm::rotate(transform, time, glm::vec3(0.7071f, 0.0f, 0.7071f));
-	transform = glm::scale(transform, glm::vec3(1.0f, 1.0f, 1.0f));
+	glm::mat4 view(1.0f);
+	view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+
+	glm::mat4 projection = glm::perspective(
+		glm::radians(45.0f),
+		//static_cast<float>(mWindowWidth) / static_cast<float>(mWindowHeight),
+		16.0f / 9.0f,
+		0.1f,
+		100.0f
+	);
 
 	mShaderProgram.Bind();
 
@@ -231,19 +280,28 @@ void Graphics::Engine::OnRender()
 	}
 
 	mShaderProgram.SetUniform1f("uMixAlpha", gMixAlpha);
-	mShaderProgram.SetUniformMatrix4fv("uTransform", glm::value_ptr(transform));
+
+	mShaderProgram.SetUniformMatrix4fv("uView", glm::value_ptr(view));
+	mShaderProgram.SetUniformMatrix4fv("uProjection", glm::value_ptr(projection));
 
 	glBindVertexArray(mVAO);
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-	transform = glm::mat4(1.0f);
-	transform = glm::translate(transform, glm::vec3(-0.5f, 0.5f, 0.0f));
-	//transform = glm::rotate(transform, static_cast<float>(glfwGetTime()), glm::vec3(0.7071f, 0.0f, 0.7071f));
-	transform = glm::scale(transform, glm::vec3(1.0f) * sin(time));
+	for (int i = 0; i < CUBE_COUNT; i++)
+	{
+		glm::mat4 model(1.0f);
+		model = glm::translate(model, CUBE_POSITIONS[i]);
 
-	mShaderProgram.SetUniformMatrix4fv("uTransform", glm::value_ptr(transform));
+		float angle = 20.0f * i;
+		if (i % 3 == 0)
+		{
+			angle = time * 30.0f;
+		}
+		model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
 
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		mShaderProgram.SetUniformMatrix4fv("uModel", glm::value_ptr(model));
+
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+	}
 
 	glfwSwapBuffers(mWindow);
 }
