@@ -17,7 +17,25 @@ Camera::Camera(
 
 glm::mat4 Camera::GetViewMatrix() const
 {
-	return glm::lookAt(mCameraPos, mCameraPos + mCameraForward, mCameraUp);
+	glm::mat4 result(1.0f);
+
+	result[0][0] = mCameraRight.x;
+	result[1][0] = mCameraRight.y;
+	result[2][0] = mCameraRight.z;
+
+	result[0][1] = mCameraUp.x;
+	result[1][1] = mCameraUp.y;
+	result[2][1] = mCameraUp.z;
+
+	result[0][2] = -mCameraForward.x;
+	result[1][2] = -mCameraForward.y;
+	result[2][2] = -mCameraForward.z;
+
+	result[3][0] = -glm::dot(mCameraPos, mCameraRight);
+	result[3][1] = -glm::dot(mCameraPos, mCameraUp);
+	result[3][2] = glm::dot(mCameraPos, mCameraForward);
+
+	return result;
 }
 
 void Camera::Move(Movement movement)

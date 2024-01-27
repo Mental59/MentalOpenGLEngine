@@ -35,7 +35,7 @@ Graphics::Engine::Engine(const int windowWidth, const int windowHeight, const ch
 	mWindow(nullptr),
 	mShaderProgram(),
 	mVBO(0), mVAO(0), mEBO(0),
-	mCamera(glm::vec3(0.0f, 0.0f, 3.0f), 5.0f, 10.0f),
+	mCamera(glm::vec3(0.0f, 0.0f, 3.0f), 5.0f, 20.0f),
 	mLastMouseXPos(0.0f), mLastMouseYPos(0.0f), mIsFirstMouseMove(true)
 {
 	mInstance = this;
