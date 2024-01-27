@@ -158,17 +158,21 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\External\glad.c" />
+    <ClCompile Include="src\Graphics\Camera.cpp" />
     <ClCompile Include="src\Graphics\Engine.cpp" />
     <ClCompile Include="src\Graphics\Shader.cpp" />
     <ClCompile Include="src\Graphics\ShaderProgram.cpp" />
+    <ClCompile Include="src\Graphics\Time.cpp" />
     <ClCompile Include="src\Main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\External\stb_image.h" />
+    <ClInclude Include="src\Graphics\Camera.h" />
     <ClInclude Include="src\Graphics\DataTypes.h" />
     <ClInclude Include="src\Graphics\Engine.h" />
     <ClInclude Include="src\Graphics\Shader.h" />
     <ClInclude Include="src\Graphics\ShaderProgram.h" />
+    <ClInclude Include="src\Graphics\Time.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\Shaders\fragmentShader.frag" />

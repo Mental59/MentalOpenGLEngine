@@ -4,6 +4,7 @@
 #include <glad/glad.h>
 #include "DataTypes.h"
 #include "ShaderProgram.h"
+#include "Camera.h"
 
 struct GLFWwindow;
 
@@ -25,10 +26,13 @@ namespace Graphics
 		void BuildBuffers();
 		void BuildTextures(BuildTextureOptions optionList[], size_t n);
 		void Run();
+		void UpdateTimer();
 
 		virtual void OnResize(GLFWwindow* window, int width, int height);
 		virtual void OnInput();
 		virtual void OnRender();
+		virtual void OnMouseMove(float xpos, float ypos);
+		virtual void OnMouseScroll(float xOffset, float yOffset);
 
 	private:
 		static Engine* mInstance;
@@ -41,5 +45,10 @@ namespace Graphics
 		GLuint mVBO, mVAO, mEBO;
 
 		std::vector<GLuint> mTextureIDs;
+
+		Camera mCamera;
+
+		float mLastMouseXPos, mLastMouseYPos;
+		bool mIsFirstMouseMove;
 	};
 }

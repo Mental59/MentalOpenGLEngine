@@ -9,10 +9,11 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "External/stb_image.h"
 #include "Shader.h"
+#include "Camera.h"
+#include "Time.h"
 
 Graphics::Engine* Graphics::Engine::mInstance(nullptr);
 
-static float gMixAlpha = 0.2f;
 static constexpr int CUBE_COUNT = 10;
 static glm::vec3 CUBE_POSITIONS[CUBE_COUNT] = {
 	glm::vec3(0.0f, 0.0f, 0.0f),
@@ -33,7 +34,9 @@ Graphics::Engine::Engine(const int windowWidth, const int windowHeight, const ch
 	mTitle(title),
 	mWindow(nullptr),
 	mShaderProgram(),
-	mVBO(0), mVAO(0), mEBO(0)
+	mVBO(0), mVAO(0), mEBO(0),
+	mCamera(glm::vec3(0.0f, 0.0f, 3.0f), 5.0f, 10.0f),
+	mLastMouseXPos(0.0f), mLastMouseYPos(0.0f), mIsFirstMouseMove(true)
 {
 	mInstance = this;
 }
@@ -53,6 +56,16 @@ Graphics::Engine::~Engine()
 void OnResizeCallback(GLFWwindow* window, int width, int height)
 {
 	Graphics::Engine::GetInstance()->OnResize(window, width, height);
+}
+
+void OnCursorPoseCallback(GLFWwindow* window, double xpos, double ypos)
+{
+	Graphics::Engine::GetInstance()->OnMouseMove(static_cast<float>(xpos), static_cast<float>(ypos));
+}
+
+void OnMouseScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	Graphics::Engine::GetInstance()->OnMouseScroll(static_cast<float>(xoffset), static_cast<float>(yoffset));
 }
 
 bool Graphics::Engine::Init()
@@ -82,6 +95,10 @@ bool Graphics::Engine::Init()
 	std::cout << "Maximum nr of vertex attributes supported: " << nrAttributes << std::endl;
 
 	glfwSetFramebufferSizeCallback(mWindow, OnResizeCallback);
+	glfwSetCursorPosCallback(mWindow, OnCursorPoseCallback);
+	glfwSetScrollCallback(mWindow, OnMouseScrollCallback);
+
+	glfwSetInputMode(mWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	mShaderProgram.Build("src/Shaders/vertexShader.vert", "src/Shaders/fragmentShader.frag");
 	BuildBuffers();
@@ -219,12 +236,21 @@ void Graphics::Engine::Run()
 {
 	while (!glfwWindowShouldClose(mWindow))
 	{
+		UpdateTimer();
+
 		OnInput();
 
 		OnRender();
 
 		glfwPollEvents();
 	}
+}
+
+void Graphics::Engine::UpdateTimer()
+{
+	float currentFrame = static_cast<float>(glfwGetTime());
+	Time::DeltaTime = currentFrame - Time::LastFrame;
+	Time::LastFrame = currentFrame;
 }
 
 void Graphics::Engine::OnResize(GLFWwindow* window, int width, int height)
@@ -242,14 +268,29 @@ void Graphics::Engine::OnInput()
 		glfwSetWindowShouldClose(mWindow, true);
 	}
 
-	if (glfwGetKey(mWindow, GLFW_KEY_UP) == GLFW_PRESS)
+	if (glfwGetKey(mWindow, GLFW_KEY_A) == GLFW_PRESS)
 	{
-		gMixAlpha = gMixAlpha > 1.0f ? 1.0f : gMixAlpha + 0.001f;
+		mCamera.Move(Camera::Movement::Left);
 	}
-
-	if (glfwGetKey(mWindow, GLFW_KEY_DOWN) == GLFW_PRESS)
+	if (glfwGetKey(mWindow, GLFW_KEY_D) == GLFW_PRESS)
 	{
-		gMixAlpha = gMixAlpha < 0.0f ? 0.0f : gMixAlpha - 0.001f;
+		mCamera.Move(Camera::Movement::Right);
+	}
+	if (glfwGetKey(mWindow, GLFW_KEY_W) == GLFW_PRESS)
+	{
+		mCamera.Move(Camera::Movement::Forward);
+	}
+	if (glfwGetKey(mWindow, GLFW_KEY_S) == GLFW_PRESS)
+	{
+		mCamera.Move(Camera::Movement::Backward);
+	}
+	if (glfwGetKey(mWindow, GLFW_KEY_Q) == GLFW_PRESS)
+	{
+		mCamera.Move(Camera::Movement::Down);
+	}
+	if (glfwGetKey(mWindow, GLFW_KEY_E) == GLFW_PRESS)
+	{
+		mCamera.Move(Camera::Movement::Up);
 	}
 }
 
@@ -258,14 +299,8 @@ void Graphics::Engine::OnRender()
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // set color for clearing
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // use set color to clear color buffer
 
-	float time = static_cast<float>(glfwGetTime());
-
-	glm::mat4 view(1.0f);
-	view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
-
 	glm::mat4 projection = glm::perspective(
-		glm::radians(45.0f),
-		//static_cast<float>(mWindowWidth) / static_cast<float>(mWindowHeight),
+		glm::radians(mCamera.GetZoom()),
 		16.0f / 9.0f,
 		0.1f,
 		100.0f
@@ -279,9 +314,7 @@ void Graphics::Engine::OnRender()
 		glBindTexture(GL_TEXTURE_2D, mTextureIDs[i]);
 	}
 
-	mShaderProgram.SetUniform1f("uMixAlpha", gMixAlpha);
-
-	mShaderProgram.SetUniformMatrix4fv("uView", glm::value_ptr(view));
+	mShaderProgram.SetUniformMatrix4fv("uView", glm::value_ptr(mCamera.GetViewMatrix()));
 	mShaderProgram.SetUniformMatrix4fv("uProjection", glm::value_ptr(projection));
 
 	glBindVertexArray(mVAO);
@@ -294,7 +327,7 @@ void Graphics::Engine::OnRender()
 		float angle = 20.0f * i;
 		if (i % 3 == 0)
 		{
-			angle = time * 30.0f;
+			angle = Time::LastFrame * 30.0f;
 		}
 		model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
 
@@ -304,4 +337,27 @@ void Graphics::Engine::OnRender()
 	}
 
 	glfwSwapBuffers(mWindow);
+}
+
+void Graphics::Engine::OnMouseMove(float xpos, float ypos)
+{
+	if (mIsFirstMouseMove)
+	{
+		mLastMouseXPos = xpos;
+		mLastMouseYPos = ypos;
+		mIsFirstMouseMove = false;
+	}
+
+	float xOffset = xpos - mLastMouseXPos;
+	float yOffset = mLastMouseYPos - ypos;
+
+	mLastMouseXPos = xpos;
+	mLastMouseYPos = ypos;
+
+	mCamera.Rotate(xOffset, yOffset);
+}
+
+void Graphics::Engine::OnMouseScroll(float xOffset, float yOffset)
+{
+	mCamera.Zoom(yOffset);
 }
