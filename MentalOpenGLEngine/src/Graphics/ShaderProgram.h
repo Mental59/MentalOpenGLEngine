@@ -21,8 +21,9 @@ public:
 
 	void SetUniform1i(const std::string& name, GLint value);
 	void SetUniform1f(const std::string& name, GLfloat value);
-	void SetUniform4f(const std::string& name, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3);
-	void SetUniformMatrix4fv(const std::string& name, const GLfloat* data);
+	void SetUniformVec4(const std::string& name, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3);
+	void SetUniformMat4(const std::string& name, const GLfloat* data);
+	void SetUniformVec3(const std::string& name, GLfloat v0, GLfloat v1, GLfloat v2);
 
 private:
 	GLint GetUniformLocation(const std::string& name);

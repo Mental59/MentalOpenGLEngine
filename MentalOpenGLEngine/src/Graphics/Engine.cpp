@@ -14,27 +14,14 @@
 
 Graphics::Engine* Graphics::Engine::mInstance(nullptr);
 
-static constexpr int CUBE_COUNT = 10;
-static glm::vec3 CUBE_POSITIONS[CUBE_COUNT] = {
-	glm::vec3(0.0f, 0.0f, 0.0f),
-	glm::vec3(2.0f, 5.0f, -15.0f),
-	glm::vec3(-1.5f, -2.2f, -2.5f),
-	glm::vec3(-3.8f, -2.0f, -12.3f),
-	glm::vec3(2.4f, -0.4f, -3.5f),
-	glm::vec3(-1.7f, 3.0f, -7.5f),
-	glm::vec3(1.3f, -2.0f, -2.5f),
-	glm::vec3(1.5f, 2.0f, -2.5f),
-	glm::vec3(1.5f, 0.2f, -1.5f),
-	glm::vec3(-1.3f, 1.0f, -1.5f)
-};
-
 Graphics::Engine::Engine(const int windowWidth, const int windowHeight, const char* title) :
 	mWindowWidth(windowWidth),
 	mWindowHeight(windowHeight),
 	mTitle(title),
 	mWindow(nullptr),
-	mShaderProgram(),
-	mVBO(0), mVAO(0), mEBO(0),
+	mBaseShaderProgram(),
+	mLightCubeShaderProgram(),
+	mVBO(0), mCubeVAO(0), mEBO(0), mLightVAO(0),
 	mCamera(glm::vec3(0.0f, 0.0f, 3.0f), 5.0f, 20.0f),
 	mLastMouseXPos(0.0f), mLastMouseYPos(0.0f), mIsFirstMouseMove(true)
 {
@@ -43,12 +30,16 @@ Graphics::Engine::Engine(const int windowWidth, const int windowHeight, const ch
 
 Graphics::Engine::~Engine()
 {
-	glDeleteVertexArrays(1, &mVAO);
+	glDeleteVertexArrays(1, &mCubeVAO);
+	glDeleteVertexArrays(1, &mLightVAO);
 
 	glDeleteBuffers(1, &mVBO);
 	glDeleteBuffers(1, &mEBO);
 
-	glDeleteTextures(mTextureIDs.size(), mTextureIDs.data());
+	if (mTextureIDs.size() > 0)
+	{
+		glDeleteTextures(mTextureIDs.size(), mTextureIDs.data());
+	}
 
 	glfwTerminate();
 }
@@ -100,17 +91,19 @@ bool Graphics::Engine::Init()
 
 	glfwSetInputMode(mWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-	mShaderProgram.Build("src/Shaders/vertexShader.vert", "src/Shaders/fragmentShader.frag");
+	mBaseShaderProgram.Build("src/Shaders/base.vert", "src/Shaders/base.frag");
+	mLightCubeShaderProgram.Build("src/Shaders/lightCube.vert", "src/Shaders/lightCube.frag");
+
 	BuildBuffers();
 
 	stbi_set_flip_vertically_on_load(true);
 
-	constexpr size_t nTextures = 2;
-	BuildTextureOptions optionList[nTextures]{
-		{"resources/textures/container.jpg", GL_RGB, GL_RGB},
-		{"resources/textures/awesomeface.png", GL_RGBA, GL_RGBA }
-	};
-	BuildTextures(optionList, nTextures);
+	//constexpr size_t nTextures = 2;
+	//BuildTextureOptions optionList[nTextures]{
+	//	{"resources/textures/container.jpg", GL_RGB, GL_RGB},
+	//	{"resources/textures/awesomeface.png", GL_RGBA, GL_RGBA }
+	//};
+	//BuildTextures(&mBaseShaderProgram, optionList, nTextures);
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe mode
 	glEnable(GL_DEPTH_TEST);
@@ -121,7 +114,6 @@ bool Graphics::Engine::Init()
 void Graphics::Engine::BuildBuffers()
 {
 	GLfloat cubeVertices[] = {
-		// positions          // texture coordinates
 		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
 		 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
 		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
@@ -165,7 +157,7 @@ void Graphics::Engine::BuildBuffers()
 		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 	};
 
-	glGenVertexArrays(1, &mVAO);
+	glGenVertexArrays(1, &mCubeVAO);
 	glGenBuffers(1, &mVBO);
 	glGenBuffers(1, &mEBO);
 
@@ -173,16 +165,23 @@ void Graphics::Engine::BuildBuffers()
 	glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
 
 	// VAO stores calls to glVertexAttribPointer, glEnableVertexAttribArray, glDisableVertexAttribArray, glBindBuffer for GL_ELEMENT_ARRAY_BUFFER
-	glBindVertexArray(mVAO);
-
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEBO);
-	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(rectangleIndices), rectangleIndices, GL_STATIC_DRAW);
+	glBindVertexArray(mCubeVAO);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (const void*)0); // VBO must be bound before calling this function
 	glEnableVertexAttribArray(0);
 
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (const void*)(3 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(1);
+
+
+	glGenVertexArrays(1, &mLightVAO);
+	glBindVertexArray(mLightVAO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, mVBO);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (const void*)0);
+	glEnableVertexAttribArray(0);
+
 
 	glBindVertexArray(0); // unbind VAO
 
@@ -191,11 +190,15 @@ void Graphics::Engine::BuildBuffers()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // unbind EBO (do it after unbinding VAO otherwise VAO will store unbind call)
 }
 
-void Graphics::Engine::BuildTextures(BuildTextureOptions optionList[], size_t n)
+void Graphics::Engine::BuildTextures(
+	ShaderProgram* shaderProgram,
+	BuildTextureOptions optionList[],
+	size_t n
+)
 {
 	mTextureIDs.reserve(n);
 
-	mShaderProgram.Bind();
+	shaderProgram->Bind();
 
 	for (size_t i = 0; i < n; i++)
 	{
@@ -222,14 +225,14 @@ void Graphics::Engine::BuildTextures(BuildTextureOptions optionList[], size_t n)
 			std::cout << std::format("Failed to load the texture {}", optionList[i].path) << std::endl;
 		}
 
-		mShaderProgram.SetUniform1i(std::format("uTexture{}", i + 1), i);
+		shaderProgram->SetUniform1i(std::format("uTexture{}", i + 1), i);
 
 		mTextureIDs.push_back(textureID);
 
 		stbi_image_free(data);
 	}
 
-	mShaderProgram.Unbind();
+	shaderProgram->Unbind();
 }
 
 void Graphics::Engine::Run()
@@ -296,7 +299,9 @@ void Graphics::Engine::OnInput()
 
 void Graphics::Engine::OnRender()
 {
-	glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // set color for clearing
+	static glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+
+	glClearColor(0.1f, 0.1f, 0.1f, 1.0f); // set color for clearing
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // use set color to clear color buffer
 
 	glm::mat4 projection = glm::perspective(
@@ -305,36 +310,30 @@ void Graphics::Engine::OnRender()
 		0.1f,
 		100.0f
 	);
+	glm::mat4 view = mCamera.GetViewMatrix();
+	glm::mat4 model(1.0f);
 
-	mShaderProgram.Bind();
+	mBaseShaderProgram.Bind();
+	mBaseShaderProgram.SetUniformMat4("uView", glm::value_ptr(view));
+	mBaseShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(projection));
+	mBaseShaderProgram.SetUniformMat4("uModel", glm::value_ptr(model));
+	mBaseShaderProgram.SetUniformVec3("uObjectColor", 1.0f, 0.5f, 0.31f);
+	mBaseShaderProgram.SetUniformVec3("uLightColor", 1.0f, 1.0f, 1.0f);
 
-	for (size_t i = 0; i < mTextureIDs.size(); i++)
-	{
-		glActiveTexture(GL_TEXTURE0 + i);
-		glBindTexture(GL_TEXTURE_2D, mTextureIDs[i]);
-	}
+	glBindVertexArray(mCubeVAO);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
 
-	mShaderProgram.SetUniformMatrix4fv("uView", glm::value_ptr(mCamera.GetViewMatrix()));
-	mShaderProgram.SetUniformMatrix4fv("uProjection", glm::value_ptr(projection));
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, lightPos);
+	model = glm::scale(model, glm::vec3(0.2f));
 
-	glBindVertexArray(mVAO);
+	mLightCubeShaderProgram.Bind();
+	mLightCubeShaderProgram.SetUniformMat4("uView", glm::value_ptr(view));
+	mLightCubeShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(projection));
+	mLightCubeShaderProgram.SetUniformMat4("uModel", glm::value_ptr(model));
 
-	for (int i = 0; i < CUBE_COUNT; i++)
-	{
-		glm::mat4 model(1.0f);
-		model = glm::translate(model, CUBE_POSITIONS[i]);
-
-		float angle = 20.0f * i;
-		if (i % 3 == 0)
-		{
-			angle = Time::LastFrame * 30.0f;
-		}
-		model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-
-		mShaderProgram.SetUniformMatrix4fv("uModel", glm::value_ptr(model));
-
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-	}
+	glBindVertexArray(mLightVAO);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
 
 	glfwSwapBuffers(mWindow);
 }
@@ -355,6 +354,7 @@ void Graphics::Engine::OnMouseMove(float xpos, float ypos)
 	mLastMouseYPos = ypos;
 
 	mCamera.Rotate(xOffset, yOffset);
+
 }
 
 void Graphics::Engine::OnMouseScroll(float xOffset, float yOffset)

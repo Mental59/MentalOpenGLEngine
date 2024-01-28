@@ -24,7 +24,11 @@ namespace Graphics
 
 		bool Init();
 		void BuildBuffers();
-		void BuildTextures(BuildTextureOptions optionList[], size_t n);
+		void BuildTextures(
+			ShaderProgram* shaderProgram,
+			BuildTextureOptions optionList[],
+			size_t n
+		);
 		void Run();
 		void UpdateTimer();
 
@@ -41,8 +45,9 @@ namespace Graphics
 		const char* mTitle;
 
 		GLFWwindow* mWindow;
-		ShaderProgram mShaderProgram;
-		GLuint mVBO, mVAO, mEBO;
+		ShaderProgram mBaseShaderProgram;
+		ShaderProgram mLightCubeShaderProgram;
+		GLuint mVBO, mCubeVAO, mEBO, mLightVAO;
 
 		std::vector<GLuint> mTextureIDs;
 

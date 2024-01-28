@@ -61,8 +61,10 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="src\Shaders\vertexShader.vert" />
-    <None Include="src\Shaders\fragmentShader.frag" />
+    <None Include="src\Shaders\base.vert" />
+    <None Include="src\Shaders\base.frag" />
+    <None Include="src\Shaders\lightCube.frag" />
+    <None Include="src\Shaders\lightCube.vert" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="resources\textures\awesomeface.png">
