@@ -3,7 +3,7 @@
 int main()
 {
 	{
-		Graphics::Engine engine(800, 600, "OpenGLEngine");
+		Graphics::Engine engine(1920, 1080, "OpenGLEngine");
 
 		if (!engine.Init())
 		{
