@@ -24,6 +24,7 @@ public:
 	void SetUniformVec4(const std::string& name, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3);
 	void SetUniformMat4(const std::string& name, const GLfloat* data);
 	void SetUniformVec3(const std::string& name, GLfloat v0, GLfloat v1, GLfloat v2);
+	void SetUniformVec3(const std::string& name, const GLfloat* data);
 
 private:
 	GLint GetUniformLocation(const std::string& name);

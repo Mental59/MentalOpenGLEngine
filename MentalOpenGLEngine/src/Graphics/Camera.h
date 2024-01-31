@@ -18,6 +18,7 @@ public:
 
 	glm::mat4 GetViewMatrix() const;
 	inline float GetZoom() const { return mZoom; }
+	inline const glm::vec3& GetWorldPosition() const { return mCameraPos; }
 
 	void Move(Movement movement);
 	void Rotate(float xOffset, float yOffset);

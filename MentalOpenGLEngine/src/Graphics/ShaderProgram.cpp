@@ -88,6 +88,11 @@ void ShaderProgram::SetUniformVec3(const std::string& name, GLfloat v0, GLfloat 
 	glUniform3f(GetUniformLocation(name), v0, v1, v2);
 }
 
+void ShaderProgram::SetUniformVec3(const std::string& name, const GLfloat* data)
+{
+	glUniform3fv(GetUniformLocation(name), 1, data);
+}
+
 GLint ShaderProgram::GetUniformLocation(const std::string& name)
 {
 	if (mUniformLocationCache.find(name) != mUniformLocationCache.end())
