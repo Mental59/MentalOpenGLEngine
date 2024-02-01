@@ -308,28 +308,45 @@ void Graphics::Engine::OnInput()
 
 void Graphics::Engine::OnRender()
 {
-	glm::vec3 lightPos = glm::vec3(1.2f, 0.0f, 2.0f) + glm::vec3(sin(Time::LastFrame) * 3.0f, 0.0f, 0.0f);
+	glm::vec3 lightPos = glm::vec3(1.2f, 0.0f, 2.0f) /*+ glm::vec3(sin(Time::LastFrame) * 3.0f, 0.0f, 0.0f)*/;
 
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f); // set color for clearing
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // use set color to clear color buffer
 
 	glm::mat4 projection = glm::perspective(
 		glm::radians(mCamera.GetZoom()),
-		16.0f / 9.0f,
+		static_cast<float>(mWindowWidth) / static_cast<float>(mWindowHeight),
 		0.1f,
 		100.0f
 	);
 	glm::mat4 view = mCamera.GetViewMatrix();
 	glm::mat4 model(1.0f);
 
+	glm::vec3 lightColor(
+		sin(Time::LastFrame * 2.0f),
+		sin(Time::LastFrame * 0.7f),
+		sin(Time::LastFrame * 1.3f)
+	);
+	glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
+	glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
+
 	mBaseShaderProgram.Bind();
+
 	mBaseShaderProgram.SetUniformMat4("uView", glm::value_ptr(view));
 	mBaseShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(projection));
 	mBaseShaderProgram.SetUniformMat4("uModel", glm::value_ptr(model));
-	mBaseShaderProgram.SetUniformVec3("uObjectColor", 1.0f, 0.5f, 0.31f);
-	mBaseShaderProgram.SetUniformVec3("uLightColor", 1.0f, 1.0f, 1.0f);
-	mBaseShaderProgram.SetUniformVec3("uLightPos", glm::value_ptr(lightPos));
+
 	mBaseShaderProgram.SetUniformVec3("uViewPos", glm::value_ptr(mCamera.GetWorldPosition()));
+
+	mBaseShaderProgram.SetUniformVec3("uMaterial.ambient", 1.0f, 0.5f, 0.31f);
+	mBaseShaderProgram.SetUniformVec3("uMaterial.diffuse", 1.0f, 0.5f, 0.31f);
+	mBaseShaderProgram.SetUniformVec3("uMaterial.specular", 0.5f, 0.5f, 0.5f);
+	mBaseShaderProgram.SetUniform1f("uMaterial.shininess", 128.0f);
+
+	mBaseShaderProgram.SetUniformVec3("uLight.ambient", glm::value_ptr(ambientColor));
+	mBaseShaderProgram.SetUniformVec3("uLight.diffuse", glm::value_ptr(diffuseColor));
+	mBaseShaderProgram.SetUniformVec3("uLight.specular", 1.0f, 1.0f, 1.0f);
+	mBaseShaderProgram.SetUniformVec3("uLight.position", glm::value_ptr(lightPos));
 
 	glBindVertexArray(mCubeVAO);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -342,6 +359,7 @@ void Graphics::Engine::OnRender()
 	mLightCubeShaderProgram.SetUniformMat4("uView", glm::value_ptr(view));
 	mLightCubeShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(projection));
 	mLightCubeShaderProgram.SetUniformMat4("uModel", glm::value_ptr(model));
+	mLightCubeShaderProgram.SetUniformVec3("uLightColor", glm::value_ptr(lightColor));
 
 	glBindVertexArray(mLightVAO);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
