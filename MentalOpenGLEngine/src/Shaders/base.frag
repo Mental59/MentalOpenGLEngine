@@ -23,10 +23,10 @@ void main()
 	vec3 diffuse = diffuseFactor * uLightColor;
 
 	float specularStrength = 0.5;
-	float specularHighlightShininess = 32;
+	float specularHighlightShininess = 32 * 4;
 	vec3 viewDirection = normalize(uViewPos - vWorldPos);
-	vec3 reflectDirection = reflect(-lightDirection, normal);
-	float specularFactor = pow(max(dot(viewDirection, reflectDirection), 0.0), specularHighlightShininess);
+	vec3 halhwayDirection = normalize(viewDirection + lightDirection);
+	float specularFactor = pow(max(dot(halhwayDirection, normal), 0.0), specularHighlightShininess);
 	vec3 specular = specularStrength * specularFactor * uLightColor;
 	
 	vec3 finalColor = (ambient + diffuse + specular) * uObjectColor;
