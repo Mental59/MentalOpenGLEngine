@@ -6,19 +6,24 @@ layout (location = 2) in vec2 aTexCoords;
 
 out vec2 vTexCoords;
 out vec3 vNormal;
-out vec3 vWorldPos;
+out vec3 vFragmentPos;
+out vec3 vLightPos;
 
 uniform mat4 uModel;
 uniform mat4 uView;
 uniform mat4 uProjection;
 
+uniform vec3 uLightWorldPos;
+
 void main()
 {
-	vWorldPos = vec3(uModel * vec4(aPos, 1.0));
+	vFragmentPos = vec3(uView * uModel * vec4(aPos, 1.0));
 
-	vNormal = transpose(inverse(mat3(uModel))) * aNormal;
+	vNormal = transpose(inverse(mat3(uView * uModel))) * aNormal;
+
+	vLightPos = vec3(uView * vec4(uLightWorldPos, 1.0));
 
 	vTexCoords = aTexCoords;
 
-	gl_Position = uProjection * uView * vec4(vWorldPos, 1.0);
+	gl_Position = uProjection * vec4(vFragmentPos, 1.0);
 }

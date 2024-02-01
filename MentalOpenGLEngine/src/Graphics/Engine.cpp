@@ -308,7 +308,7 @@ void Graphics::Engine::OnInput()
 
 void Graphics::Engine::OnRender()
 {
-	glm::vec3 lightPos = glm::vec3(1.2f, 0.0f, 2.0f) + glm::vec3(sin(Time::LastFrame) * 3.0f, 0.0f, 0.0f);
+	glm::vec3 lightWorldPos = glm::vec3(1.2f, 0.0f, 2.0f) + glm::vec3(sin(Time::LastFrame) * 3.0f, 0.0f, 0.0f);
 
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f); // set color for clearing
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // use set color to clear color buffer
@@ -328,14 +328,13 @@ void Graphics::Engine::OnRender()
 	mBaseShaderProgram.SetUniformMat4("uModel", glm::value_ptr(model));
 	mBaseShaderProgram.SetUniformVec3("uObjectColor", 1.0f, 0.5f, 0.31f);
 	mBaseShaderProgram.SetUniformVec3("uLightColor", 1.0f, 1.0f, 1.0f);
-	mBaseShaderProgram.SetUniformVec3("uLightPos", glm::value_ptr(lightPos));
-	mBaseShaderProgram.SetUniformVec3("uViewPos", glm::value_ptr(mCamera.GetWorldPosition()));
+	mBaseShaderProgram.SetUniformVec3("uLightWorldPos", glm::value_ptr(lightWorldPos));
 
 	glBindVertexArray(mCubeVAO);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 
 	model = glm::mat4(1.0f);
-	model = glm::translate(model, lightPos);
+	model = glm::translate(model, lightWorldPos);
 	model = glm::scale(model, glm::vec3(0.2f));
 
 	mLightCubeShaderProgram.Bind();
