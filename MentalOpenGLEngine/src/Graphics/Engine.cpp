@@ -85,6 +85,9 @@ bool Graphics::Engine::Init()
 	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
 	std::cout << "Maximum nr of vertex attributes supported: " << nrAttributes << std::endl;
 
+	const GLubyte* glVersion = glGetString(GL_VERSION);
+	std::cout << "OpenGL version: " << glVersion << std::endl;
+
 	glfwSetFramebufferSizeCallback(mWindow, OnResizeCallback);
 	glfwSetCursorPosCallback(mWindow, OnCursorPoseCallback);
 	glfwSetScrollCallback(mWindow, OnMouseScrollCallback);
@@ -219,7 +222,7 @@ void Graphics::Engine::BuildTextures(
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); // trilinear filtering
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 		int width, height, numChannels;
