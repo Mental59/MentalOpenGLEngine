@@ -101,10 +101,11 @@ bool Graphics::Engine::Init()
 
 	stbi_set_flip_vertically_on_load(true);
 
-	constexpr size_t nTextures = 2;
+	constexpr size_t nTextures = 3;
 	BuildTextureOptions optionList[nTextures]{
 		{"resources/textures/container2.png", "uMaterial.diffuse"},
-		{"resources/textures/container2_specular.png", "uMaterial.specular"}
+		{"resources/textures/container2_specular.png", "uMaterial.specular"},
+		{"resources/textures/matrix.jpg", "uMaterial.emission"}
 	};
 	BuildTextures(&mBaseShaderProgram, optionList, nTextures);
 
@@ -328,7 +329,7 @@ void Graphics::Engine::OnInput()
 
 void Graphics::Engine::OnRender()
 {
-	glm::vec3 lightPos = glm::vec3(1.2f, 0.0f, 2.0f) /*+ glm::vec3(sin(Time::LastFrame) * 3.0f, 0.0f, 0.0f)*/;
+	glm::vec3 lightPos = glm::vec3(0.0f, 0.0f, 0.0f) + glm::vec3(sin(Time::LastFrame), 0.0f, cos(Time::LastFrame)) * 3.0f;
 
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f); // set color for clearing
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // use set color to clear color buffer

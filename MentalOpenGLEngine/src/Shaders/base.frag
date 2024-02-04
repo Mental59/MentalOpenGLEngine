@@ -4,6 +4,7 @@ struct Material
 {
 	sampler2D diffuse;
 	sampler2D specular;
+	sampler2D emission;
 	float shininess;
 };
 
@@ -27,14 +28,14 @@ uniform Light uLight;
 
 vec3 ComputeAmbient()
 {
-	vec3 ambient = uLight.ambient * vec3(texture(uMaterial.diffuse, vTexCoords));
+	vec3 ambient = uLight.ambient * texture(uMaterial.diffuse, vTexCoords).rgb;
 	return ambient;
 }
 
 vec3 ComputeDiffuse(const vec3 normal, const vec3 lightDirection)
 {
 	float diffuseFactor = max(dot(normal, lightDirection), 0.0);
-	vec3 diffuse = diffuseFactor * uLight.diffuse * vec3(texture(uMaterial.diffuse, vTexCoords));
+	vec3 diffuse = diffuseFactor * uLight.diffuse * texture(uMaterial.diffuse, vTexCoords).rgb;
 	return diffuse;
 }
 
@@ -43,7 +44,7 @@ vec3 ComputeSpecular(const vec3 normal, const vec3 lightDirection)
 	vec3 viewDirection = normalize(uViewPos - vWorldPos);
 	vec3 halhwayDirection = normalize(viewDirection + lightDirection);
 	float specularFactor = pow(max(dot(halhwayDirection, normal), 0.0), uMaterial.shininess);
-	vec3 specular = specularFactor * uLight.specular * vec3(texture(uMaterial.specular, vTexCoords));
+	vec3 specular = specularFactor * uLight.specular * texture(uMaterial.specular, vTexCoords).rgb;
 	return specular;
 }
 
@@ -56,5 +57,7 @@ void main()
 	vec3 diffuse = ComputeDiffuse(normal, lightDirection);
 	vec3 specular = ComputeSpecular(normal, lightDirection);
 
-	FragColor = vec4(ambient + diffuse + specular, 1.0f);
+	vec3 emission = texture(uMaterial.emission, vTexCoords).rgb * step(vec3(1.0), vec3(1.0) - texture(uMaterial.specular, vTexCoords).rgb);
+
+	FragColor = vec4(ambient + diffuse + specular + emission, 1.0f);
 }
