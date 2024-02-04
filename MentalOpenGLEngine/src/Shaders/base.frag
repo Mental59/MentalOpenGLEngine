@@ -2,17 +2,14 @@
 
 struct Material
 {
-	vec3 ambient;
-	vec3 diffuse;
-	vec3 specular;
-
+	sampler2D diffuse;
+	sampler2D specular;
 	float shininess;
 };
 
 struct Light
 {
 	vec3 position;
-
 	vec3 ambient;
 	vec3 diffuse;
 	vec3 specular; 
@@ -30,14 +27,14 @@ uniform Light uLight;
 
 vec3 ComputeAmbient()
 {
-	vec3 ambient = uLight.ambient * uMaterial.ambient;
+	vec3 ambient = uLight.ambient * vec3(texture(uMaterial.diffuse, vTexCoords));
 	return ambient;
 }
 
 vec3 ComputeDiffuse(const vec3 normal, const vec3 lightDirection)
 {
 	float diffuseFactor = max(dot(normal, lightDirection), 0.0);
-	vec3 diffuse = diffuseFactor * uLight.diffuse * uMaterial.diffuse;
+	vec3 diffuse = diffuseFactor * uLight.diffuse * vec3(texture(uMaterial.diffuse, vTexCoords));
 	return diffuse;
 }
 
@@ -46,7 +43,7 @@ vec3 ComputeSpecular(const vec3 normal, const vec3 lightDirection)
 	vec3 viewDirection = normalize(uViewPos - vWorldPos);
 	vec3 halhwayDirection = normalize(viewDirection + lightDirection);
 	float specularFactor = pow(max(dot(halhwayDirection, normal), 0.0), uMaterial.shininess);
-	vec3 specular = specularFactor * uLight.specular * uMaterial.specular;
+	vec3 specular = specularFactor * uLight.specular * vec3(texture(uMaterial.specular, vTexCoords));
 	return specular;
 }
 

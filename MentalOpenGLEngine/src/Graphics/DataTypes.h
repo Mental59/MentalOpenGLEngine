@@ -3,6 +3,5 @@
 struct BuildTextureOptions
 {
 	const char* path;
-	GLint internalFormat;
-	GLenum format;
+	const char* uniformName;
 };

@@ -101,12 +101,12 @@ bool Graphics::Engine::Init()
 
 	stbi_set_flip_vertically_on_load(true);
 
-	//constexpr size_t nTextures = 2;
-	//BuildTextureOptions optionList[nTextures]{
-	//	{"resources/textures/container.jpg", GL_RGB, GL_RGB},
-	//	{"resources/textures/awesomeface.png", GL_RGBA, GL_RGBA }
-	//};
-	//BuildTextures(&mBaseShaderProgram, optionList, nTextures);
+	constexpr size_t nTextures = 2;
+	BuildTextureOptions optionList[nTextures]{
+		{"resources/textures/container2.png", "uMaterial.diffuse"},
+		{"resources/textures/container2_specular.png", "uMaterial.specular"}
+	};
+	BuildTextures(&mBaseShaderProgram, optionList, nTextures);
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe mode
 	glEnable(GL_DEPTH_TEST);
@@ -227,9 +227,24 @@ void Graphics::Engine::BuildTextures(
 
 		int width, height, numChannels;
 		unsigned char* data = stbi_load(optionList[i].path, &width, &height, &numChannels, 0);
+
+		GLenum format = 0;
+		if (numChannels == 1)
+		{
+			format = GL_RED;
+		}
+		else if (numChannels == 3)
+		{
+			format = GL_RGB;
+		}
+		else if (numChannels == 4)
+		{
+			format = GL_RGBA;
+		}
+
 		if (data)
 		{
-			glTexImage2D(GL_TEXTURE_2D, 0, optionList[i].internalFormat, width, height, 0, optionList[i].format, GL_UNSIGNED_BYTE, data);
+			glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
 			glGenerateMipmap(GL_TEXTURE_2D);
 		}
 		else
@@ -237,12 +252,14 @@ void Graphics::Engine::BuildTextures(
 			std::cout << std::format("Failed to load the texture {}", optionList[i].path) << std::endl;
 		}
 
-		shaderProgram->SetUniform1i(std::format("uTexture{}", i + 1), i);
+		shaderProgram->SetUniform1i(optionList[i].uniformName, i);
 
 		mTextureIDs.push_back(textureID);
 
 		stbi_image_free(data);
 	}
+
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 	shaderProgram->Unbind();
 }
@@ -325,11 +342,7 @@ void Graphics::Engine::OnRender()
 	glm::mat4 view = mCamera.GetViewMatrix();
 	glm::mat4 model(1.0f);
 
-	glm::vec3 lightColor(
-		sin(Time::LastFrame * 2.0f),
-		sin(Time::LastFrame * 0.7f),
-		sin(Time::LastFrame * 1.3f)
-	);
+	glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
 	glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
 	glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
 
@@ -341,15 +354,18 @@ void Graphics::Engine::OnRender()
 
 	mBaseShaderProgram.SetUniformVec3("uViewPos", glm::value_ptr(mCamera.GetWorldPosition()));
 
-	mBaseShaderProgram.SetUniformVec3("uMaterial.ambient", 1.0f, 0.5f, 0.31f);
-	mBaseShaderProgram.SetUniformVec3("uMaterial.diffuse", 1.0f, 0.5f, 0.31f);
-	mBaseShaderProgram.SetUniformVec3("uMaterial.specular", 0.5f, 0.5f, 0.5f);
 	mBaseShaderProgram.SetUniform1f("uMaterial.shininess", 128.0f);
 
 	mBaseShaderProgram.SetUniformVec3("uLight.ambient", glm::value_ptr(ambientColor));
 	mBaseShaderProgram.SetUniformVec3("uLight.diffuse", glm::value_ptr(diffuseColor));
 	mBaseShaderProgram.SetUniformVec3("uLight.specular", 1.0f, 1.0f, 1.0f);
 	mBaseShaderProgram.SetUniformVec3("uLight.position", glm::value_ptr(lightPos));
+
+	for (size_t i = 0; i < mTextureIDs.size(); i++)
+	{
+		glActiveTexture(GL_TEXTURE0 + i);
+		glBindTexture(GL_TEXTURE_2D, mTextureIDs[i]);
+	}
 
 	glBindVertexArray(mCubeVAO);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
