@@ -345,6 +345,7 @@ void Graphics::Engine::OnRender()
 	glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
 	glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
 	glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
+	glm::vec3 specularColor = lightColor * glm::vec3(1.0f);
 
 	mBaseShaderProgram.Bind();
 
@@ -358,7 +359,7 @@ void Graphics::Engine::OnRender()
 
 	mBaseShaderProgram.SetUniformVec3("uLight.ambient", glm::value_ptr(ambientColor));
 	mBaseShaderProgram.SetUniformVec3("uLight.diffuse", glm::value_ptr(diffuseColor));
-	mBaseShaderProgram.SetUniformVec3("uLight.specular", 1.0f, 1.0f, 1.0f);
+	mBaseShaderProgram.SetUniformVec3("uLight.specular", glm::value_ptr(specularColor));
 	mBaseShaderProgram.SetUniformVec3("uLight.position", glm::value_ptr(lightPos));
 
 	for (size_t i = 0; i < mTextureIDs.size(); i++)
