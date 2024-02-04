@@ -67,8 +67,8 @@ void Camera::Move(Movement movement)
 
 void Camera::Rotate(float xOffset, float yOffset)
 {
-	mYaw += xOffset * mMouseSensitivity * Time::DeltaTime;
-	mPitch += yOffset * mMouseSensitivity * Time::DeltaTime;
+	mYaw += xOffset * mMouseSensitivity;
+	mPitch += yOffset * mMouseSensitivity;
 
 	if (mPitch > 89.0f)
 	{

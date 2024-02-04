@@ -22,7 +22,7 @@ Graphics::Engine::Engine(const int windowWidth, const int windowHeight, const ch
 	mBaseShaderProgram(),
 	mLightCubeShaderProgram(),
 	mVBO(0), mCubeVAO(0), mEBO(0), mLightVAO(0),
-	mCamera(glm::vec3(0.0f, 0.0f, 3.0f), 5.0f, 20.0f),
+	mCamera(glm::vec3(0.0f, 0.0f, 3.0f), 5.0f, 0.1f),
 	mLastMouseXPos(0.0f), mLastMouseYPos(0.0f), mIsFirstMouseMove(true)
 {
 	mInstance = this;
@@ -66,7 +66,9 @@ bool Graphics::Engine::Init()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	mWindow = glfwCreateWindow(mWindowWidth, mWindowHeight, mTitle, NULL, NULL);
+	GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+
+	mWindow = glfwCreateWindow(mWindowWidth, mWindowHeight, mTitle, monitor, NULL);
 	if (mWindow == NULL)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
@@ -74,6 +76,7 @@ bool Graphics::Engine::Init()
 	}
 
 	glfwMakeContextCurrent(mWindow);
+	//glfwSwapInterval(0);
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
@@ -342,8 +345,9 @@ void Graphics::Engine::OnRender()
 	);
 	glm::mat4 view = mCamera.GetViewMatrix();
 	glm::mat4 model(1.0f);
+	model = glm::rotate(model, glm::radians(Time::LastFrame * 50.0f), glm::vec3(0.0f, 1.0f, 1.0f));
 
-	glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
+	glm::vec3 lightColor(sin(Time::LastFrame * 2.0f), sin(Time::LastFrame * 0.7f), sin(Time::LastFrame * 1.3f));
 	glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
 	glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
 	glm::vec3 specularColor = lightColor * glm::vec3(1.0f);
@@ -365,7 +369,6 @@ void Graphics::Engine::OnRender()
 
 	float emissionShift = Time::LastFrame * 0.5f;
 	emissionShift -= (int)emissionShift;
-	std::cout << emissionShift << std::endl;
 	mBaseShaderProgram.SetUniform1f("emissionShift", emissionShift);
 
 	for (size_t i = 0; i < mTextureIDs.size(); i++)
