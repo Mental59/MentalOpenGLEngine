@@ -76,7 +76,7 @@ bool Graphics::Engine::Init()
 	}
 
 	glfwMakeContextCurrent(mWindow);
-	//glfwSwapInterval(0);
+	glfwSwapInterval(0);
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
