@@ -363,6 +363,11 @@ void Graphics::Engine::OnRender()
 	mBaseShaderProgram.SetUniformVec3("uLight.specular", glm::value_ptr(specularColor));
 	mBaseShaderProgram.SetUniformVec3("uLight.position", glm::value_ptr(lightPos));
 
+	float emissionShift = Time::LastFrame * 0.5f;
+	emissionShift -= (int)emissionShift;
+	std::cout << emissionShift << std::endl;
+	mBaseShaderProgram.SetUniform1f("emissionShift", emissionShift);
+
 	for (size_t i = 0; i < mTextureIDs.size(); i++)
 	{
 		glActiveTexture(GL_TEXTURE0 + i);
