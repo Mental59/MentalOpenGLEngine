@@ -59,16 +59,31 @@ void OnMouseScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 	Graphics::Engine::GetInstance()->OnMouseScroll(static_cast<float>(xoffset), static_cast<float>(yoffset));
 }
 
-bool Graphics::Engine::Init()
+bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 {
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 
-	mWindow = glfwCreateWindow(mWindowWidth, mWindowHeight, mTitle, monitor, NULL);
+	if (windowedFullscreen)
+	{
+		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+
+		glfwWindowHint(GLFW_RED_BITS, mode->redBits);
+		glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
+		glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
+		glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
+
+		mWindow = glfwCreateWindow(mode->width, mode->height, mTitle, monitor, NULL);
+	}
+	else
+	{
+		mWindow = glfwCreateWindow(mWindowWidth, mWindowHeight, mTitle, NULL, NULL);
+	}
+
 	if (mWindow == NULL)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
@@ -76,7 +91,7 @@ bool Graphics::Engine::Init()
 	}
 
 	glfwMakeContextCurrent(mWindow);
-	glfwSwapInterval(0);
+	glfwSwapInterval(vsync ? 1 : 0);
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{

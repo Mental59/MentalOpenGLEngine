@@ -22,7 +22,7 @@ namespace Graphics
 
 		static inline Engine* GetInstance() { return mInstance; }
 
-		bool Init();
+		bool Init(bool vsync, bool windowedFullscreen);
 		void BuildBuffers();
 		void BuildTextures(
 			ShaderProgram* shaderProgram,
