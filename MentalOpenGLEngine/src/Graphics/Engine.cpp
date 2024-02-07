@@ -119,11 +119,10 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 
 	stbi_set_flip_vertically_on_load(true);
 
-	constexpr size_t nTextures = 3;
+	constexpr size_t nTextures = 2;
 	BuildTextureOptions optionList[nTextures]{
 		{"resources/textures/container2.png", "uMaterial.diffuse"},
 		{"resources/textures/container2_specular.png", "uMaterial.specular"},
-		{"resources/textures/matrix.jpg", "uMaterial.emission"}
 	};
 	BuildTextures(&mBaseShaderProgram, optionList, nTextures);
 
@@ -347,7 +346,21 @@ void Graphics::Engine::OnInput()
 
 void Graphics::Engine::OnRender()
 {
-	glm::vec3 lightPos = glm::vec3(0.0f, 0.0f, 0.0f) + glm::vec3(sin(Time::LastFrame), 0.0f, cos(Time::LastFrame)) * 3.0f;
+	static constexpr size_t cubeCount = 10;
+	static glm::vec3 cubePositions[cubeCount] = {
+		glm::vec3(0.0f, 0.0f, 0.0f),
+		glm::vec3(2.0f, 5.0f, -15.0f),
+		glm::vec3(-1.5f, -2.2f, -2.5f),
+		glm::vec3(-3.8f, -2.0f, -12.3f),
+		glm::vec3(2.4f, -0.4f, -3.5f),
+		glm::vec3(-1.7f, 3.0f, -7.5f),
+		glm::vec3(1.3f, -2.0f, -2.5f),
+		glm::vec3(1.5f, 2.0f, -2.5f),
+		glm::vec3(1.5f, 0.2f, -1.5f),
+		glm::vec3(-1.3f, 1.0f, -1.5f)
+	};
+
+	glm::vec3 lightPos = glm::vec3(1.0f, 0.0f, 3.0f) /*+ glm::vec3(sin(Time::LastFrame), 0.0f, cos(Time::LastFrame)) * 3.0f*/;
 
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f); // set color for clearing
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // use set color to clear color buffer
@@ -362,7 +375,7 @@ void Graphics::Engine::OnRender()
 	glm::mat4 model(1.0f);
 	model = glm::rotate(model, glm::radians(Time::LastFrame * 50.0f), glm::vec3(0.0f, 1.0f, 1.0f));
 
-	glm::vec3 lightColor(sin(Time::LastFrame * 2.0f), sin(Time::LastFrame * 0.7f), sin(Time::LastFrame * 1.3f));
+	glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
 	glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
 	glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
 	glm::vec3 specularColor = lightColor * glm::vec3(1.0f);
@@ -380,11 +393,7 @@ void Graphics::Engine::OnRender()
 	mBaseShaderProgram.SetUniformVec3("uLight.ambient", glm::value_ptr(ambientColor));
 	mBaseShaderProgram.SetUniformVec3("uLight.diffuse", glm::value_ptr(diffuseColor));
 	mBaseShaderProgram.SetUniformVec3("uLight.specular", glm::value_ptr(specularColor));
-	mBaseShaderProgram.SetUniformVec3("uLight.position", glm::value_ptr(lightPos));
-
-	float emissionShift = Time::LastFrame * 0.5f;
-	emissionShift -= (int)emissionShift;
-	mBaseShaderProgram.SetUniform1f("emissionShift", emissionShift);
+	mBaseShaderProgram.SetUniformVec3("uLight.direction", -0.2f, -1.0f, -0.3f);
 
 	for (size_t i = 0; i < mTextureIDs.size(); i++)
 	{
@@ -393,20 +402,29 @@ void Graphics::Engine::OnRender()
 	}
 
 	glBindVertexArray(mCubeVAO);
-	glDrawArrays(GL_TRIANGLES, 0, 36);
+	for (size_t i = 0; i < cubeCount; i++)
+	{
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, cubePositions[i]);
+		float angle = 20.0f * i;
+		model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+		mBaseShaderProgram.SetUniformMat4("uModel", glm::value_ptr(model));
+
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+	}
 
 	model = glm::mat4(1.0f);
 	model = glm::translate(model, lightPos);
 	model = glm::scale(model, glm::vec3(0.2f));
 
-	mLightCubeShaderProgram.Bind();
-	mLightCubeShaderProgram.SetUniformMat4("uView", glm::value_ptr(view));
-	mLightCubeShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(projection));
-	mLightCubeShaderProgram.SetUniformMat4("uModel", glm::value_ptr(model));
-	mLightCubeShaderProgram.SetUniformVec3("uLightColor", glm::value_ptr(lightColor));
+	//mLightCubeShaderProgram.Bind();
+	//mLightCubeShaderProgram.SetUniformMat4("uView", glm::value_ptr(view));
+	//mLightCubeShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(projection));
+	//mLightCubeShaderProgram.SetUniformMat4("uModel", glm::value_ptr(model));
+	//mLightCubeShaderProgram.SetUniformVec3("uLightColor", glm::value_ptr(lightColor));
 
-	glBindVertexArray(mLightVAO);
-	glDrawArrays(GL_TRIANGLES, 0, 36);
+	//glBindVertexArray(mLightVAO);
+	//glDrawArrays(GL_TRIANGLES, 0, 36);
 
 	glfwSwapBuffers(mWindow);
 }

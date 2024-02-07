@@ -4,13 +4,12 @@ struct Material
 {
 	sampler2D diffuse;
 	sampler2D specular;
-	sampler2D emission;
 	float shininess;
 };
 
 struct Light
 {
-	vec3 position;
+	vec3 direction;
 	vec3 ambient;
 	vec3 diffuse;
 	vec3 specular; 
@@ -25,7 +24,6 @@ in vec3 vWorldPos;
 uniform vec3 uViewPos;
 uniform Material uMaterial;
 uniform Light uLight;
-uniform float emissionShift;
 
 vec3 ComputeAmbient()
 {
@@ -52,13 +50,11 @@ vec3 ComputeSpecular(const vec3 normal, const vec3 lightDirection)
 void main()
 {
 	vec3 normal = normalize(vNormal);
-	vec3 lightDirection = normalize(uLight.position - vWorldPos);
+	vec3 lightDirection = normalize(-uLight.direction);
 
 	vec3 ambient = ComputeAmbient();
 	vec3 diffuse = ComputeDiffuse(normal, lightDirection);
 	vec3 specular = ComputeSpecular(normal, lightDirection);
 
-	vec3 emission = texture(uMaterial.emission, vTexCoords + vec2(0.0, emissionShift)).rgb * step(1.0, 1.0 - texture(uMaterial.specular, vTexCoords).rgb);
-
-	FragColor = vec4(ambient + diffuse + specular + emission, 1.0f);
+	FragColor = vec4(ambient + diffuse + specular, 1.0f);
 }
