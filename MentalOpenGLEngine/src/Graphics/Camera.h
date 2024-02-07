@@ -19,6 +19,9 @@ public:
 	glm::mat4 GetViewMatrix() const;
 	inline float GetZoom() const { return mZoom; }
 	inline const glm::vec3& GetWorldPosition() const { return mCameraPos; }
+	inline const glm::vec3& GetForwardDirection() const { return mCameraForward; }
+	inline const glm::vec3& GetRightDirection() const { return mCameraRight; }
+	inline const glm::vec3& GetUpDirection() const { return mCameraUp; }
 
 	void Move(Movement movement);
 	void Rotate(float xOffset, float yOffset);
