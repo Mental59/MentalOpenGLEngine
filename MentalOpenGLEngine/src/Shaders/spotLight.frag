@@ -66,9 +66,9 @@ void main()
 	vec3 diffuse = ComputeDiffuse(normal, lightDirectionFromFragment);
 	vec3 specular = ComputeSpecular(normal, lightDirectionFromFragment);
 
-	float theta = dot(lightDirectionFromFragment, normalize(-uLight.direction));
+	float cosBetweenSpotDirAndLightDir = dot(lightDirectionFromFragment, normalize(-uLight.direction));
 
-	if (theta > uLight.cutOffCosine)
+	if (cosBetweenSpotDirAndLightDir > uLight.cutOffCosine)
 	{
 		FragColor = vec4(attenuation * (ambient + diffuse + specular), 1.0f);
 	}
