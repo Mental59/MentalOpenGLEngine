@@ -62,9 +62,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="src\Shaders\base.vert" />
-    <None Include="src\Shaders\base.frag" />
+    <None Include="src\Shaders\directionalLight.frag" />
     <None Include="src\Shaders\lightCube.frag" />
     <None Include="src\Shaders\lightCube.vert" />
+    <None Include="src\Shaders\pointLight.frag" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="resources\textures\awesomeface.png">
