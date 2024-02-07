@@ -413,9 +413,9 @@ void Graphics::Engine::OnRender()
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 	}
 
-	model = glm::mat4(1.0f);
-	model = glm::translate(model, lightPos);
-	model = glm::scale(model, glm::vec3(0.2f));
+	//model = glm::mat4(1.0f);
+	//model = glm::translate(model, lightPos);
+	//model = glm::scale(model, glm::vec3(0.2f));
 
 	//mLightCubeShaderProgram.Bind();
 	//mLightCubeShaderProgram.SetUniformMat4("uView", glm::value_ptr(view));
