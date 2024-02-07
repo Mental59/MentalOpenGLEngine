@@ -12,6 +12,7 @@ struct Light
 	vec3 position;
 	vec3 direction;
 	float cutOffCosine;
+	float outerCutOffCosine;
 
 	vec3 ambient;
 	vec3 diffuse;
@@ -66,14 +67,9 @@ void main()
 	vec3 diffuse = ComputeDiffuse(normal, lightDirectionFromFragment);
 	vec3 specular = ComputeSpecular(normal, lightDirectionFromFragment);
 
-	float cosBetweenSpotDirAndLightDir = dot(lightDirectionFromFragment, normalize(-uLight.direction));
-
-	if (cosBetweenSpotDirAndLightDir > uLight.cutOffCosine)
-	{
-		FragColor = vec4(attenuation * (ambient + diffuse + specular), 1.0f);
-	}
-	else
-	{
-		FragColor = vec4(attenuation * ambient, 1.0f);
-	}
+	float theta = dot(lightDirectionFromFragment, normalize(-uLight.direction));
+	float epsilon = uLight.cutOffCosine - uLight.outerCutOffCosine;
+	float lightIntensity = clamp((theta - uLight.outerCutOffCosine) / epsilon, 0.0, 1.0);
+	
+	FragColor = vec4(ambient + attenuation * lightIntensity * (diffuse + specular), 1.0f);
 }

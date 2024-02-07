@@ -397,10 +397,11 @@ void Graphics::Engine::OnRender()
 	mBaseShaderProgram.SetUniformVec3("uLight.position", glm::value_ptr(mCamera.GetWorldPosition()));
 	mBaseShaderProgram.SetUniformVec3("uLight.direction", glm::value_ptr(mCamera.GetForwardDirection()));
 	mBaseShaderProgram.SetUniform1f("uLight.cutOffCosine", glm::cos(glm::radians(12.5f)));
+	mBaseShaderProgram.SetUniform1f("uLight.outerCutOffCosine", glm::cos(glm::radians(17.5f)));
 
 	mBaseShaderProgram.SetUniform1f("uLight.constant", 1.0f);
-	mBaseShaderProgram.SetUniform1f("uLight.linear", 0.045f);
-	mBaseShaderProgram.SetUniform1f("uLight.quadratic", 0.0075f);
+	mBaseShaderProgram.SetUniform1f("uLight.linear", 0.07f);
+	mBaseShaderProgram.SetUniform1f("uLight.quadratic", 0.017f);
 
 	for (size_t i = 0; i < mTextureIDs.size(); i++)
 	{
