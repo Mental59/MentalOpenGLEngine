@@ -175,6 +175,7 @@
     <ClInclude Include="src\Graphics\Time.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="src\Shaders\multipleLights.frag" />
     <None Include="src\Shaders\directionalLight.frag" />
     <None Include="src\Shaders\lightCube.frag" />
     <None Include="src\Shaders\lightCube.vert" />

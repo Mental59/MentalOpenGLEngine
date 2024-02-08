@@ -66,6 +66,8 @@
     <None Include="src\Shaders\lightCube.frag" />
     <None Include="src\Shaders\lightCube.vert" />
     <None Include="src\Shaders\pointLight.frag" />
+    <None Include="src\Shaders\spotLight.frag" />
+    <None Include="src\Shaders\multipleLights.frag" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="resources\textures\awesomeface.png">
