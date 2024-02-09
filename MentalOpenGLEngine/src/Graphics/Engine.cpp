@@ -369,10 +369,16 @@ void Graphics::Engine::OnRender()
 		glm::vec3(-4.0f,  2.0f, -12.0f),
 		glm::vec3(0.0f,  0.0f, -3.0f)
 	};
+	static glm::vec3 pointLightColors[pointLightsCount]{
+		glm::vec3(1.0f, 0.0f, 0.0f),
+		glm::vec3(0.0f, 1.0f, 0.0f),
+		glm::vec3(0.0f, 0.0f, 1.0f),
+		glm::vec3(1.0f, 0.0f, 1.0f)
+	};
 
 	glm::vec3 lightPos = glm::vec3(1.0f, 0.0f, -3.0f) /*+ glm::vec3(sin(Time::LastFrame), 0.0f, cos(Time::LastFrame)) * 3.0f*/;
 
-	glClearColor(0.1f, 0.1f, 0.1f, 1.0f); // set color for clearing
+	glClearColor(0.05f, 0.05f, 0.05f, 1.0f); // set color for clearing
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // use set color to clear color buffer
 
 	glm::mat4 projection = glm::perspective(
@@ -413,13 +419,13 @@ void Graphics::Engine::OnRender()
 	{
 		mBaseShaderProgram.SetUniformVec3(std::format("uPointLights[{}].position", i), glm::value_ptr(pointLightPositions[i]));
 
-		mBaseShaderProgram.SetUniformVec3(std::format("uPointLights[{}].ambient", i), 0.05f, 0.05f, 0.05f);
-		mBaseShaderProgram.SetUniformVec3(std::format("uPointLights[{}].diffuse", i), 0.4f, 0.4f, 0.4f);
-		mBaseShaderProgram.SetUniformVec3(std::format("uPointLights[{}].specular", i), 0.5f, 0.5f, 0.5f);
+		mBaseShaderProgram.SetUniformVec3(std::format("uPointLights[{}].ambient", i), glm::value_ptr(pointLightColors[i] * 0.05f));
+		mBaseShaderProgram.SetUniformVec3(std::format("uPointLights[{}].diffuse", i), glm::value_ptr(pointLightColors[i] * 0.4f));
+		mBaseShaderProgram.SetUniformVec3(std::format("uPointLights[{}].specular", i), glm::value_ptr(pointLightColors[i] * 0.5f));
 
 		mBaseShaderProgram.SetUniform1f(std::format("uPointLights[{}].constant", i), 1.0f);
-		mBaseShaderProgram.SetUniform1f(std::format("uPointLights[{}].linear", i), 0.09f);
-		mBaseShaderProgram.SetUniform1f(std::format("uPointLights[{}].quadratic", i), 0.032f);
+		mBaseShaderProgram.SetUniform1f(std::format("uPointLights[{}].linear", i), 0.07f);
+		mBaseShaderProgram.SetUniform1f(std::format("uPointLights[{}].quadratic", i), 0.017f);
 	}
 
 	for (size_t i = 0; i < mTextureIDs.size(); i++)
@@ -443,7 +449,6 @@ void Graphics::Engine::OnRender()
 	mLightCubeShaderProgram.Bind();
 	mLightCubeShaderProgram.SetUniformMat4("uView", glm::value_ptr(view));
 	mLightCubeShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(projection));
-	mLightCubeShaderProgram.SetUniformVec3("uLightColor", 1.0f, 1.0f, 1.0f);
 
 	glBindVertexArray(mLightVAO);
 	for (size_t i = 0; i < pointLightsCount; i++)
@@ -453,6 +458,7 @@ void Graphics::Engine::OnRender()
 		model = glm::scale(model, glm::vec3(0.2f));
 
 		mLightCubeShaderProgram.SetUniformMat4("uModel", glm::value_ptr(model));
+		mLightCubeShaderProgram.SetUniformVec3("uLightColor", glm::value_ptr(pointLightColors[i]));
 
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 	}
