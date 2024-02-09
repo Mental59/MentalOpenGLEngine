@@ -84,7 +84,7 @@ vec3 CalculateSpecular(
 	const vec3 materialSpecular
 );
 
-#define NUM_POINT_LIGHTS 4
+#define MAX_POINT_LIGHTS 4
 
 out vec4 FragColor;
 
@@ -96,8 +96,9 @@ uniform vec3 uViewPos;
 uniform Material uMaterial;
 
 uniform DirectionalLight uDirectionalLight;
-uniform PointLight uPointLights[NUM_POINT_LIGHTS];
+uniform PointLight uPointLights[MAX_POINT_LIGHTS];
 uniform SpotLight uSpotLight;
+uniform int uNumPointLights;
 
 void main()
 {
@@ -108,7 +109,7 @@ void main()
 
 	vec3 color = CalculateDirectionalLight(uDirectionalLight, normal, viewDirection, materialDiffuse, materialSpecular);
 
-	for (int i = 0; i < NUM_POINT_LIGHTS; i++)
+	for (int i = 0; i < min(MAX_POINT_LIGHTS, uNumPointLights); i++)
 	{
 		color += CalculatePointLight(uPointLights[i], normal, viewDirection, materialDiffuse, materialSpecular);
 	}

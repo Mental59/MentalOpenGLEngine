@@ -77,6 +77,9 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 		glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
 		glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
 
+		mWindowWidth = mode->width;
+		mWindowHeight = mode->height;
+
 		mWindow = glfwCreateWindow(mode->width, mode->height, mTitle, monitor, NULL);
 	}
 	else
@@ -112,7 +115,7 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 
 	glfwSetInputMode(mWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-	mBaseShaderProgram.Build("src/Shaders/base.vert", "src/Shaders/spotLight.frag");
+	mBaseShaderProgram.Build("src/Shaders/base.vert", "src/Shaders/multipleLights.frag");
 	mLightCubeShaderProgram.Build("src/Shaders/lightCube.vert", "src/Shaders/lightCube.frag");
 
 	BuildBuffers();
@@ -347,7 +350,8 @@ void Graphics::Engine::OnInput()
 void Graphics::Engine::OnRender()
 {
 	static constexpr size_t cubeCount = 10;
-	static glm::vec3 cubePositions[cubeCount] = {
+	static constexpr size_t pointLightsCount = 4;
+	static glm::vec3 cubePositions[cubeCount]{
 		glm::vec3(0.0f, 0.0f, 0.0f),
 		glm::vec3(2.0f, 5.0f, -15.0f),
 		glm::vec3(-1.5f, -2.2f, -2.5f),
@@ -358,6 +362,12 @@ void Graphics::Engine::OnRender()
 		glm::vec3(1.5f, 2.0f, -2.5f),
 		glm::vec3(1.5f, 0.2f, -1.5f),
 		glm::vec3(-1.3f, 1.0f, -1.5f)
+	};
+	static glm::vec3 pointLightPositions[pointLightsCount]{
+		glm::vec3(0.7f,  0.2f,  2.0f),
+		glm::vec3(2.3f, -3.3f, -4.0f),
+		glm::vec3(-4.0f,  2.0f, -12.0f),
+		glm::vec3(0.0f,  0.0f, -3.0f)
 	};
 
 	glm::vec3 lightPos = glm::vec3(1.0f, 0.0f, -3.0f) /*+ glm::vec3(sin(Time::LastFrame), 0.0f, cos(Time::LastFrame)) * 3.0f*/;
@@ -372,36 +382,45 @@ void Graphics::Engine::OnRender()
 		100.0f
 	);
 	glm::mat4 view = mCamera.GetViewMatrix();
-	glm::mat4 model(1.0f);
-	model = glm::rotate(model, glm::radians(Time::LastFrame * 50.0f), glm::vec3(0.0f, 1.0f, 1.0f));
-
-	glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
-	glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
-	glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
-	glm::vec3 specularColor = lightColor * glm::vec3(1.0f);
 
 	mBaseShaderProgram.Bind();
 
 	mBaseShaderProgram.SetUniformMat4("uView", glm::value_ptr(view));
 	mBaseShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(projection));
-	mBaseShaderProgram.SetUniformMat4("uModel", glm::value_ptr(model));
 
 	mBaseShaderProgram.SetUniformVec3("uViewPos", glm::value_ptr(mCamera.GetWorldPosition()));
 
 	mBaseShaderProgram.SetUniform1f("uMaterial.shininess", 128.0f);
 
-	mBaseShaderProgram.SetUniformVec3("uLight.ambient", glm::value_ptr(ambientColor));
-	mBaseShaderProgram.SetUniformVec3("uLight.diffuse", glm::value_ptr(diffuseColor));
-	mBaseShaderProgram.SetUniformVec3("uLight.specular", glm::value_ptr(specularColor));
+	mBaseShaderProgram.SetUniformVec3("uDirectionalLight.direction", -0.2f, -1.0f, -0.3f);
+	mBaseShaderProgram.SetUniformVec3("uDirectionalLight.ambient", 0.05f, 0.05f, 0.05f);
+	mBaseShaderProgram.SetUniformVec3("uDirectionalLight.diffuse", 0.4f, 0.4f, 0.4f);
+	mBaseShaderProgram.SetUniformVec3("uDirectionalLight.specular", 0.5f, 0.5f, 0.5f);
 
-	mBaseShaderProgram.SetUniformVec3("uLight.position", glm::value_ptr(mCamera.GetWorldPosition()));
-	mBaseShaderProgram.SetUniformVec3("uLight.direction", glm::value_ptr(mCamera.GetForwardDirection()));
-	mBaseShaderProgram.SetUniform1f("uLight.cutOffCosine", glm::cos(glm::radians(12.5f)));
-	mBaseShaderProgram.SetUniform1f("uLight.outerCutOffCosine", glm::cos(glm::radians(17.5f)));
+	mBaseShaderProgram.SetUniformVec3("uSpotLight.position", glm::value_ptr(mCamera.GetWorldPosition()));
+	mBaseShaderProgram.SetUniformVec3("uSpotLight.direction", glm::value_ptr(mCamera.GetForwardDirection()));
+	mBaseShaderProgram.SetUniform1f("uSpotLight.cutOffCosine", glm::cos(glm::radians(12.5f)));
+	mBaseShaderProgram.SetUniform1f("uSpotLight.outerCutOffCosine", glm::cos(glm::radians(17.5f)));
+	mBaseShaderProgram.SetUniformVec3("uSpotLight.ambient", 0.0f, 0.0f, 0.0f);
+	mBaseShaderProgram.SetUniformVec3("uSpotLight.diffuse", 1.0f, 1.0f, 1.0f);
+	mBaseShaderProgram.SetUniformVec3("uSpotLight.specular", 1.0f, 1.0f, 1.0f);
+	mBaseShaderProgram.SetUniform1f("uSpotLight.constant", 1.0f);
+	mBaseShaderProgram.SetUniform1f("uSpotLight.linear", 0.09f);
+	mBaseShaderProgram.SetUniform1f("uSpotLight.quadratic", 0.032f);
 
-	mBaseShaderProgram.SetUniform1f("uLight.constant", 1.0f);
-	mBaseShaderProgram.SetUniform1f("uLight.linear", 0.07f);
-	mBaseShaderProgram.SetUniform1f("uLight.quadratic", 0.017f);
+	mBaseShaderProgram.SetUniform1i("uNumPointLights", pointLightsCount);
+	for (size_t i = 0; i < pointLightsCount; i++)
+	{
+		mBaseShaderProgram.SetUniformVec3(std::format("uPointLights[{}].position", i), glm::value_ptr(pointLightPositions[i]));
+
+		mBaseShaderProgram.SetUniformVec3(std::format("uPointLights[{}].ambient", i), 0.05f, 0.05f, 0.05f);
+		mBaseShaderProgram.SetUniformVec3(std::format("uPointLights[{}].diffuse", i), 0.4f, 0.4f, 0.4f);
+		mBaseShaderProgram.SetUniformVec3(std::format("uPointLights[{}].specular", i), 0.5f, 0.5f, 0.5f);
+
+		mBaseShaderProgram.SetUniform1f(std::format("uPointLights[{}].constant", i), 1.0f);
+		mBaseShaderProgram.SetUniform1f(std::format("uPointLights[{}].linear", i), 0.09f);
+		mBaseShaderProgram.SetUniform1f(std::format("uPointLights[{}].quadratic", i), 0.032f);
+	}
 
 	for (size_t i = 0; i < mTextureIDs.size(); i++)
 	{
@@ -412,7 +431,7 @@ void Graphics::Engine::OnRender()
 	glBindVertexArray(mCubeVAO);
 	for (size_t i = 0; i < cubeCount; i++)
 	{
-		glm::mat4 model = glm::mat4(1.0f);
+		glm::mat4 model(1.0f);
 		model = glm::translate(model, cubePositions[i]);
 		float angle = 20.0f * i;
 		model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
@@ -421,18 +440,22 @@ void Graphics::Engine::OnRender()
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 	}
 
-	//model = glm::mat4(1.0f);
-	//model = glm::translate(model, lightPos);
-	//model = glm::scale(model, glm::vec3(0.2f));
+	mLightCubeShaderProgram.Bind();
+	mLightCubeShaderProgram.SetUniformMat4("uView", glm::value_ptr(view));
+	mLightCubeShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(projection));
+	mLightCubeShaderProgram.SetUniformVec3("uLightColor", 1.0f, 1.0f, 1.0f);
 
-	//mLightCubeShaderProgram.Bind();
-	//mLightCubeShaderProgram.SetUniformMat4("uView", glm::value_ptr(view));
-	//mLightCubeShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(projection));
-	//mLightCubeShaderProgram.SetUniformMat4("uModel", glm::value_ptr(model));
-	//mLightCubeShaderProgram.SetUniformVec3("uLightColor", glm::value_ptr(lightColor));
+	glBindVertexArray(mLightVAO);
+	for (size_t i = 0; i < pointLightsCount; i++)
+	{
+		glm::mat4 model(1.0f);
+		model = glm::translate(model, pointLightPositions[i]);
+		model = glm::scale(model, glm::vec3(0.2f));
 
-	//glBindVertexArray(mLightVAO);
-	//glDrawArrays(GL_TRIANGLES, 0, 36);
+		mLightCubeShaderProgram.SetUniformMat4("uModel", glm::value_ptr(model));
+
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+	}
 
 	glfwSwapBuffers(mWindow);
 }
