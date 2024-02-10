@@ -157,6 +157,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Graphics\Mesh.cpp" />
     <ClCompile Include="src\External\glad.c" />
     <ClCompile Include="src\Graphics\Camera.cpp" />
     <ClCompile Include="src\Graphics\Engine.cpp" />
@@ -166,9 +167,10 @@
     <ClCompile Include="src\Main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Graphics\Mesh.h" />
     <ClInclude Include="src\External\stb_image.h" />
     <ClInclude Include="src\Graphics\Camera.h" />
-    <ClInclude Include="src\Graphics\DataTypes.h" />
+    <ClInclude Include="src\Graphics\CoreTypes.h" />
     <ClInclude Include="src\Graphics\Engine.h" />
     <ClInclude Include="src\Graphics\Shader.h" />
     <ClInclude Include="src\Graphics\ShaderProgram.h" />

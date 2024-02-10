@@ -123,7 +123,7 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	stbi_set_flip_vertically_on_load(true);
 
 	constexpr size_t nTextures = 2;
-	BuildTextureOptions optionList[nTextures]{
+	Core::BuildTextureOptions optionList[nTextures]{
 		{"resources/textures/container2.png", "uMaterial.diffuse"},
 		{"resources/textures/container2_specular.png", "uMaterial.specular"},
 	};
@@ -225,7 +225,7 @@ void Graphics::Engine::BuildBuffers()
 
 void Graphics::Engine::BuildTextures(
 	ShaderProgram* shaderProgram,
-	BuildTextureOptions optionList[],
+	Core::BuildTextureOptions optionList[],
 	size_t n
 )
 {

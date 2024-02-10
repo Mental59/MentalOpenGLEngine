@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <glad/glad.h>
-#include "DataTypes.h"
+#include "CoreTypes.h"
 #include "ShaderProgram.h"
 #include "Camera.h"
 
@@ -26,7 +26,7 @@ namespace Graphics
 		void BuildBuffers();
 		void BuildTextures(
 			ShaderProgram* shaderProgram,
-			BuildTextureOptions optionList[],
+			Core::BuildTextureOptions optionList[],
 			size_t n
 		);
 		void Run();
