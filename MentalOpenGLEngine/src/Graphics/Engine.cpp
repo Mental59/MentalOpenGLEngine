@@ -376,8 +376,6 @@ void Graphics::Engine::OnRender()
 		glm::vec3(1.0f, 0.0f, 1.0f)
 	};
 
-	glm::vec3 lightPos = glm::vec3(1.0f, 0.0f, -3.0f) /*+ glm::vec3(sin(Time::LastFrame), 0.0f, cos(Time::LastFrame)) * 3.0f*/;
-
 	glClearColor(0.05f, 0.05f, 0.05f, 1.0f); // set color for clearing
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // use set color to clear color buffer
 
