@@ -351,7 +351,7 @@ void Graphics::Engine::OnRender()
 {
 	static constexpr size_t cubeCount = 10;
 	static constexpr size_t pointLightsCount = 4;
-	static glm::vec3 cubePositions[cubeCount]{
+	static constexpr glm::vec3 cubePositions[cubeCount]{
 		glm::vec3(0.0f, 0.0f, 0.0f),
 		glm::vec3(2.0f, 5.0f, -15.0f),
 		glm::vec3(-1.5f, -2.2f, -2.5f),
@@ -363,13 +363,13 @@ void Graphics::Engine::OnRender()
 		glm::vec3(1.5f, 0.2f, -1.5f),
 		glm::vec3(-1.3f, 1.0f, -1.5f)
 	};
-	static glm::vec3 pointLightPositions[pointLightsCount]{
+	static constexpr glm::vec3 pointLightPositions[pointLightsCount]{
 		glm::vec3(0.7f,  0.2f,  2.0f),
 		glm::vec3(2.3f, -3.3f, -4.0f),
 		glm::vec3(-4.0f,  2.0f, -12.0f),
 		glm::vec3(0.0f,  0.0f, -3.0f)
 	};
-	static glm::vec3 pointLightColors[pointLightsCount]{
+	static constexpr glm::vec3 pointLightColors[pointLightsCount]{
 		glm::vec3(1.0f, 0.0f, 0.0f),
 		glm::vec3(0.0f, 1.0f, 0.0f),
 		glm::vec3(0.0f, 0.0f, 1.0f),
