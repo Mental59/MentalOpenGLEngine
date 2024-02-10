@@ -7,7 +7,6 @@
 #define DIFFUSE_TEXTURE_NAME "uMaterial.diffuseTexture{}"
 #endif // !DIFFUSE_TEXTURE_NAME
 
-
 #ifndef SPECULAR_TEXTURE_NAME
 #define SPECULAR_TEXTURE_NAME "uMaterial.specularTexture{}"
 #endif // !SPECULAR_TEXTURE_NAME
