@@ -84,6 +84,7 @@
     <None Include="src\Shaders\spotLight.frag" />
     <None Include="src\Shaders\multipleLights.frag" />
     <None Include="src\Shaders\base.frag" />
+    <None Include="src\Shaders\noTextures.frag" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="resources\textures\awesomeface.png">

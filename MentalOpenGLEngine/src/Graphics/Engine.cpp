@@ -102,8 +102,18 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 
 	glfwSetInputMode(mWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-	mModel.Load("resources/objects/backpack/backpack.obj");
-	mBaseShaderProgram.Build("src/Shaders/base.vert", "src/Shaders/base.frag");
+	mModel.Load("resources/objects/bender/bender.obj");
+
+	std::cout << "Has textures: " << mModel.HasTextures() << std::endl;
+
+	if (mModel.HasTextures())
+	{
+		mBaseShaderProgram.Build("src/Shaders/base.vert", "src/Shaders/base.frag");
+	}
+	else
+	{
+		mBaseShaderProgram.Build("src/Shaders/base.vert", "src/Shaders/noTextures.frag");
+	}
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe mode
 	glEnable(GL_DEPTH_TEST);
@@ -183,7 +193,7 @@ void Graphics::Engine::OnRender()
 	);
 	glm::mat4 view = mCamera.GetViewMatrix();
 	glm::mat4 model(1.0f);
-	model = glm::translate(model, glm::vec3(0.0f, 0.0f, -5.0f));
+	model = glm::scale(model, glm::vec3(0.1f));
 
 	mBaseShaderProgram.Bind();
 
