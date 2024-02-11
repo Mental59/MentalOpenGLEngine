@@ -11,7 +11,6 @@ out vec3 vWorldPos;
 uniform mat4 uModel;
 uniform mat4 uView;
 uniform mat4 uProjection;
-uniform mat3 uNormalMat;
 
 void main()
 {

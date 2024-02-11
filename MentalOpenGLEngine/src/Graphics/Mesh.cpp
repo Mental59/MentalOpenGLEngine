@@ -1,13 +1,10 @@
 #include "Mesh.h"
+#include <iostream>
 #include <format>
 
-Mesh::Mesh(
-	const std::vector<Core::Vertex>& vertices,
-	const std::vector<unsigned int>& indices,
-	const std::vector<Core::Texture>& textures
-) : mVAO(0), mVBO(0), mEBO(0), mTextures(textures), mIndicesSize(indices.size())
+Mesh::Mesh() : mVAO(0), mVBO(0), mEBO(0), mNumIndices(0), mNumVertices(0)
 {
-	SetupMesh(vertices, indices);
+
 }
 
 Mesh::~Mesh()
@@ -19,10 +16,10 @@ Mesh::~Mesh()
 
 void Mesh::Draw(ShaderProgram& shader)
 {
-	size_t diffuseTextureNumber = 1;
-	size_t specularTextureNumber = 1;
+	unsigned int diffuseTextureNumber = 1;
+	unsigned int specularTextureNumber = 1;
 
-	for (size_t i = 0; i < mTextures.size(); i++)
+	for (int i = 0; i < mTextures.size(); i++)
 	{
 		if (mTextures[i].Type == Core::Diffuse)
 		{
@@ -38,14 +35,18 @@ void Mesh::Draw(ShaderProgram& shader)
 	}
 
 	glBindVertexArray(mVAO);
-	glDrawElements(GL_TRIANGLES, mIndicesSize, GL_UNSIGNED_INT, 0);
+	glDrawElements(GL_TRIANGLES, mNumIndices, GL_UNSIGNED_INT, 0);
 
 	glBindVertexArray(0);
 	glActiveTexture(GL_TEXTURE0);
 }
 
-void Mesh::SetupMesh(const std::vector<Core::Vertex>& vertices, const std::vector<unsigned int>& indices)
+void Mesh::Setup(const std::vector<Core::Vertex>& vertices, const std::vector<unsigned int>& indices, const std::vector<Core::Texture>& textures)
 {
+	mTextures = textures;
+	mNumIndices = indices.size();
+	mNumVertices = vertices.size();
+
 	glGenVertexArrays(1, &mVAO);
 	glGenBuffers(1, &mVBO);
 	glGenBuffers(1, &mEBO);
@@ -58,7 +59,7 @@ void Mesh::SetupMesh(const std::vector<Core::Vertex>& vertices, const std::vecto
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indices.size(), indices.data(), GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Core::Vertex), (const void*)0); // VBO must be bound before calling this function
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Core::Vertex), (const void*)0);
 	glEnableVertexAttribArray(0);
 
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Core::Vertex), (const void*)offsetof(Core::Vertex, Normal));

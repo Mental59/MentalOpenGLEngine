@@ -5,6 +5,7 @@
 #include "CoreTypes.h"
 #include "ShaderProgram.h"
 #include "Camera.h"
+#include "Model.h"
 
 struct GLFWwindow;
 
@@ -23,12 +24,6 @@ namespace Graphics
 		static inline Engine* GetInstance() { return mInstance; }
 
 		bool Init(bool vsync, bool windowedFullscreen);
-		void BuildBuffers();
-		void BuildTextures(
-			ShaderProgram* shaderProgram,
-			Core::BuildTextureOptions optionList[],
-			size_t n
-		);
 		void Run();
 		void UpdateTimer();
 
@@ -46,12 +41,9 @@ namespace Graphics
 
 		GLFWwindow* mWindow;
 		ShaderProgram mBaseShaderProgram;
-		ShaderProgram mLightCubeShaderProgram;
-		GLuint mVBO, mCubeVAO, mEBO, mLightVAO;
-
-		std::vector<GLuint> mTextureIDs;
 
 		Camera mCamera;
+		Model mModel;
 
 		float mLastMouseXPos, mLastMouseYPos;
 		bool mIsFirstMouseMove;
