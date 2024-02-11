@@ -104,8 +104,6 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 
 	mModel.Load("resources/objects/bender/bender.obj");
 
-	std::cout << "Has textures: " << mModel.HasTextures() << std::endl;
-
 	if (mModel.HasTextures())
 	{
 		mBaseShaderProgram.Build("src/Shaders/base.vert", "src/Shaders/base.frag");
