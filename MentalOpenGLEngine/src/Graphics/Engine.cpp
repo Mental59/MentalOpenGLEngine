@@ -102,7 +102,7 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 
 	glfwSetInputMode(mWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-	mModel.Load("resources/objects/bender/bender.obj");
+	mModel.Load("resources/objects/sponza/sponza.obj");
 
 	if (mModel.HasTextures())
 	{
@@ -180,7 +180,7 @@ void Graphics::Engine::OnInput()
 
 void Graphics::Engine::OnRender()
 {
-	glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
+	glClearColor(0.4, 0.48, 0.48, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glm::mat4 projection = glm::perspective(
@@ -191,7 +191,7 @@ void Graphics::Engine::OnRender()
 	);
 	glm::mat4 view = mCamera.GetViewMatrix();
 	glm::mat4 model(1.0f);
-	model = glm::scale(model, glm::vec3(0.1f));
+	model = glm::scale(model, glm::vec3(0.01f));
 
 	mBaseShaderProgram.Bind();
 

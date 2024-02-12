@@ -53,7 +53,7 @@ void main()
 	vec3 lightDirection = normalize(-uLight.direction);
 
 	vec3 diffuseColor = texture(uMaterial.diffuseTexture1, vTexCoords).rgb;
-	vec3 specularColor = texture(uMaterial.specularTexture1, vTexCoords).rgb;
+    vec3 specularColor = texture(uMaterial.specularTexture1, vTexCoords).rrr;
 
 	vec3 ambient = ComputeAmbient(diffuseColor);
 	vec3 diffuse = ComputeDiffuse(normal, lightDirection, diffuseColor);
