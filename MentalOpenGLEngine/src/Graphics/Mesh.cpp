@@ -38,7 +38,12 @@ void Mesh::Draw(ShaderProgram& shader)
 	glDrawElements(GL_TRIANGLES, mNumIndices, GL_UNSIGNED_INT, 0);
 
 	glBindVertexArray(0);
-	glActiveTexture(GL_TEXTURE0);
+
+	for (int i = 0; i < mTextures.size(); i++)
+	{
+		glActiveTexture(GL_TEXTURE0 + i);
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
 }
 
 void Mesh::Setup(const std::vector<Core::Vertex>& vertices, const std::vector<unsigned int>& indices, const std::vector<Core::Texture>& textures)

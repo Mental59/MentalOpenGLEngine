@@ -21,7 +21,11 @@ Graphics::Engine::Engine(const int windowWidth, const int windowHeight, const ch
 	mBaseShaderProgram(),
 	mCamera(glm::vec3(0.0f, 0.0f, 3.0f), 5.0f, 0.1f),
 	mLastMouseXPos(0.0f), mLastMouseYPos(0.0f), mIsFirstMouseMove(true),
-	mModel()
+	mModelImports{
+		{ "resources/objects/sponza/sponza.obj", Core::Transform{glm::vec3(0.0f), glm::vec3(0.01f)}},
+		{ "resources/objects/cube/cube.obj", Core::Transform{glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(1.0f)}},
+		{ "resources/objects/plane/plane.obj", Core::Transform{glm::vec3(0.0f, 7.0f, 0.0f), glm::vec3(1.0f)} },
+	}
 {
 	mInstance = this;
 }
@@ -102,15 +106,14 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 
 	glfwSetInputMode(mWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-	mModel.Load("resources/objects/sponza/sponza.obj");
+	mBaseShaderProgram.Build("src/Shaders/base.vert", "src/Shaders/base.frag");
+	mNoTextureShaderProgram.Build("src/Shaders/base.vert", "src/Shaders/noTextures.frag");
 
-	if (mModel.HasTextures())
+	for (const auto& modelImport : mModelImports)
 	{
-		mBaseShaderProgram.Build("src/Shaders/base.vert", "src/Shaders/base.frag");
-	}
-	else
-	{
-		mBaseShaderProgram.Build("src/Shaders/base.vert", "src/Shaders/noTextures.frag");
+		std::shared_ptr<Model> model = std::make_shared<Model>();
+		model->Load(modelImport.path);
+		mModels.push_back(model);
 	}
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe mode
@@ -190,14 +193,11 @@ void Graphics::Engine::OnRender()
 		100.0f
 	);
 	glm::mat4 view = mCamera.GetViewMatrix();
-	glm::mat4 model(1.0f);
-	model = glm::scale(model, glm::vec3(0.01f));
 
 	mBaseShaderProgram.Bind();
 
 	mBaseShaderProgram.SetUniformMat4("uView", glm::value_ptr(view));
 	mBaseShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(projection));
-	mBaseShaderProgram.SetUniformMat4("uModel", glm::value_ptr(model));
 	mBaseShaderProgram.SetUniformVec3("uViewPos", glm::value_ptr(mCamera.GetWorldPosition()));
 	mBaseShaderProgram.SetUniform1f("uMaterial.shininess", 128.0f);
 
@@ -206,7 +206,37 @@ void Graphics::Engine::OnRender()
 	mBaseShaderProgram.SetUniformVec3("uLight.diffuse", 0.5f, 0.5f, 0.5f);
 	mBaseShaderProgram.SetUniformVec3("uLight.specular", 1.0f, 1.0f, 1.0f);
 
-	mModel.Draw(mBaseShaderProgram);
+	mNoTextureShaderProgram.Bind();
+
+	mNoTextureShaderProgram.SetUniformMat4("uView", glm::value_ptr(view));
+	mNoTextureShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(projection));
+	mNoTextureShaderProgram.SetUniformVec3("uViewPos", glm::value_ptr(mCamera.GetWorldPosition()));
+	mNoTextureShaderProgram.SetUniform1f("uMaterial.shininess", 128.0f);
+
+	mNoTextureShaderProgram.SetUniformVec3("uLight.direction", -0.2f, -1.0f, -0.3f);
+	mNoTextureShaderProgram.SetUniformVec3("uLight.ambient", 0.2f, 0.2f, 0.2f);
+	mNoTextureShaderProgram.SetUniformVec3("uLight.diffuse", 0.5f, 0.5f, 0.5f);
+	mNoTextureShaderProgram.SetUniformVec3("uLight.specular", 1.0f, 1.0f, 1.0f);
+
+	for (unsigned int i = 0; i < mModels.size(); i++)
+	{
+		glm::mat4 model(1.0f);
+		model = glm::translate(model, mModelImports[i].transform.Position);
+		model = glm::scale(model, mModelImports[i].transform.Scale);
+
+		if (mModels[i]->HasTextures())
+		{
+			mBaseShaderProgram.Bind();
+			mBaseShaderProgram.SetUniformMat4("uModel", glm::value_ptr(model));
+			mModels[i]->Draw(mBaseShaderProgram);
+		}
+		else
+		{
+			mNoTextureShaderProgram.Bind();
+			mNoTextureShaderProgram.SetUniformMat4("uModel", glm::value_ptr(model));
+			mModels[i]->Draw(mNoTextureShaderProgram);
+		}
+	}
 
 	glfwSwapBuffers(mWindow);
 }

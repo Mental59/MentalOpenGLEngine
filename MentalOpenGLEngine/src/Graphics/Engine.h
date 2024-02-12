@@ -41,9 +41,11 @@ namespace Graphics
 
 		GLFWwindow* mWindow;
 		ShaderProgram mBaseShaderProgram;
+		ShaderProgram mNoTextureShaderProgram;
 
 		Camera mCamera;
-		Model mModel;
+		std::vector<Core::ModelImportData> mModelImports;
+		std::vector<std::shared_ptr<Model>> mModels;
 
 		float mLastMouseXPos, mLastMouseYPos;
 		bool mIsFirstMouseMove;

@@ -37,4 +37,16 @@ namespace Core
 		unsigned int ID;
 		TextureType Type;
 	};
+
+	struct Transform
+	{
+		glm::vec3 Position;
+		glm::vec3 Scale;
+	};
+
+	struct ModelImportData
+	{
+		const char* path;
+		Transform transform;
+	};
 }
