@@ -49,14 +49,20 @@ vec3 ComputeSpecular(const vec3 normal, const vec3 lightDirection, const vec3 sp
 
 void main()
 {
+	vec4 diffuseColor = texture(uMaterial.diffuseTexture1, vTexCoords);
+
+	if (diffuseColor.a < 0.5)
+	{
+		discard;
+	}
+
 	vec3 normal = normalize(vNormal);
 	vec3 lightDirection = normalize(-uLight.direction);
-
-	vec3 diffuseColor = texture(uMaterial.diffuseTexture1, vTexCoords).rgb;
+	
     vec3 specularColor = texture(uMaterial.specularTexture1, vTexCoords).rrr;
 
-	vec3 ambient = ComputeAmbient(diffuseColor);
-	vec3 diffuse = ComputeDiffuse(normal, lightDirection, diffuseColor);
+	vec3 ambient = ComputeAmbient(diffuseColor.rgb);
+	vec3 diffuse = ComputeDiffuse(normal, lightDirection, diffuseColor.rgb);
 	vec3 specular = ComputeSpecular(normal, lightDirection, specularColor);
 
 	FragColor = vec4(ambient + diffuse + specular, 1.0f);
