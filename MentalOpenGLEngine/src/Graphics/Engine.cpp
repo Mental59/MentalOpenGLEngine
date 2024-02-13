@@ -23,9 +23,10 @@ Graphics::Engine::Engine(const int windowWidth, const int windowHeight, const ch
 	mCamera(glm::vec3(0.0f, 0.0f, 3.0f), 5.0f, 0.1f),
 	mLastMouseXPos(0.0f), mLastMouseYPos(0.0f), mIsFirstMouseMove(true),
 	mModelImports{
-		{ "resources/objects/sponza/sponza.obj", Core::Transform{glm::vec3(0.0f), glm::vec3(0.01f)}},
-		{ "resources/objects/cube/cube.obj", Core::Transform{glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(1.0f)}},
-		{ "resources/objects/plane/plane.obj", Core::Transform{glm::vec3(0.0f, 7.0f, 0.0f), glm::vec3(1.0f)} },
+		{"resources/objects/sponza/sponza.obj", Core::Transform{glm::vec3(0.0f, -20.0f, 0.0f), glm::vec3(0.01f)}},
+		{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(1.0f)}, {{"resources/textures/marble.jpg", Core::Diffuse}}},
+		{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(0.0f, 5.0f, -4.0f), glm::vec3(1.0f)}, {{"resources/textures/marble.jpg", Core::Diffuse}}},
+		{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(0.0f, 2.0f, 0.0f), glm::vec3(15.0f)}, {{"resources/textures/metal.png", Core::Diffuse}}},
 	}
 {
 	mInstance = this;
@@ -33,6 +34,11 @@ Graphics::Engine::Engine(const int windowWidth, const int windowHeight, const ch
 
 Graphics::Engine::~Engine()
 {
+	for (const auto& loadedTexture : mLoadedTextures)
+	{
+		glDeleteTextures(1, &loadedTexture.second);
+	}
+
 	glfwTerminate();
 }
 
@@ -144,7 +150,9 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	}
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe mode
+
 	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
 
 	return true;
 }

@@ -11,6 +11,7 @@ out vec3 vWorldPos;
 uniform mat4 uModel;
 uniform mat4 uView;
 uniform mat4 uProjection;
+uniform float texCoordsMultiplier = 1.0;
 
 void main()
 {
@@ -18,7 +19,7 @@ void main()
 
 	vNormal = transpose(inverse(mat3(uModel))) * aNormal;
 
-	vTexCoords = aTexCoords;
+	vTexCoords = aTexCoords * texCoordsMultiplier;
 
 	gl_Position = uProjection * uView * vec4(vWorldPos, 1.0);
 }
