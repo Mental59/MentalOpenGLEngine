@@ -14,6 +14,8 @@ public:
 	void Draw(ShaderProgram& shader);
 
 	inline bool HasTextures() const { return mLoadedTextures.size() > 0; }
+	void SetDefaultTexture(const Core::Texture& texture);
+	bool HasDefaultTexture(Core::TextureType textureType) const;
 
 private:
 	void ProcessNode(struct aiNode* node, const struct aiScene* scene);
@@ -23,8 +25,10 @@ private:
 		enum aiTextureType textureType,
 		Core::TextureType coreTextureType
 	);
+	void AddDefaultTexture(std::vector<Core::Texture>* textures, Core::TextureType textureType);
 
 	std::vector <std::shared_ptr<Mesh>> mMeshes;
 	std::string mDirectory;
 	std::unordered_map<std::string, unsigned int> mLoadedTextures;
+	std::unordered_map<Core::TextureType, Core::Texture> mDefaultTextures;
 };

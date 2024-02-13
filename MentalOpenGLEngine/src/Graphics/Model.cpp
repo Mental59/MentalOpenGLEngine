@@ -23,6 +23,24 @@ void Model::Draw(ShaderProgram& shader)
 	}
 }
 
+void Model::SetDefaultTexture(const Core::Texture& texture)
+{
+	auto it = mDefaultTextures.find(texture.Type);
+	if (it == mDefaultTextures.end())
+	{
+		mDefaultTextures[texture.Type] = texture;
+	}
+	else
+	{
+		it->second = texture;
+	}
+}
+
+bool Model::HasDefaultTexture(Core::TextureType textureType) const
+{
+	return mDefaultTextures.find(textureType) != mDefaultTextures.end();
+}
+
 void Model::Load(const std::string& path)
 {
 	Assimp::Importer importer;
@@ -96,11 +114,23 @@ void Model::ProcessMesh(aiMesh* mesh, const aiScene* scene, std::shared_ptr<Mesh
 		std::vector<Core::Texture> diffuseMaps = LoadMaterialTextures(material, aiTextureType_DIFFUSE, Core::Diffuse);
 		std::vector<Core::Texture> specularMaps = LoadMaterialTextures(material, aiTextureType_SPECULAR, Core::Specular);
 
+		if (diffuseMaps.size() == 0) AddDefaultTexture(&diffuseMaps, Core::Diffuse);
+		if (specularMaps.size() == 0) AddDefaultTexture(&specularMaps, Core::Specular);
+
 		textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 		textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 	}
 
 	resMesh->Setup(vertices, indices, textures);
+}
+
+void Model::AddDefaultTexture(std::vector<Core::Texture>* textures, Core::TextureType textureType)
+{
+	auto it = mDefaultTextures.find(textureType);
+	if (it != mDefaultTextures.end())
+	{
+		textures->push_back(it->second);
+	}
 }
 
 std::vector<Core::Texture> Model::LoadMaterialTextures(aiMaterial* material, aiTextureType textureType, Core::TextureType coreTextureType)

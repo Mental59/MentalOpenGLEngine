@@ -3,6 +3,7 @@
 #include <glm/vec3.hpp>
 #include <glm/vec2.hpp>
 #include <string>
+#include <vector>
 
 #ifndef DIFFUSE_TEXTURE_NAME
 #define DIFFUSE_TEXTURE_NAME "uMaterial.diffuseTexture{}"
@@ -44,9 +45,16 @@ namespace Core
 		glm::vec3 Scale;
 	};
 
-	struct ModelImportData
+	struct TextureImport
+	{
+		const char* path;
+		TextureType type;
+	};
+
+	struct ModelImport
 	{
 		const char* path;
 		Transform transform;
+		std::vector<TextureImport> textureImports;
 	};
 }

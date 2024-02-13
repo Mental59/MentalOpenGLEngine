@@ -124,7 +124,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>STB_IMAGE_IMPLEMENTATION;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>STB_IMAGE_IMPLEMENTATION;STB_IMAGE_STATIC;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)src</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -142,7 +142,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>STB_IMAGE_IMPLEMENTATION;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>STB_IMAGE_IMPLEMENTATION;STB_IMAGE_STATIC;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)src</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -189,15 +189,6 @@
     <None Include="src\Shaders\noTextures.frag" />
     <None Include="src\Shaders\pointLight.frag" />
     <None Include="src\Shaders\spotLight.frag" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="resources\textures\awesomeface.png" />
-    <Image Include="resources\textures\container.jpg" />
-    <Image Include="resources\textures\container2.png" />
-    <Image Include="resources\textures\container2_specular.png" />
-    <Image Include="resources\textures\lighting_maps_specular_color.png" />
-    <Image Include="resources\textures\matrix.jpg" />
-    <Image Include="resources\textures\wall.jpg" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

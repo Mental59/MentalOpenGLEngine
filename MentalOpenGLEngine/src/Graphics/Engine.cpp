@@ -10,6 +10,7 @@
 #include "Shader.h"
 #include "Camera.h"
 #include "Time.h"
+#include "Utils.h"
 
 Graphics::Engine* Graphics::Engine::mInstance(nullptr);
 
@@ -107,11 +108,37 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	glfwSetInputMode(mWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	mBaseShaderProgram.Build("src/Shaders/base.vert", "src/Shaders/base.frag");
-	mNoTextureShaderProgram.Build("src/Shaders/base.vert", "src/Shaders/noTextures.frag");
 
-	for (const auto& modelImport : mModelImports)
+	// Load default diffuse texture
+	unsigned int defaultDiffuseTextureId = GLLoadTextureFromFile("resources/textures/default.png");
+	mLoadedTextures["resources/textures/default.png"] = defaultDiffuseTextureId;
+	Core::Texture defaultDiffuseTexture{ defaultDiffuseTextureId, Core::Diffuse };
+
+	// Setup models
+	for (const Core::ModelImport& modelImport : mModelImports)
 	{
 		std::shared_ptr<Model> model = std::make_shared<Model>();
+
+		for (const Core::TextureImport& textureImport : modelImport.textureImports)
+		{
+			auto it = mLoadedTextures.find(textureImport.path);
+			if (it != mLoadedTextures.end())
+			{
+				model->SetDefaultTexture({ it->second, textureImport.type });
+			}
+			else
+			{
+				unsigned int textureId = GLLoadTextureFromFile(textureImport.path);
+				mLoadedTextures[textureImport.path] = textureId;
+				model->SetDefaultTexture({ textureId, textureImport.type });
+			}
+		}
+
+		if (!model->HasDefaultTexture(Core::Diffuse))
+		{
+			model->SetDefaultTexture(defaultDiffuseTexture);
+		}
+
 		model->Load(modelImport.path);
 		mModels.push_back(model);
 	}
@@ -206,36 +233,13 @@ void Graphics::Engine::OnRender()
 	mBaseShaderProgram.SetUniformVec3("uLight.diffuse", 0.5f, 0.5f, 0.5f);
 	mBaseShaderProgram.SetUniformVec3("uLight.specular", 1.0f, 1.0f, 1.0f);
 
-	mNoTextureShaderProgram.Bind();
-
-	mNoTextureShaderProgram.SetUniformMat4("uView", glm::value_ptr(view));
-	mNoTextureShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(projection));
-	mNoTextureShaderProgram.SetUniformVec3("uViewPos", glm::value_ptr(mCamera.GetWorldPosition()));
-	mNoTextureShaderProgram.SetUniform1f("uMaterial.shininess", 128.0f);
-
-	mNoTextureShaderProgram.SetUniformVec3("uLight.direction", -0.2f, -1.0f, -0.3f);
-	mNoTextureShaderProgram.SetUniformVec3("uLight.ambient", 0.2f, 0.2f, 0.2f);
-	mNoTextureShaderProgram.SetUniformVec3("uLight.diffuse", 0.5f, 0.5f, 0.5f);
-	mNoTextureShaderProgram.SetUniformVec3("uLight.specular", 1.0f, 1.0f, 1.0f);
-
 	for (unsigned int i = 0; i < mModels.size(); i++)
 	{
 		glm::mat4 model(1.0f);
 		model = glm::translate(model, mModelImports[i].transform.Position);
 		model = glm::scale(model, mModelImports[i].transform.Scale);
-
-		if (mModels[i]->HasTextures())
-		{
-			mBaseShaderProgram.Bind();
-			mBaseShaderProgram.SetUniformMat4("uModel", glm::value_ptr(model));
-			mModels[i]->Draw(mBaseShaderProgram);
-		}
-		else
-		{
-			mNoTextureShaderProgram.Bind();
-			mNoTextureShaderProgram.SetUniformMat4("uModel", glm::value_ptr(model));
-			mModels[i]->Draw(mNoTextureShaderProgram);
-		}
+		mBaseShaderProgram.SetUniformMat4("uModel", glm::value_ptr(model));
+		mModels[i]->Draw(mBaseShaderProgram);
 	}
 
 	glfwSwapBuffers(mWindow);
