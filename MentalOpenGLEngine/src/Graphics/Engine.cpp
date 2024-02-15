@@ -218,7 +218,8 @@ void Graphics::Engine::OnInput()
 
 void Graphics::Engine::OnRender()
 {
-	glClearColor(0.4, 0.48, 0.48, 1.0f);
+	//glClearColor(0.4, 0.48, 0.48, 1.0f);
+	glClearColor(0.3, 0.3, 0.3, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glm::mat4 projection = glm::perspective(

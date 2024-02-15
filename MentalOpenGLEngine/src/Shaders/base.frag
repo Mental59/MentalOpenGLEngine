@@ -46,6 +46,12 @@ vec3 ComputeSpecular(const vec3 normal, const vec3 lightDirection, const vec3 sp
 	vec3 specular = specularFactor * uLight.specular * specularColor;
 	return specular;
 }
+  
+float LinearizeDepth(float depth, float near, float far) 
+{
+    float z = depth * 2.0 - 1.0; // back to NDC 
+    return ((2.0 * near * far) / (far + near - z * (far - near))) / far;	
+}
 
 void main()
 {
@@ -65,5 +71,7 @@ void main()
 	vec3 diffuse = ComputeDiffuse(normal, lightDirection, diffuseColor.rgb);
 	vec3 specular = ComputeSpecular(normal, lightDirection, specularColor);
 
-	FragColor = vec4(ambient + diffuse + specular, 1.0f);
+	vec3 depth = vec3(LinearizeDepth(gl_FragCoord.z, 0.1, 100.0));
+
+	FragColor = vec4(ambient + diffuse + specular + depth, 1.0f) ;
 }
