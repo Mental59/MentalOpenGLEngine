@@ -36,6 +36,11 @@ void Model::SetDefaultTexture(const Core::Texture& texture)
 	}
 }
 
+void Model::SetTransform(const Core::Transform& transform)
+{
+	mTransform = transform;
+}
+
 bool Model::HasDefaultTexture(Core::TextureType textureType) const
 {
 	return mDefaultTextures.find(textureType) != mDefaultTextures.end();

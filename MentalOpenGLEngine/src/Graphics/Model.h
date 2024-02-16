@@ -14,7 +14,9 @@ public:
 	void Draw(ShaderProgram& shader);
 
 	inline bool HasTextures() const { return mLoadedTextures.size() > 0; }
+	inline const Core::Transform& GetTransform() const { return mTransform; }
 	void SetDefaultTexture(const Core::Texture& texture);
+	void SetTransform(const Core::Transform& transform);
 	bool HasDefaultTexture(Core::TextureType textureType) const;
 
 private:
@@ -27,6 +29,7 @@ private:
 	);
 	void AddDefaultTexture(std::vector<Core::Texture>* textures, Core::TextureType textureType);
 
+	Core::Transform mTransform;
 	std::vector <std::shared_ptr<Mesh>> mMeshes;
 	std::string mDirectory;
 	std::unordered_map<std::string, unsigned int> mLoadedTextures;

@@ -187,6 +187,7 @@
     <None Include="src\Shaders\lightCube.vert" />
     <None Include="src\Shaders\base.vert" />
     <None Include="src\Shaders\noTextures.frag" />
+    <None Include="src\Shaders\outline.frag" />
     <None Include="src\Shaders\pointLight.frag" />
     <None Include="src\Shaders\spotLight.frag" />
   </ItemGroup>

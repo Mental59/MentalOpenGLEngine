@@ -14,6 +14,26 @@
 
 Graphics::Engine* Graphics::Engine::mInstance(nullptr);
 
+std::vector<Core::ModelImport> MODEL_IMPORTS{
+		{"resources/objects/sponza/sponza.obj", Core::Transform{glm::vec3(0.0f, -20.0f, 0.0f), glm::vec3(0.01f)}},
+		{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(0.0f, 2.0f, 0.0f), glm::vec3(15.0f)}, {{"resources/textures/metal.png", Core::Diffuse}}},
+};
+
+std::vector<Core::ModelImport> MODEL_IMPORT_CUBES{
+		{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(1.0f)}, {{"resources/textures/marble.jpg", Core::Diffuse}}},
+		{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(0.0f, 5.0f, -4.0f), glm::vec3(1.0f)}, {{"resources/textures/marble.jpg", Core::Diffuse}}},
+};
+
+std::vector<Core::ModelImport> MODEL_IMPORTS_CUBE_OUTLINES{
+		{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(0.0f, 5.0f, -4.0f), glm::vec3(1.1f)}, {{"resources/textures/marble.jpg", Core::Diffuse}}},
+		{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(1.1f)}, {{"resources/textures/marble.jpg", Core::Diffuse}}},
+};
+
+std::vector<std::shared_ptr<Model>> MODELS;
+std::vector<std::shared_ptr<Model>> CUBES;
+std::vector<std::shared_ptr<Model>> CUBE_OUTLINES;
+
+
 Graphics::Engine::Engine(const int windowWidth, const int windowHeight, const char* title) :
 	mWindowWidth(windowWidth),
 	mWindowHeight(windowHeight),
@@ -22,12 +42,7 @@ Graphics::Engine::Engine(const int windowWidth, const int windowHeight, const ch
 	mBaseShaderProgram(),
 	mCamera(glm::vec3(0.0f, 0.0f, 3.0f), 5.0f, 0.1f),
 	mLastMouseXPos(0.0f), mLastMouseYPos(0.0f), mIsFirstMouseMove(true),
-	mModelImports{
-		{"resources/objects/sponza/sponza.obj", Core::Transform{glm::vec3(0.0f, -20.0f, 0.0f), glm::vec3(0.01f)}},
-		{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(1.0f)}, {{"resources/textures/marble.jpg", Core::Diffuse}}},
-		{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(0.0f, 5.0f, -4.0f), glm::vec3(1.0f)}, {{"resources/textures/marble.jpg", Core::Diffuse}}},
-		{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(0.0f, 2.0f, 0.0f), glm::vec3(15.0f)}, {{"resources/textures/metal.png", Core::Diffuse}}},
-	}
+	mDefaultTexture{}
 {
 	mInstance = this;
 }
@@ -114,45 +129,25 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	glfwSetInputMode(mWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	mBaseShaderProgram.Build("src/Shaders/base.vert", "src/Shaders/base.frag");
+	mOutlineShaderProgram.Build("src/Shaders/base.vert", "src/Shaders/outline.frag");
 
 	// Load default diffuse texture
 	unsigned int defaultDiffuseTextureId = GLLoadTextureFromFile("resources/textures/default.png");
 	mLoadedTextures["resources/textures/default.png"] = defaultDiffuseTextureId;
-	Core::Texture defaultDiffuseTexture{ defaultDiffuseTextureId, Core::Diffuse };
+	mDefaultTexture = { defaultDiffuseTextureId, Core::Diffuse };
 
 	// Setup models
-	for (const Core::ModelImport& modelImport : mModelImports)
-	{
-		std::shared_ptr<Model> model = std::make_shared<Model>();
-
-		for (const Core::TextureImport& textureImport : modelImport.textureImports)
-		{
-			auto it = mLoadedTextures.find(textureImport.path);
-			if (it != mLoadedTextures.end())
-			{
-				model->SetDefaultTexture({ it->second, textureImport.type });
-			}
-			else
-			{
-				unsigned int textureId = GLLoadTextureFromFile(textureImport.path);
-				mLoadedTextures[textureImport.path] = textureId;
-				model->SetDefaultTexture({ textureId, textureImport.type });
-			}
-		}
-
-		if (!model->HasDefaultTexture(Core::Diffuse))
-		{
-			model->SetDefaultTexture(defaultDiffuseTexture);
-		}
-
-		model->Load(modelImport.path);
-		mModels.push_back(model);
-	}
+	ImportModels(MODEL_IMPORTS, &MODELS);
+	ImportModels(MODEL_IMPORT_CUBES, &CUBES);
+	ImportModels(MODEL_IMPORTS_CUBE_OUTLINES, &CUBE_OUTLINES);
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe mode
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
+
+	glEnable(GL_STENCIL_TEST);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
 	return true;
 }
@@ -218,9 +213,11 @@ void Graphics::Engine::OnInput()
 
 void Graphics::Engine::OnRender()
 {
+	glStencilMask(0xFF);
+
 	//glClearColor(0.4, 0.48, 0.48, 1.0f);
 	glClearColor(0.3, 0.3, 0.3, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	glm::mat4 projection = glm::perspective(
 		glm::radians(mCamera.GetZoom()),
@@ -242,14 +239,24 @@ void Graphics::Engine::OnRender()
 	mBaseShaderProgram.SetUniformVec3("uLight.diffuse", 0.5f, 0.5f, 0.5f);
 	mBaseShaderProgram.SetUniformVec3("uLight.specular", 1.0f, 1.0f, 1.0f);
 
-	for (unsigned int i = 0; i < mModels.size(); i++)
-	{
-		glm::mat4 model(1.0f);
-		model = glm::translate(model, mModelImports[i].transform.Position);
-		model = glm::scale(model, mModelImports[i].transform.Scale);
-		mBaseShaderProgram.SetUniformMat4("uModel", glm::value_ptr(model));
-		mModels[i]->Draw(mBaseShaderProgram);
-	}
+	mOutlineShaderProgram.Bind();
+
+	mOutlineShaderProgram.SetUniformMat4("uView", glm::value_ptr(view));
+	mOutlineShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(projection));
+	mOutlineShaderProgram.SetUniformVec3("uOutlineColor", 1, 0, 1);
+
+	glStencilMask(0x00);
+	DrawModels(MODELS, mBaseShaderProgram);
+
+	glStencilFunc(GL_ALWAYS, 1, 0xFF);
+	glStencilMask(0xFF);
+	DrawModels(CUBES, mBaseShaderProgram);
+
+	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+	glStencilMask(0x00);
+	glDisable(GL_DEPTH_TEST);
+	DrawModels(CUBE_OUTLINES, mOutlineShaderProgram);
+	glEnable(GL_DEPTH_TEST);
 
 	glfwSwapBuffers(mWindow);
 }
@@ -276,4 +283,55 @@ void Graphics::Engine::OnMouseMove(float xpos, float ypos)
 void Graphics::Engine::OnMouseScroll(float xOffset, float yOffset)
 {
 	mCamera.Zoom(yOffset);
+}
+
+void Graphics::Engine::DrawModels(const std::vector<std::shared_ptr<Model>>& models, ShaderProgram& shader) const
+{
+	shader.Bind();
+
+	for (unsigned int i = 0; i < models.size(); i++)
+	{
+		Core::Transform transform = models[i]->GetTransform();
+
+		glm::mat4 model(1.0f);
+		model = glm::translate(model, transform.Position);
+		model = glm::scale(model, transform.Scale);
+
+		shader.SetUniformMat4("uModel", glm::value_ptr(model));
+
+		models[i]->Draw(shader);
+	}
+}
+
+void Graphics::Engine::ImportModels(const std::vector<Core::ModelImport>& imports, std::vector<std::shared_ptr<Model>>* models)
+{
+	for (const Core::ModelImport& modelImport : imports)
+	{
+		std::shared_ptr<Model> model = std::make_shared<Model>();
+
+		for (const Core::TextureImport& textureImport : modelImport.textureImports)
+		{
+			auto it = mLoadedTextures.find(textureImport.path);
+			if (it != mLoadedTextures.end())
+			{
+				model->SetDefaultTexture({ it->second, textureImport.type });
+			}
+			else
+			{
+				unsigned int textureId = GLLoadTextureFromFile(textureImport.path);
+				mLoadedTextures[textureImport.path] = textureId;
+				model->SetDefaultTexture({ textureId, textureImport.type });
+			}
+		}
+
+		if (!model->HasDefaultTexture(Core::Diffuse))
+		{
+			model->SetDefaultTexture(mDefaultTexture);
+		}
+
+		model->SetTransform(modelImport.transform);
+		model->Load(modelImport.path);
+
+		models->push_back(model);
+	}
 }

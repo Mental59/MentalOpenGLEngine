@@ -2,6 +2,8 @@
 
 #include <vector>
 #include <glad/glad.h>
+#include <string>
+#include <unordered_map>
 #include "CoreTypes.h"
 #include "ShaderProgram.h"
 #include "Camera.h"
@@ -34,18 +36,23 @@ namespace Graphics
 		virtual void OnMouseScroll(float xOffset, float yOffset);
 
 	private:
+		void ImportModels(const std::vector<Core::ModelImport>& imports, std::vector<std::shared_ptr<Model>>* models);
+		void DrawModels(const std::vector<std::shared_ptr<Model>>& models, ShaderProgram& shader) const;
+
 		static Engine* mInstance;
 
 		int mWindowWidth, mWindowHeight;
 		const char* mTitle;
 
 		GLFWwindow* mWindow;
+
 		ShaderProgram mBaseShaderProgram;
+		ShaderProgram mOutlineShaderProgram;
 
 		Camera mCamera;
-		std::vector<Core::ModelImport> mModelImports;
-		std::vector<std::shared_ptr<Model>> mModels;
 		std::unordered_map<std::string, unsigned int> mLoadedTextures;
+
+		Core::Texture mDefaultTexture;
 
 		float mLastMouseXPos, mLastMouseYPos;
 		bool mIsFirstMouseMove;

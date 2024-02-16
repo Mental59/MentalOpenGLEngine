@@ -85,5 +85,6 @@
     <None Include="src\Shaders\multipleLights.frag" />
     <None Include="src\Shaders\base.frag" />
     <None Include="src\Shaders\noTextures.frag" />
+    <None Include="src\Shaders\outline.frag" />
   </ItemGroup>
 </Project>
