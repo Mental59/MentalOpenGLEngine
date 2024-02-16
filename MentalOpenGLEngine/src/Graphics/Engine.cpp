@@ -24,14 +24,8 @@ std::vector<Core::ModelImport> MODEL_IMPORT_CUBES{
 		{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(0.0f, 5.0f, -4.0f), glm::vec3(1.0f)}, {{"resources/textures/marble.jpg", Core::Diffuse}}},
 };
 
-std::vector<Core::ModelImport> MODEL_IMPORTS_CUBE_OUTLINES{
-		{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(0.0f, 5.0f, -4.0f), glm::vec3(1.1f)}, {{"resources/textures/marble.jpg", Core::Diffuse}}},
-		{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(1.1f)}, {{"resources/textures/marble.jpg", Core::Diffuse}}},
-};
-
 std::vector<std::shared_ptr<Model>> MODELS;
 std::vector<std::shared_ptr<Model>> CUBES;
-std::vector<std::shared_ptr<Model>> CUBE_OUTLINES;
 
 
 Graphics::Engine::Engine(const int windowWidth, const int windowHeight, const char* title) :
@@ -139,7 +133,6 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	// Setup models
 	ImportModels(MODEL_IMPORTS, &MODELS);
 	ImportModels(MODEL_IMPORT_CUBES, &CUBES);
-	ImportModels(MODEL_IMPORTS_CUBE_OUTLINES, &CUBE_OUTLINES);
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe mode
 
@@ -219,6 +212,8 @@ void Graphics::Engine::OnRender()
 	glClearColor(0.3, 0.3, 0.3, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
+	glStencilMask(0x00);
+
 	glm::mat4 projection = glm::perspective(
 		glm::radians(mCamera.GetZoom()),
 		static_cast<float>(mWindowWidth) / static_cast<float>(mWindowHeight),
@@ -245,18 +240,8 @@ void Graphics::Engine::OnRender()
 	mOutlineShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(projection));
 	mOutlineShaderProgram.SetUniformVec3("uOutlineColor", 1, 0, 1);
 
-	glStencilMask(0x00);
-	DrawModels(MODELS, mBaseShaderProgram);
-
-	glStencilFunc(GL_ALWAYS, 1, 0xFF);
-	glStencilMask(0xFF);
-	DrawModels(CUBES, mBaseShaderProgram);
-
-	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-	glStencilMask(0x00);
-	glDisable(GL_DEPTH_TEST);
-	DrawModels(CUBE_OUTLINES, mOutlineShaderProgram);
-	glEnable(GL_DEPTH_TEST);
+	DrawModels(MODELS, mBaseShaderProgram, false);
+	DrawModels(CUBES, mBaseShaderProgram, true);
 
 	glfwSwapBuffers(mWindow);
 }
@@ -285,10 +270,19 @@ void Graphics::Engine::OnMouseScroll(float xOffset, float yOffset)
 	mCamera.Zoom(yOffset);
 }
 
-void Graphics::Engine::DrawModels(const std::vector<std::shared_ptr<Model>>& models, ShaderProgram& shader) const
+void Graphics::Engine::DrawModels(
+	const std::vector<std::shared_ptr<Model>>& models,
+	ShaderProgram& shader,
+	bool outline
+)
 {
-	shader.Bind();
+	if (outline)
+	{
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilMask(0xFF);
+	}
 
+	shader.Bind();
 	for (unsigned int i = 0; i < models.size(); i++)
 	{
 		Core::Transform transform = models[i]->GetTransform();
@@ -300,6 +294,29 @@ void Graphics::Engine::DrawModels(const std::vector<std::shared_ptr<Model>>& mod
 		shader.SetUniformMat4("uModel", glm::value_ptr(model));
 
 		models[i]->Draw(shader);
+	}
+
+	if (outline)
+	{
+		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		glStencilMask(0x00);
+		glDisable(GL_DEPTH_TEST);
+
+		mOutlineShaderProgram.Bind();
+		for (unsigned int i = 0; i < models.size(); i++)
+		{
+			Core::Transform transform = models[i]->GetTransform();
+
+			glm::mat4 model(1.0f);
+			model = glm::translate(model, transform.Position);
+			model = glm::scale(model, transform.Scale * 1.1f);
+
+			mOutlineShaderProgram.SetUniformMat4("uModel", glm::value_ptr(model));
+
+			models[i]->Draw(mOutlineShaderProgram);
+		}
+
+		glEnable(GL_DEPTH_TEST);
 	}
 }
 

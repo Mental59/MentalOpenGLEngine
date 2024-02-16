@@ -36,8 +36,15 @@ namespace Graphics
 		virtual void OnMouseScroll(float xOffset, float yOffset);
 
 	private:
-		void ImportModels(const std::vector<Core::ModelImport>& imports, std::vector<std::shared_ptr<Model>>* models);
-		void DrawModels(const std::vector<std::shared_ptr<Model>>& models, ShaderProgram& shader) const;
+		void ImportModels(
+			const std::vector<Core::ModelImport>& imports,
+			std::vector<std::shared_ptr<Model>>* models
+		);
+		void DrawModels(
+			const std::vector<std::shared_ptr<Model>>& models,
+			ShaderProgram& shader,
+			bool outline = false
+		);
 
 		static Engine* mInstance;
 
