@@ -45,6 +45,11 @@ namespace Graphics
 			ShaderProgram& shader,
 			bool outline = false
 		);
+		void DrawTransparentModels(
+			const std::vector<std::shared_ptr<Model>>& models,
+			ShaderProgram& shader
+		);
+		void DrawModel(ShaderProgram& shader, std::shared_ptr<Model> model);
 
 		static Engine* mInstance;
 

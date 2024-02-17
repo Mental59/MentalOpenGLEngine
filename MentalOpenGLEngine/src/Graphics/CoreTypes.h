@@ -41,8 +41,11 @@ namespace Core
 
 	struct Transform
 	{
-		glm::vec3 Position;
-		glm::vec3 Scale;
+		glm::vec3 Position{ 0.0f };
+		glm::vec3 Scale{ 1.0f };
+
+		float RotationAngle{ 0.0f };
+		glm::vec3 RotationAxis{ 1.0f, 0.0f, 0.0f };
 	};
 
 	struct TextureImport
