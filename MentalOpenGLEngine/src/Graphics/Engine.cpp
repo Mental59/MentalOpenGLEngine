@@ -245,6 +245,7 @@ void Graphics::Engine::OnRender()
 	glStencilMask(0x00);
 
 	glEnable(GL_DEPTH_TEST);
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	DrawScene();
 
 	mFrameBuffer.Unbind();
@@ -255,6 +256,7 @@ void Graphics::Engine::OnRender()
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, mFrameBuffer.GetTextureColorId());
 	glDisable(GL_DEPTH_TEST);
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	mScreenQuad.Draw();
 
 	glfwSwapBuffers(mWindow);
@@ -288,7 +290,7 @@ void Graphics::Engine::DrawScene()
 	mOutlineShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(projection));
 	mOutlineShaderProgram.SetUniformVec3("uOutlineColor", 1, 0, 1);
 
-	DrawModels(MODELS, mBaseShaderProgram, true);
+	DrawModels(MODELS, mBaseShaderProgram, false);
 	DrawModels(CUBES, mBaseShaderProgram, false);
 	DrawTransparentModels(TRANSPARENT, mBaseShaderProgram);
 }
