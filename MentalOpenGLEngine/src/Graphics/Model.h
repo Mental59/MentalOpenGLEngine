@@ -12,6 +12,7 @@ public:
 	virtual ~Model();
 	void Load(const std::string& path);
 	void Draw(ShaderProgram& shader);
+	void Draw(ShaderProgram& shader, const Core::Transform& transform);
 
 	inline bool HasTextures() const { return mLoadedTextures.size() > 0; }
 	inline const Core::Transform& GetTransform() const { return mTransform; }

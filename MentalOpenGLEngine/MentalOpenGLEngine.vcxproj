@@ -157,6 +157,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Graphics\Primitives\ScreenQuad.cpp" />
+    <ClCompile Include="src\Graphics\FrameBuffer.cpp" />
     <ClCompile Include="src\Graphics\Model.cpp" />
     <ClCompile Include="src\Graphics\Mesh.cpp" />
     <ClCompile Include="src\External\glad.c" />
@@ -168,6 +170,8 @@
     <ClCompile Include="src\Main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Graphics\Primitives\ScreenQuad.h" />
+    <ClInclude Include="src\Graphics\FrameBuffer.h" />
     <ClInclude Include="src\Graphics\Model.h" />
     <ClInclude Include="src\Graphics\Mesh.h" />
     <ClInclude Include="src\External\stb_image.h" />
@@ -181,6 +185,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="src\Shaders\base.frag" />
+    <None Include="src\Shaders\framebufferScreen.frag" />
+    <None Include="src\Shaders\framebufferScreen.vert" />
     <None Include="src\Shaders\multipleLights.frag" />
     <None Include="src\Shaders\directionalLight.frag" />
     <None Include="src\Shaders\lightCube.frag" />

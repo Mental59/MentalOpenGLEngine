@@ -8,6 +8,8 @@
 #include "ShaderProgram.h"
 #include "Camera.h"
 #include "Model.h"
+#include "FrameBuffer.h"
+#include "Primitives/ScreenQuad.h"
 
 struct GLFWwindow;
 
@@ -36,6 +38,7 @@ namespace Graphics
 		virtual void OnMouseScroll(float xOffset, float yOffset);
 
 	private:
+		void DrawScene();
 		void ImportModels(
 			const std::vector<Core::ModelImport>& imports,
 			std::vector<std::shared_ptr<Model>>* models
@@ -49,7 +52,6 @@ namespace Graphics
 			const std::vector<std::shared_ptr<Model>>& models,
 			ShaderProgram& shader
 		);
-		void DrawModel(ShaderProgram& shader, std::shared_ptr<Model> model);
 
 		static Engine* mInstance;
 
@@ -60,6 +62,10 @@ namespace Graphics
 
 		ShaderProgram mBaseShaderProgram;
 		ShaderProgram mOutlineShaderProgram;
+		ShaderProgram mFramebufferScreenProgram;
+
+		FrameBuffer mFrameBuffer;
+		ScreenQuad mScreenQuad;
 
 		Camera mCamera;
 		std::unordered_map<std::string, unsigned int> mLoadedTextures;

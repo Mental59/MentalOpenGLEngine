@@ -5,6 +5,9 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include "Graphics/Utils.h"
 
 Model::~Model()
@@ -17,6 +20,28 @@ Model::~Model()
 
 void Model::Draw(ShaderProgram& shader)
 {
+	glm::mat4 modelMat(1.0f);
+	modelMat = glm::translate(modelMat, mTransform.Position);
+	modelMat = glm::rotate(modelMat, glm::radians(mTransform.RotationAngle), mTransform.RotationAxis);
+	modelMat = glm::scale(modelMat, mTransform.Scale);
+
+	shader.SetUniformMat4("uModel", glm::value_ptr(modelMat));
+
+	for (size_t i = 0; i < mMeshes.size(); i++)
+	{
+		mMeshes[i]->Draw(shader);
+	}
+}
+
+void Model::Draw(ShaderProgram& shader, const Core::Transform& transform)
+{
+	glm::mat4 modelMat(1.0f);
+	modelMat = glm::translate(modelMat, transform.Position);
+	modelMat = glm::rotate(modelMat, glm::radians(transform.RotationAngle), transform.RotationAxis);
+	modelMat = glm::scale(modelMat, transform.Scale);
+
+	shader.SetUniformMat4("uModel", glm::value_ptr(modelMat));
+
 	for (size_t i = 0; i < mMeshes.size(); i++)
 	{
 		mMeshes[i]->Draw(shader);

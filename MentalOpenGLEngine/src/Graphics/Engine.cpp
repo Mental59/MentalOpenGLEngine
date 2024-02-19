@@ -16,25 +16,28 @@
 Graphics::Engine* Graphics::Engine::mInstance(nullptr);
 
 std::vector<Core::ModelImport> MODEL_IMPORTS{
-		{"resources/objects/sponza/sponza.obj", Core::Transform{glm::vec3(0.0f, -20.0f, 0.0f), glm::vec3(0.01f)}},
-		{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(0.0f, 2.0f, 0.0f), glm::vec3(15.0f)}, {{"resources/textures/metal.png", Core::Diffuse}}},
+	{"resources/objects/sponza/sponza.obj", Core::Transform{glm::vec3(0.0f, -20.0f, 0.0f), glm::vec3(0.01f)}},
+	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(15.0f)}, {{"resources/textures/metal.png", Core::Diffuse}}},
 
-		{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(5.0f, 5.0f, -12.0f), glm::vec3(1.0f)}, {{"resources/textures/marble.jpg", Core::Diffuse}}},
-		{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(10.0f, 5.0f, -12.0f), glm::vec3(1.0f)}, {{"resources/textures/marble.jpg", Core::Diffuse}}},
+	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(5.0f, 2.0f, -12.0f), glm::vec3(1.0f)}, {{"resources/textures/marble.jpg", Core::Diffuse}}},
+	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(10.0f, 2.0f, -12.0f), glm::vec3(1.0f)}, {{"resources/textures/marble.jpg", Core::Diffuse}}},
 
-		{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(5.0f, 5.0f, 4.0f), glm::vec3(1.0f)}, {{"resources/textures/marble.jpg", Core::Diffuse}}},
-		{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(10.0f, 5.0f, 4.0f), glm::vec3(1.0f)}, {{"resources/textures/marble.jpg", Core::Diffuse}}},
+	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(5.0f, 2.0f, 4.0f), glm::vec3(1.0f)}, {{"resources/textures/marble.jpg", Core::Diffuse}}},
+	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(10.0f, 2.0f, 4.0f), glm::vec3(1.0f)}, {{"resources/textures/marble.jpg", Core::Diffuse}}},
 };
-std::vector<Core::ModelImport> MODEL_IMPORT_CUBES;
+std::vector<Core::ModelImport> MODEL_IMPORT_CUBES{
+	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(5.0f, 5.0f, 4.0f), glm::vec3(1.0f)}, {{"resources/textures/marble.jpg", Core::Diffuse}}},
+	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(10.0f, 5.0f, 4.0f), glm::vec3(1.0f)}, {{"resources/textures/marble.jpg", Core::Diffuse}}},
+};
 std::vector<Core::ModelImport> MODEL_IMPORT_TRANSPARENT{
-	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(5.0f, 5.0f, -8.0f), glm::vec3(2.0f), 90.0f}, {{"resources/textures/window.png", Core::Diffuse}}},
-	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(10.0f, 5.0f, -8.0f), glm::vec3(2.0f), 90.0f}, {{"resources/textures/window.png", Core::Diffuse}}},
+	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(5.0f, 2.0f, -8.0f), glm::vec3(2.0f), 90.0f}, {{"resources/textures/window.png", Core::Diffuse}}},
+	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(10.0f, 2.0f, -8.0f), glm::vec3(2.0f), 90.0f}, {{"resources/textures/window.png", Core::Diffuse}}},
 
-	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(5.0f, 5.0f, -4.0f), glm::vec3(2.0f), 90.0f}, {{"resources/textures/window.png", Core::Diffuse}}},
-	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(10.0f, 5.0f, -4.0f), glm::vec3(2.0f), 90.0f}, {{"resources/textures/window.png", Core::Diffuse}}},
+	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(5.0f, 2.0f, -4.0f), glm::vec3(2.0f), 90.0f}, {{"resources/textures/window.png", Core::Diffuse}}},
+	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(10.0f, 2.0f, -4.0f), glm::vec3(2.0f), 90.0f}, {{"resources/textures/window.png", Core::Diffuse}}},
 
-	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(5.0f, 5.0f, 0.0f), glm::vec3(2.0f), 90.0f}, {{"resources/textures/window.png", Core::Diffuse}}},
-	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(10.0f, 5.0f, 0.0f), glm::vec3(2.0f), 90.0f}, {{"resources/textures/window.png", Core::Diffuse}}},
+	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(5.0f, 2.0f, 0.0f), glm::vec3(2.0f), 90.0f}, {{"resources/textures/window.png", Core::Diffuse}}},
+	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(10.0f, 2.0f, 0.0f), glm::vec3(2.0f), 90.0f}, {{"resources/textures/window.png", Core::Diffuse}}},
 };
 
 std::vector<std::shared_ptr<Model>> MODELS;
@@ -48,7 +51,7 @@ Graphics::Engine::Engine(const int windowWidth, const int windowHeight, const ch
 	mTitle(title),
 	mWindow(nullptr),
 	mBaseShaderProgram(),
-	mCamera(glm::vec3(0.0f, 0.0f, 3.0f), 5.0f, 0.1f),
+	mCamera(glm::vec3(0.0f, 0.0f, 0.0f), 5.0f, 0.1f),
 	mLastMouseXPos(0.0f), mLastMouseYPos(0.0f), mIsFirstMouseMove(true),
 	mDefaultTexture{}
 {
@@ -139,6 +142,11 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	mBaseShaderProgram.Build("src/Shaders/base.vert", "src/Shaders/base.frag");
 	mOutlineShaderProgram.Build("src/Shaders/base.vert", "src/Shaders/outline.frag");
 
+	mFramebufferScreenProgram.Build("src/Shaders/framebufferScreen.vert", "src/Shaders/framebufferScreen.frag");
+	mFramebufferScreenProgram.Bind();
+	mFramebufferScreenProgram.SetUniform1i("uScreenTexture", 0);
+	mFramebufferScreenProgram.Unbind();
+
 	// Load default diffuse texture
 	unsigned int defaultDiffuseTextureId = GLLoadTextureFromFile("resources/textures/default.png");
 	mLoadedTextures["resources/textures/default.png"] = defaultDiffuseTextureId;
@@ -149,13 +157,13 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	ImportModels(MODEL_IMPORT_CUBES, &CUBES);
 	ImportModels(MODEL_IMPORT_TRANSPARENT, &TRANSPARENT);
 
+	mFrameBuffer.Create(mWindowWidth, mWindowHeight);
+	mScreenQuad.Create();
+
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe mode
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
-
-	glEnable(GL_STENCIL_TEST);
-	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -229,14 +237,31 @@ void Graphics::Engine::OnInput()
 
 void Graphics::Engine::OnRender()
 {
-	glStencilMask(0xFF);
+	mFrameBuffer.Bind();
 
-	//glClearColor(0.4, 0.48, 0.48, 1.0f);
+	glStencilMask(0xFF);
 	glClearColor(0.3, 0.3, 0.3, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
 	glStencilMask(0x00);
 
+	glEnable(GL_DEPTH_TEST);
+	DrawScene();
+
+	mFrameBuffer.Unbind();
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	mFramebufferScreenProgram.Bind();
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, mFrameBuffer.GetTextureColorId());
+	glDisable(GL_DEPTH_TEST);
+	mScreenQuad.Draw();
+
+	glfwSwapBuffers(mWindow);
+}
+
+void Graphics::Engine::DrawScene()
+{
 	glm::mat4 projection = glm::perspective(
 		glm::radians(mCamera.GetZoom()),
 		static_cast<float>(mWindowWidth) / static_cast<float>(mWindowHeight),
@@ -263,12 +288,9 @@ void Graphics::Engine::OnRender()
 	mOutlineShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(projection));
 	mOutlineShaderProgram.SetUniformVec3("uOutlineColor", 1, 0, 1);
 
-	DrawModels(MODELS, mBaseShaderProgram, false);
+	DrawModels(MODELS, mBaseShaderProgram, true);
 	DrawModels(CUBES, mBaseShaderProgram, false);
-
 	DrawTransparentModels(TRANSPARENT, mBaseShaderProgram);
-
-	glfwSwapBuffers(mWindow);
 }
 
 void Graphics::Engine::OnMouseMove(float xpos, float ypos)
@@ -303,6 +325,9 @@ void Graphics::Engine::DrawModels(
 {
 	if (outline)
 	{
+		glEnable(GL_STENCIL_TEST);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilMask(0xFF);
 	}
@@ -310,7 +335,7 @@ void Graphics::Engine::DrawModels(
 	shader.Bind();
 	for (unsigned int i = 0; i < models.size(); i++)
 	{
-		DrawModel(shader, models[i]);
+		models[i]->Draw(shader);
 	}
 
 	if (outline)
@@ -322,10 +347,14 @@ void Graphics::Engine::DrawModels(
 		mOutlineShaderProgram.Bind();
 		for (unsigned int i = 0; i < models.size(); i++)
 		{
-			DrawModel(mOutlineShaderProgram, models[i]);
+			Core::Transform transform = models[i]->GetTransform();
+			transform.Scale *= 1.1f;
+
+			models[i]->Draw(mOutlineShaderProgram, transform);
 		}
 
 		glEnable(GL_DEPTH_TEST);
+		glDisable(GL_STENCIL_TEST);
 	}
 }
 
@@ -344,22 +373,8 @@ void Graphics::Engine::DrawTransparentModels(const std::vector<std::shared_ptr<M
 
 	for (auto it = sorted.rbegin(); it != sorted.rend(); it++)
 	{
-		DrawModel(shader, it->second);
+		it->second->Draw(shader);
 	}
-}
-
-void Graphics::Engine::DrawModel(ShaderProgram& shader, std::shared_ptr<Model> model)
-{
-	Core::Transform transform = model->GetTransform();
-
-	glm::mat4 modelMat(1.0f);
-	modelMat = glm::translate(modelMat, transform.Position);
-	modelMat = glm::rotate(modelMat, glm::radians(transform.RotationAngle), transform.RotationAxis);
-	modelMat = glm::scale(modelMat, transform.Scale);
-
-	shader.SetUniformMat4("uModel", glm::value_ptr(modelMat));
-
-	model->Draw(shader);
 }
 
 void Graphics::Engine::ImportModels(const std::vector<Core::ModelImport>& imports, std::vector<std::shared_ptr<Model>>* models)
