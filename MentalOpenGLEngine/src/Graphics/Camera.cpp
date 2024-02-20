@@ -82,6 +82,12 @@ void Camera::Rotate(float xOffset, float yOffset)
 	UpdateCameraBasisVectors();
 }
 
+void Camera::RotateYaw(float yawAngleDegrees)
+{
+	mYaw += yawAngleDegrees;
+	UpdateCameraBasisVectors();
+}
+
 void Camera::Zoom(float yOffset)
 {
 	mZoom -= yOffset * Time::DeltaTime * 100.0f;

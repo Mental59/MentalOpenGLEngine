@@ -25,6 +25,7 @@ public:
 
 	void Move(Movement movement);
 	void Rotate(float xOffset, float yOffset);
+	void RotateYaw(float yawAngleDegrees);
 	void Zoom(float yOffset);
 
 private:

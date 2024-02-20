@@ -142,10 +142,10 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	mBaseShaderProgram.Build("src/Shaders/base.vert", "src/Shaders/base.frag");
 	mOutlineShaderProgram.Build("src/Shaders/base.vert", "src/Shaders/outline.frag");
 
-	mFramebufferScreenProgram.Build("src/Shaders/framebufferScreen.vert", "src/Shaders/framebufferScreen.frag");
-	mFramebufferScreenProgram.Bind();
-	mFramebufferScreenProgram.SetUniform1i("uScreenTexture", 0);
-	mFramebufferScreenProgram.Unbind();
+	mFramebufferScreenShaderProgram.Build("src/Shaders/framebufferScreen.vert", "src/Shaders/framebufferScreen.frag");
+	mFramebufferScreenShaderProgram.Bind();
+	mFramebufferScreenShaderProgram.SetUniform1i("uScreenTexture", 0);
+	mFramebufferScreenShaderProgram.Unbind();
 
 	// Load default diffuse texture
 	unsigned int defaultDiffuseTextureId = GLLoadTextureFromFile("resources/textures/default.png");
@@ -158,6 +158,7 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	ImportModels(MODEL_IMPORT_TRANSPARENT, &TRANSPARENT);
 
 	mFrameBuffer.Create(mWindowWidth, mWindowHeight);
+	mRearViewFrameBuffer.Create(mWindowWidth, mWindowHeight);
 	mScreenQuad.Create();
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe mode
@@ -238,31 +239,48 @@ void Graphics::Engine::OnInput()
 void Graphics::Engine::OnRender()
 {
 	mFrameBuffer.Bind();
-
 	glStencilMask(0xFF);
 	glClearColor(0.3, 0.3, 0.3, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	glStencilMask(0x00);
-
-	glEnable(GL_DEPTH_TEST);
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	DrawScene();
-
+	DrawScene(mCamera.GetViewMatrix());
 	mFrameBuffer.Unbind();
+
+	mRearViewFrameBuffer.Bind();
+	glStencilMask(0xFF);
+	glClearColor(0.3, 0.3, 0.3, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	glStencilMask(0x00);
+	mCamera.RotateYaw(180.0f);
+	glm::mat4 rearView = mCamera.GetViewMatrix();
+	mCamera.RotateYaw(-180.0f);
+	DrawScene(rearView);
+	mRearViewFrameBuffer.Unbind();
+
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	mFramebufferScreenProgram.Bind();
+	mFramebufferScreenShaderProgram.Bind();
+
+
+	glDisable(GL_DEPTH_TEST);
+	glm::mat4 model(1.0f);
+	mFramebufferScreenShaderProgram.SetUniformMat4("uModelMat", glm::value_ptr(model));
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, mFrameBuffer.GetTextureColorId());
-	glDisable(GL_DEPTH_TEST);
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	mScreenQuad.Draw();
+	model = glm::translate(model, glm::vec3(0.0f, 0.70f, 0.0f));
+	model = glm::scale(model, glm::vec3(0.25f));
+	mFramebufferScreenShaderProgram.SetUniformMat4("uModelMat", glm::value_ptr(model));
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, mRearViewFrameBuffer.GetTextureColorId());
+	mScreenQuad.Draw();
+	glEnable(GL_DEPTH_TEST);
 
 	glfwSwapBuffers(mWindow);
 }
 
-void Graphics::Engine::DrawScene()
+void Graphics::Engine::DrawScene(const glm::mat4& view)
 {
 	glm::mat4 projection = glm::perspective(
 		glm::radians(mCamera.GetZoom()),
@@ -270,7 +288,7 @@ void Graphics::Engine::DrawScene()
 		0.1f,
 		100.0f
 	);
-	glm::mat4 view = mCamera.GetViewMatrix();
+	//glm::mat4 view = mCamera.GetViewMatrix();
 
 	mBaseShaderProgram.Bind();
 

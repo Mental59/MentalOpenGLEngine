@@ -38,7 +38,7 @@ namespace Graphics
 		virtual void OnMouseScroll(float xOffset, float yOffset);
 
 	private:
-		void DrawScene();
+		void DrawScene(const glm::mat4& view);
 		void ImportModels(
 			const std::vector<Core::ModelImport>& imports,
 			std::vector<std::shared_ptr<Model>>* models
@@ -62,9 +62,10 @@ namespace Graphics
 
 		ShaderProgram mBaseShaderProgram;
 		ShaderProgram mOutlineShaderProgram;
-		ShaderProgram mFramebufferScreenProgram;
+		ShaderProgram mFramebufferScreenShaderProgram;
 
 		FrameBuffer mFrameBuffer;
+		FrameBuffer mRearViewFrameBuffer;
 		ScreenQuad mScreenQuad;
 
 		Camera mCamera;
