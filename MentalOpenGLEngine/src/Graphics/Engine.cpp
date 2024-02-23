@@ -158,7 +158,7 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	ImportModels(MODEL_IMPORT_TRANSPARENT, &TRANSPARENT);
 
 	mFrameBuffer.Create(mWindowWidth, mWindowHeight);
-	mRearViewFrameBuffer.Create(mWindowWidth, mWindowHeight);
+	//mRearViewFrameBuffer.Create(mWindowWidth, mWindowHeight);
 	mScreenQuad.Create();
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe mode
@@ -246,22 +246,21 @@ void Graphics::Engine::OnRender()
 	DrawScene(mCamera.GetViewMatrix());
 	mFrameBuffer.Unbind();
 
-	mRearViewFrameBuffer.Bind();
-	glStencilMask(0xFF);
-	glClearColor(0.3, 0.3, 0.3, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-	glStencilMask(0x00);
-	mCamera.RotateYaw(180.0f);
-	glm::mat4 rearView = mCamera.GetViewMatrix();
-	mCamera.RotateYaw(-180.0f);
-	DrawScene(rearView);
-	mRearViewFrameBuffer.Unbind();
+	//mRearViewFrameBuffer.Bind();
+	//glStencilMask(0xFF);
+	//glClearColor(0.3, 0.3, 0.3, 1.0f);
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	//glStencilMask(0x00);
+	//mCamera.RotateYaw(180.0f);
+	//glm::mat4 rearView = mCamera.GetViewMatrix();
+	//mCamera.RotateYaw(-180.0f);
+	//DrawScene(rearView);
+	//mRearViewFrameBuffer.Unbind();
 
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	mFramebufferScreenShaderProgram.Bind();
-
 
 	glDisable(GL_DEPTH_TEST);
 	glm::mat4 model(1.0f);
@@ -269,12 +268,12 @@ void Graphics::Engine::OnRender()
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, mFrameBuffer.GetTextureColorId());
 	mScreenQuad.Draw();
-	model = glm::translate(model, glm::vec3(0.0f, 0.70f, 0.0f));
-	model = glm::scale(model, glm::vec3(0.25f));
-	mFramebufferScreenShaderProgram.SetUniformMat4("uModelMat", glm::value_ptr(model));
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, mRearViewFrameBuffer.GetTextureColorId());
-	mScreenQuad.Draw();
+	//model = glm::translate(model, glm::vec3(0.0f, 0.70f, 0.0f));
+	//model = glm::scale(model, glm::vec3(0.25f));
+	//mFramebufferScreenShaderProgram.SetUniformMat4("uModelMat", glm::value_ptr(model));
+	//glActiveTexture(GL_TEXTURE0);
+	//glBindTexture(GL_TEXTURE_2D, mRearViewFrameBuffer.GetTextureColorId());
+	//mScreenQuad.Draw();
 	glEnable(GL_DEPTH_TEST);
 
 	glfwSwapBuffers(mWindow);
@@ -288,7 +287,6 @@ void Graphics::Engine::DrawScene(const glm::mat4& view)
 		0.1f,
 		100.0f
 	);
-	//glm::mat4 view = mCamera.GetViewMatrix();
 
 	mBaseShaderProgram.Bind();
 
