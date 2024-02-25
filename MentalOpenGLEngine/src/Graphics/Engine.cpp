@@ -26,7 +26,23 @@ std::vector<Core::ModelImport> MODEL_IMPORTS{
 	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(10.0f, 2.0f, 4.0f), glm::vec3(1.0f)}, {{"resources/textures/marble.jpg", Core::Diffuse}}},
 };
 std::vector<Core::ModelImport> MODEL_IMPORT_CUBES{
-	{"resources/objects/backpack/backpack.obj", Core::Transform{glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f)}},
+	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f)}},
+	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(3.0f, 0.0f, 0.0f), glm::vec3(1.0f)}},
+	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(6.0f, 0.0f, 0.0f), glm::vec3(1.0f)}},
+	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(-3.0f, 0.0f, 0.0f), glm::vec3(1.0f)}},
+	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(-6.0f, 0.0f, 0.0f), glm::vec3(1.0f)}},
+
+	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3(1.0f)}},
+	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(3.0f, 3.0f, 0.0f), glm::vec3(1.0f)}},
+	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(6.0f, 3.0f, 0.0f), glm::vec3(1.0f)}},
+	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(-3.0f, 3.0f, 0.0f), glm::vec3(1.0f)}},
+	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(-6.0f, 3.0f, 0.0f), glm::vec3(1.0f)}},
+
+	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(0.0f, 6.0f, 0.0f), glm::vec3(1.0f)}},
+	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(3.0f, 6.0f, 0.0f), glm::vec3(1.0f)}},
+	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(6.0f, 6.0f, 0.0f), glm::vec3(1.0f)}},
+	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(-3.0f, 6.0f, 0.0f), glm::vec3(1.0f)}},
+	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(-6.0f, 6.0f, 0.0f), glm::vec3(1.0f)}},
 };
 std::vector<Core::ModelImport> MODEL_IMPORT_TRANSPARENT{
 	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(5.0f, 2.0f, -8.0f), glm::vec3(2.0f), 90.0f}, {{"resources/textures/window.png", Core::Diffuse}}},
@@ -172,12 +188,12 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	mScreenQuad.Create();
 
 	const char* faces[6]{
-		"resources/skyboxes/skybox1/right.jpg",
-		"resources/skyboxes/skybox1/left.jpg",
-		"resources/skyboxes/skybox1/top.jpg",
-		"resources/skyboxes/skybox1/bottom.jpg",
-		"resources/skyboxes/skybox1/front.jpg",
-		"resources/skyboxes/skybox1/back.jpg"
+		"resources/skyboxes/SnowyForest/right.png",
+		"resources/skyboxes/SnowyForest/left.png",
+		"resources/skyboxes/SnowyForest/top.png",
+		"resources/skyboxes/SnowyForest/bottom.png",
+		"resources/skyboxes/SnowyForest/front.png",
+		"resources/skyboxes/SnowyForest/back.png"
 	};
 	mCubemap.Load(faces);
 
@@ -264,7 +280,9 @@ void Graphics::Engine::OnRender()
 	glClearColor(0.3, 0.3, 0.3, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	glStencilMask(0x00);
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	DrawScene(mCamera.GetViewMatrix(), mCamera.GetProjectionMatrix(mAspectRatio));
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	mFrameBuffer.Unbind();
 
 	//mRearViewFrameBuffer.Bind();
