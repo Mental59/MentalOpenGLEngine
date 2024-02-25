@@ -26,7 +26,7 @@ std::vector<Core::ModelImport> MODEL_IMPORTS{
 	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(10.0f, 2.0f, 4.0f), glm::vec3(1.0f)}, {{"resources/textures/marble.jpg", Core::Diffuse}}},
 };
 std::vector<Core::ModelImport> MODEL_IMPORT_CUBES{
-	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f)}},
+	{"resources/objects/backpack/backpack.obj", Core::Transform{glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f)}},
 };
 std::vector<Core::ModelImport> MODEL_IMPORT_TRANSPARENT{
 	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(5.0f, 2.0f, -8.0f), glm::vec3(2.0f), 90.0f}, {{"resources/textures/window.png", Core::Diffuse}}},
@@ -275,7 +275,7 @@ void Graphics::Engine::OnRender()
 	//mCamera.RotateYaw(180.0f);
 	//glm::mat4 rearView = mCamera.GetViewMatrix();
 	//mCamera.RotateYaw(-180.0f);
-	//DrawScene(rearView);
+	//DrawScene(rearView, mCamera.GetProjectionMatrix(mAspectRatio));
 	//mRearViewFrameBuffer.Unbind();
 
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -442,10 +442,10 @@ void Graphics::Engine::ImportModels(const std::vector<Core::ModelImport>& import
 			}
 		}
 
-		//if (!model->HasDefaultTexture(Core::Diffuse))
-		//{
-		//	model->SetDefaultTexture(mDefaultTexture);
-		//}
+		if (!model->HasDefaultTexture(Core::Diffuse))
+		{
+			model->SetDefaultTexture(mDefaultTexture);
+		}
 
 		model->SetTransform(modelImport.transform);
 		model->Load(modelImport.path);
