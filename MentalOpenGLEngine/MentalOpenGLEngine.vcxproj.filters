@@ -108,5 +108,6 @@
     <None Include="src\Shaders\framebufferScreen.vert" />
     <None Include="src\Shaders\cubemap.vert" />
     <None Include="src\Shaders\cubemap.frag" />
+    <None Include="src\Shaders\environmentMapping.frag" />
   </ItemGroup>
 </Project>

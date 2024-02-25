@@ -26,8 +26,7 @@ std::vector<Core::ModelImport> MODEL_IMPORTS{
 	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(10.0f, 2.0f, 4.0f), glm::vec3(1.0f)}, {{"resources/textures/marble.jpg", Core::Diffuse}}},
 };
 std::vector<Core::ModelImport> MODEL_IMPORT_CUBES{
-	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(5.0f, 5.0f, 4.0f), glm::vec3(1.0f)}, {{"resources/textures/marble.jpg", Core::Diffuse}}},
-	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(10.0f, 5.0f, 4.0f), glm::vec3(1.0f)}, {{"resources/textures/marble.jpg", Core::Diffuse}}},
+	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f)}},
 };
 std::vector<Core::ModelImport> MODEL_IMPORT_TRANSPARENT{
 	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(5.0f, 2.0f, -8.0f), glm::vec3(2.0f), 90.0f}, {{"resources/textures/window.png", Core::Diffuse}}},
@@ -52,7 +51,7 @@ Graphics::Engine::Engine(const int windowWidth, const int windowHeight, const ch
 	mTitle(title),
 	mWindow(nullptr),
 	mBaseShaderProgram(),
-	mCamera(glm::vec3(0.0f, 0.0f, 0.0f), 5.0f, 0.1f),
+	mCamera(glm::vec3(0.0f, 0.0f, 3.0f), 5.0f, 0.1f),
 	mLastMouseXPos(0.0f), mLastMouseYPos(0.0f), mIsFirstMouseMove(true),
 	mDefaultTexture{}
 {
@@ -144,6 +143,7 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	mOutlineShaderProgram.Build("src/Shaders/base.vert", "src/Shaders/outline.frag");
 	mSkyboxShaderProgram.Build("src/Shaders/cubemap.vert", "src/Shaders/cubemap.frag");
 	mFramebufferScreenShaderProgram.Build("src/Shaders/framebufferScreen.vert", "src/Shaders/framebufferScreen.frag");
+	mEnvironmentMappingShaderProgram.Build("src/Shaders/base.vert", "src/Shaders/environmentMapping.frag");
 
 	mFramebufferScreenShaderProgram.Bind();
 	mFramebufferScreenShaderProgram.SetUniform1i("uScreenTexture", 0);
@@ -153,15 +153,19 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	mSkyboxShaderProgram.SetUniform1i("uSkybox", 0);
 	mSkyboxShaderProgram.Unbind();
 
+	mEnvironmentMappingShaderProgram.Bind();
+	mEnvironmentMappingShaderProgram.SetUniform1i("uSkybox", 0);
+	mEnvironmentMappingShaderProgram.Unbind();
+
 	// Load default diffuse texture
 	unsigned int defaultDiffuseTextureId = GLLoadTextureFromFile("resources/textures/default.png");
 	mLoadedTextures["resources/textures/default.png"] = defaultDiffuseTextureId;
 	mDefaultTexture = { defaultDiffuseTextureId, Core::Diffuse };
 
 	// Setup models
-	ImportModels(MODEL_IMPORTS, &MODELS);
+	//ImportModels(MODEL_IMPORTS, &MODELS);
 	ImportModels(MODEL_IMPORT_CUBES, &CUBES);
-	ImportModels(MODEL_IMPORT_TRANSPARENT, &TRANSPARENT);
+	//ImportModels(MODEL_IMPORT_TRANSPARENT, &TRANSPARENT);
 
 	mFrameBuffer.Create(mWindowWidth, mWindowHeight);
 	//mRearViewFrameBuffer.Create(mWindowWidth, mWindowHeight);
@@ -316,8 +320,14 @@ void Graphics::Engine::DrawScene(
 	mOutlineShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(projection));
 	mOutlineShaderProgram.SetUniformVec3("uOutlineColor", 1, 0, 1);
 
+	mEnvironmentMappingShaderProgram.Bind();
+	mEnvironmentMappingShaderProgram.SetUniformMat4("uView", glm::value_ptr(view));
+	mEnvironmentMappingShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(projection));
+	mEnvironmentMappingShaderProgram.SetUniformVec3("uViewPos", glm::value_ptr(mCamera.GetWorldPosition()));
+	mCubemap.BindTexture(0);
+
 	DrawModels(MODELS, mBaseShaderProgram, false);
-	DrawModels(CUBES, mBaseShaderProgram, false);
+	DrawModels(CUBES, mEnvironmentMappingShaderProgram, false);
 	DrawTransparentModels(TRANSPARENT, mBaseShaderProgram);
 
 	mSkyboxShaderProgram.Bind();
@@ -432,10 +442,10 @@ void Graphics::Engine::ImportModels(const std::vector<Core::ModelImport>& import
 			}
 		}
 
-		if (!model->HasDefaultTexture(Core::Diffuse))
-		{
-			model->SetDefaultTexture(mDefaultTexture);
-		}
+		//if (!model->HasDefaultTexture(Core::Diffuse))
+		//{
+		//	model->SetDefaultTexture(mDefaultTexture);
+		//}
 
 		model->SetTransform(modelImport.transform);
 		model->Load(modelImport.path);

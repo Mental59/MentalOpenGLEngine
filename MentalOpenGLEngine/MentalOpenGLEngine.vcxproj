@@ -189,6 +189,7 @@
     <None Include="src\Shaders\base.frag" />
     <None Include="src\Shaders\cubemap.frag" />
     <None Include="src\Shaders\cubemap.vert" />
+    <None Include="src\Shaders\environmentMapping.frag" />
     <None Include="src\Shaders\framebufferScreen.frag" />
     <None Include="src\Shaders\framebufferScreen.vert" />
     <None Include="src\Shaders\multipleLights.frag" />

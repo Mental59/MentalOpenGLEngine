@@ -73,5 +73,5 @@ void main()
 
 	vec3 depth = vec3(LinearizeDepth(gl_FragCoord.z, 0.1, 100.0));
 
-	FragColor = vec4(ambient + diffuse + specular + depth, diffuseColor.a);
+	FragColor = vec4(ambient + diffuse + specular + depth, 1.0);
 }
