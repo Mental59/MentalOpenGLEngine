@@ -10,6 +10,7 @@
 #include "Model.h"
 #include "FrameBuffer.h"
 #include "Primitives/ScreenQuad.h"
+#include "CubeMap.h"
 
 struct GLFWwindow;
 
@@ -38,7 +39,7 @@ namespace Graphics
 		virtual void OnMouseScroll(float xOffset, float yOffset);
 
 	private:
-		void DrawScene(const glm::mat4& view);
+		void DrawScene(const glm::mat4& view, const glm::mat4& projection);
 		void ImportModels(
 			const std::vector<Core::ModelImport>& imports,
 			std::vector<std::shared_ptr<Model>>* models
@@ -56,6 +57,7 @@ namespace Graphics
 		static Engine* mInstance;
 
 		int mWindowWidth, mWindowHeight;
+		float mAspectRatio;
 		const char* mTitle;
 
 		GLFWwindow* mWindow;
@@ -63,10 +65,12 @@ namespace Graphics
 		ShaderProgram mBaseShaderProgram;
 		ShaderProgram mOutlineShaderProgram;
 		ShaderProgram mFramebufferScreenShaderProgram;
+		ShaderProgram mSkyboxShaderProgram;
 
 		FrameBuffer mFrameBuffer;
 		FrameBuffer mRearViewFrameBuffer;
 		ScreenQuad mScreenQuad;
+		CubeMap mCubemap;
 
 		Camera mCamera;
 		std::unordered_map<std::string, unsigned int> mLoadedTextures;

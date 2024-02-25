@@ -38,6 +38,11 @@ glm::mat4 Camera::GetViewMatrix() const
 	return result;
 }
 
+glm::mat4 Camera::GetProjectionMatrix(float aspectRatio, float near, float far) const
+{
+	return glm::perspective(glm::radians(mZoom), aspectRatio, near, far);
+}
+
 void Camera::Move(Movement movement)
 {
 	float velocity = mMovementSpeed * Time::DeltaTime;

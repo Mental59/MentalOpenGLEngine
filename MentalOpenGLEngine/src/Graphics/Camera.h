@@ -17,6 +17,7 @@ public:
 	);
 
 	glm::mat4 GetViewMatrix() const;
+	glm::mat4 GetProjectionMatrix(float aspectRatio, float near = 0.1f, float far = 100.0f) const;
 	inline float GetZoom() const { return mZoom; }
 	inline const glm::vec3& GetWorldPosition() const { return mCameraPos; }
 	inline const glm::vec3& GetForwardDirection() const { return mCameraForward; }

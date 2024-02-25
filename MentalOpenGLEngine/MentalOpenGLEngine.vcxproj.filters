@@ -48,6 +48,9 @@
     <ClCompile Include="src\Graphics\Primitives\ScreenQuad.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Graphics\CubeMap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Graphics\Engine.h">
@@ -86,6 +89,9 @@
     <ClInclude Include="src\Graphics\Primitives\ScreenQuad.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Graphics\CubeMap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\Shaders\base.vert" />
@@ -100,5 +106,7 @@
     <None Include="src\Shaders\outline.frag" />
     <None Include="src\Shaders\framebufferScreen.frag" />
     <None Include="src\Shaders\framebufferScreen.vert" />
+    <None Include="src\Shaders\cubemap.vert" />
+    <None Include="src\Shaders\cubemap.frag" />
   </ItemGroup>
 </Project>

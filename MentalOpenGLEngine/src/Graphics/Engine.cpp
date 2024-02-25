@@ -48,6 +48,7 @@ std::vector<std::shared_ptr<Model>> TRANSPARENT;
 Graphics::Engine::Engine(const int windowWidth, const int windowHeight, const char* title) :
 	mWindowWidth(windowWidth),
 	mWindowHeight(windowHeight),
+	mAspectRatio(static_cast<float>(windowWidth) / static_cast<float>(windowHeight)),
 	mTitle(title),
 	mWindow(nullptr),
 	mBaseShaderProgram(),
@@ -141,11 +142,16 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 
 	mBaseShaderProgram.Build("src/Shaders/base.vert", "src/Shaders/base.frag");
 	mOutlineShaderProgram.Build("src/Shaders/base.vert", "src/Shaders/outline.frag");
-
+	mSkyboxShaderProgram.Build("src/Shaders/cubemap.vert", "src/Shaders/cubemap.frag");
 	mFramebufferScreenShaderProgram.Build("src/Shaders/framebufferScreen.vert", "src/Shaders/framebufferScreen.frag");
+
 	mFramebufferScreenShaderProgram.Bind();
 	mFramebufferScreenShaderProgram.SetUniform1i("uScreenTexture", 0);
 	mFramebufferScreenShaderProgram.Unbind();
+
+	mSkyboxShaderProgram.Bind();
+	mSkyboxShaderProgram.SetUniform1i("uSkybox", 0);
+	mSkyboxShaderProgram.Unbind();
 
 	// Load default diffuse texture
 	unsigned int defaultDiffuseTextureId = GLLoadTextureFromFile("resources/textures/default.png");
@@ -160,6 +166,16 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	mFrameBuffer.Create(mWindowWidth, mWindowHeight);
 	//mRearViewFrameBuffer.Create(mWindowWidth, mWindowHeight);
 	mScreenQuad.Create();
+
+	const char* faces[6]{
+		"resources/skyboxes/skybox1/right.jpg",
+		"resources/skyboxes/skybox1/left.jpg",
+		"resources/skyboxes/skybox1/top.jpg",
+		"resources/skyboxes/skybox1/bottom.jpg",
+		"resources/skyboxes/skybox1/front.jpg",
+		"resources/skyboxes/skybox1/back.jpg"
+	};
+	mCubemap.Load(faces);
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe mode
 
@@ -199,6 +215,7 @@ void Graphics::Engine::OnResize(GLFWwindow* window, int width, int height)
 {
 	mWindowWidth = width;
 	mWindowHeight = height;
+	mAspectRatio = static_cast<float>(width) / static_cast<float>(height);
 
 	glViewport(0, 0, width, height);
 }
@@ -243,7 +260,7 @@ void Graphics::Engine::OnRender()
 	glClearColor(0.3, 0.3, 0.3, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	glStencilMask(0x00);
-	DrawScene(mCamera.GetViewMatrix());
+	DrawScene(mCamera.GetViewMatrix(), mCamera.GetProjectionMatrix(mAspectRatio));
 	mFrameBuffer.Unbind();
 
 	//mRearViewFrameBuffer.Bind();
@@ -279,29 +296,22 @@ void Graphics::Engine::OnRender()
 	glfwSwapBuffers(mWindow);
 }
 
-void Graphics::Engine::DrawScene(const glm::mat4& view)
+void Graphics::Engine::DrawScene(
+	const glm::mat4& view,
+	const glm::mat4& projection
+)
 {
-	glm::mat4 projection = glm::perspective(
-		glm::radians(mCamera.GetZoom()),
-		static_cast<float>(mWindowWidth) / static_cast<float>(mWindowHeight),
-		0.1f,
-		100.0f
-	);
-
 	mBaseShaderProgram.Bind();
-
 	mBaseShaderProgram.SetUniformMat4("uView", glm::value_ptr(view));
 	mBaseShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(projection));
 	mBaseShaderProgram.SetUniformVec3("uViewPos", glm::value_ptr(mCamera.GetWorldPosition()));
 	mBaseShaderProgram.SetUniform1f("uMaterial.shininess", 128.0f);
-
 	mBaseShaderProgram.SetUniformVec3("uLight.direction", -0.2f, -1.0f, -0.3f);
 	mBaseShaderProgram.SetUniformVec3("uLight.ambient", 0.2f, 0.2f, 0.2f);
 	mBaseShaderProgram.SetUniformVec3("uLight.diffuse", 0.5f, 0.5f, 0.5f);
 	mBaseShaderProgram.SetUniformVec3("uLight.specular", 1.0f, 1.0f, 1.0f);
 
 	mOutlineShaderProgram.Bind();
-
 	mOutlineShaderProgram.SetUniformMat4("uView", glm::value_ptr(view));
 	mOutlineShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(projection));
 	mOutlineShaderProgram.SetUniformVec3("uOutlineColor", 1, 0, 1);
@@ -309,6 +319,12 @@ void Graphics::Engine::DrawScene(const glm::mat4& view)
 	DrawModels(MODELS, mBaseShaderProgram, false);
 	DrawModels(CUBES, mBaseShaderProgram, false);
 	DrawTransparentModels(TRANSPARENT, mBaseShaderProgram);
+
+	mSkyboxShaderProgram.Bind();
+	mSkyboxShaderProgram.SetUniformMat4("uView", glm::value_ptr(glm::mat4(glm::mat3(view))));
+	mSkyboxShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(projection));
+	mCubemap.BindTexture(0);
+	mCubemap.Draw();
 }
 
 void Graphics::Engine::OnMouseMove(float xpos, float ypos)

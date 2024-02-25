@@ -157,6 +157,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Graphics\CubeMap.cpp" />
     <ClCompile Include="src\Graphics\Primitives\ScreenQuad.cpp" />
     <ClCompile Include="src\Graphics\FrameBuffer.cpp" />
     <ClCompile Include="src\Graphics\Model.cpp" />
@@ -170,6 +171,7 @@
     <ClCompile Include="src\Main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Graphics\CubeMap.h" />
     <ClInclude Include="src\Graphics\Primitives\ScreenQuad.h" />
     <ClInclude Include="src\Graphics\FrameBuffer.h" />
     <ClInclude Include="src\Graphics\Model.h" />
@@ -185,6 +187,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="src\Shaders\base.frag" />
+    <None Include="src\Shaders\cubemap.frag" />
+    <None Include="src\Shaders\cubemap.vert" />
     <None Include="src\Shaders\framebufferScreen.frag" />
     <None Include="src\Shaders\framebufferScreen.vert" />
     <None Include="src\Shaders\multipleLights.frag" />
