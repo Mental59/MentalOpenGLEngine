@@ -69,7 +69,8 @@ Graphics::Engine::Engine(const int windowWidth, const int windowHeight, const ch
 	mBaseShaderProgram(),
 	mCamera(glm::vec3(0.0f, 0.0f, 3.0f), 5.0f, 0.1f),
 	mLastMouseXPos(0.0f), mLastMouseYPos(0.0f), mIsFirstMouseMove(true),
-	mDefaultTexture{}
+	mDefaultTexture{},
+	mUBOMatrices(0u)
 {
 	mInstance = this;
 }
@@ -80,6 +81,8 @@ Graphics::Engine::~Engine()
 	{
 		glDeleteTextures(1, &loadedTexture.second);
 	}
+
+	glDeleteBuffers(1, &mUBOMatrices);
 
 	glfwTerminate();
 }
@@ -146,6 +149,9 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
 	std::cout << "Maximum nr of vertex attributes supported: " << nrAttributes << std::endl;
 
+	glGetIntegerv(GL_MAX_VERTEX_UNIFORM_COMPONENTS, &nrAttributes);
+	std::cout << "Maximum nr of vertex uniform components supported: " << nrAttributes << std::endl;
+
 	const GLubyte* glVersion = glGetString(GL_VERSION);
 	std::cout << "OpenGL version: " << glVersion << std::endl;
 
@@ -157,21 +163,33 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 
 	mBaseShaderProgram.Build("src/Shaders/base.vert", "src/Shaders/base.frag");
 	mOutlineShaderProgram.Build("src/Shaders/base.vert", "src/Shaders/outline.frag");
+	mEnvironmentMappingShaderProgram.Build("src/Shaders/base.vert", "src/Shaders/environmentMapping.frag");
 	mSkyboxShaderProgram.Build("src/Shaders/cubemap.vert", "src/Shaders/cubemap.frag");
 	mFramebufferScreenShaderProgram.Build("src/Shaders/framebufferScreen.vert", "src/Shaders/framebufferScreen.frag");
-	mEnvironmentMappingShaderProgram.Build("src/Shaders/base.vert", "src/Shaders/environmentMapping.frag");
 
+	// Setting texture units
 	mFramebufferScreenShaderProgram.Bind();
 	mFramebufferScreenShaderProgram.SetUniform1i("uScreenTexture", 0);
 	mFramebufferScreenShaderProgram.Unbind();
-
 	mSkyboxShaderProgram.Bind();
 	mSkyboxShaderProgram.SetUniform1i("uSkybox", 0);
 	mSkyboxShaderProgram.Unbind();
-
 	mEnvironmentMappingShaderProgram.Bind();
 	mEnvironmentMappingShaderProgram.SetUniform1i("uSkybox", 0);
 	mEnvironmentMappingShaderProgram.Unbind();
+
+	//Setting uniform block bindings
+	unsigned int uniformMatricesBlockBinding = 0;
+	mBaseShaderProgram.SetUniformBlockBinding("Matrices", uniformMatricesBlockBinding);
+	mOutlineShaderProgram.SetUniformBlockBinding("Matrices", uniformMatricesBlockBinding);
+	mEnvironmentMappingShaderProgram.SetUniformBlockBinding("Matrices", uniformMatricesBlockBinding);
+
+	size_t bufferSize = 2 * sizeof(glm::mat4);
+	glGenBuffers(1, &mUBOMatrices);
+	glBindBuffer(GL_UNIFORM_BUFFER, mUBOMatrices);
+	glBufferData(GL_UNIFORM_BUFFER, bufferSize, NULL, GL_STATIC_DRAW);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	glBindBufferRange(GL_UNIFORM_BUFFER, uniformMatricesBlockBinding, mUBOMatrices, 0, bufferSize);
 
 	// Load default diffuse texture
 	unsigned int defaultDiffuseTextureId = GLLoadTextureFromFile("resources/textures/default.png");
@@ -323,9 +341,12 @@ void Graphics::Engine::DrawScene(
 	const glm::mat4& projection
 )
 {
+	glBindBuffer(GL_UNIFORM_BUFFER, mUBOMatrices);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
+	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projection));
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
 	mBaseShaderProgram.Bind();
-	mBaseShaderProgram.SetUniformMat4("uView", glm::value_ptr(view));
-	mBaseShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(projection));
 	mBaseShaderProgram.SetUniformVec3("uViewPos", glm::value_ptr(mCamera.GetWorldPosition()));
 	mBaseShaderProgram.SetUniform1f("uMaterial.shininess", 128.0f);
 	mBaseShaderProgram.SetUniformVec3("uLight.direction", -0.2f, -1.0f, -0.3f);
@@ -334,13 +355,9 @@ void Graphics::Engine::DrawScene(
 	mBaseShaderProgram.SetUniformVec3("uLight.specular", 1.0f, 1.0f, 1.0f);
 
 	mOutlineShaderProgram.Bind();
-	mOutlineShaderProgram.SetUniformMat4("uView", glm::value_ptr(view));
-	mOutlineShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(projection));
 	mOutlineShaderProgram.SetUniformVec3("uOutlineColor", 1, 0, 1);
 
 	mEnvironmentMappingShaderProgram.Bind();
-	mEnvironmentMappingShaderProgram.SetUniformMat4("uView", glm::value_ptr(view));
-	mEnvironmentMappingShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(projection));
 	mEnvironmentMappingShaderProgram.SetUniformVec3("uViewPos", glm::value_ptr(mCamera.GetWorldPosition()));
 	mCubemap.BindTexture(0);
 

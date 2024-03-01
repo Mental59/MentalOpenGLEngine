@@ -80,5 +80,7 @@ namespace Graphics
 
 		float mLastMouseXPos, mLastMouseYPos;
 		bool mIsFirstMouseMove;
+
+		unsigned int mUBOMatrices;
 	};
 }

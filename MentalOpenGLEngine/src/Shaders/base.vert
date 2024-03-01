@@ -8,9 +8,13 @@ out vec2 vTexCoords;
 out vec3 vNormal;
 out vec3 vWorldPos;
 
+layout (std140) uniform Matrices
+{
+	uniform mat4 uView;
+	uniform mat4 uProjection;
+};
+
 uniform mat4 uModel;
-uniform mat4 uView;
-uniform mat4 uProjection;
 uniform float texCoordsMultiplier = 1.0;
 
 void main()

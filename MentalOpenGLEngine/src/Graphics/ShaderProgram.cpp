@@ -93,6 +93,12 @@ void ShaderProgram::SetUniformVec3(const std::string& name, const GLfloat* data)
 	glUniform3fv(GetUniformLocation(name), 1, data);
 }
 
+void ShaderProgram::SetUniformBlockBinding(const char* uniformBlockName, GLuint binding) const
+{
+	unsigned int blockIndex = glGetUniformBlockIndex(mID, uniformBlockName);
+	glUniformBlockBinding(mID, blockIndex, binding);
+}
+
 GLint ShaderProgram::GetUniformLocation(const std::string& name)
 {
 	if (mUniformLocationCache.find(name) != mUniformLocationCache.end())
