@@ -10,9 +10,19 @@ out vec3 vWorldPos;
 
 layout (std140) uniform Matrices
 {
-	uniform mat4 uView;
-	uniform mat4 uProjection;
+	mat4 uView;
+	mat4 uProjection;
 };
+
+//layout (std140) uniform Test
+//{
+//	float uField1;
+//	vec3 uField2;
+//	mat4 uField3;
+//	float uField4[3];
+//	bool uField5;
+//	int uField6;
+//};
 
 uniform mat4 uModel;
 uniform float texCoordsMultiplier = 1.0;

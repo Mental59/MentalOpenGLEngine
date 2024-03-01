@@ -191,6 +191,19 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	glBindBufferRange(GL_UNIFORM_BUFFER, uniformMatricesBlockBinding, mUBOMatrices, 0, bufferSize);
 
+	//constexpr unsigned int uniformsNum = 6;
+	//const char* uniformNames[uniformsNum]{
+	//	"uField1", "uField2", "uField3", "uField4", "uField5", "uField6"
+	//};
+	//unsigned int uniformIndices[uniformsNum];
+	//int uniformOffsets[uniformsNum];
+	//glGetUniformIndices(mBaseShaderProgram.GetID(), uniformsNum, uniformNames, uniformIndices);
+	//glGetActiveUniformsiv(mBaseShaderProgram.GetID(), uniformsNum, uniformIndices, GL_UNIFORM_OFFSET, uniformOffsets);
+	//for (int i = 0; i < uniformsNum; i++)
+	//{
+	//	std::cout << std::format("Uniform Info: name={}; index={}; offset={}\n", uniformNames[i], uniformIndices[i], uniformOffsets[i]);
+	//}
+
 	// Load default diffuse texture
 	unsigned int defaultDiffuseTextureId = GLLoadTextureFromFile("resources/textures/default.png");
 	mLoadedTextures["resources/textures/default.png"] = defaultDiffuseTextureId;
