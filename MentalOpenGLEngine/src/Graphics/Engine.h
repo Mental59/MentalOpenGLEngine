@@ -63,6 +63,7 @@ namespace Graphics
 		GLFWwindow* mWindow;
 
 		ShaderProgram mBaseShaderProgram;
+		ShaderProgram mBaseInstancedShaderProgram;
 		ShaderProgram mOutlineShaderProgram;
 		ShaderProgram mFramebufferScreenShaderProgram;
 		ShaderProgram mSkyboxShaderProgram;

@@ -11,9 +11,15 @@ public:
 	virtual ~Mesh();
 
 	void Draw(ShaderProgram& shader);
+	void DrawInstanced(ShaderProgram& shader, int n);
 	void Setup(const std::vector<Core::Vertex>& vertices, const std::vector<unsigned int>& indices, const std::vector<Core::Texture>& textures);
 
+	inline unsigned int GetVAO() const { return mVAO; }
+
 private:
+	void BindTextures(ShaderProgram& shader);
+	void UnbindTextures();
+
 	unsigned int mVAO, mVBO, mEBO;
 	unsigned int mNumIndices, mNumVertices;
 

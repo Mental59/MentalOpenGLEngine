@@ -187,6 +187,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="src\Shaders\base.frag" />
+    <None Include="src\Shaders\baseInstanced.vert" />
     <None Include="src\Shaders\cubemap.frag" />
     <None Include="src\Shaders\cubemap.vert" />
     <None Include="src\Shaders\environmentMapping.frag" />

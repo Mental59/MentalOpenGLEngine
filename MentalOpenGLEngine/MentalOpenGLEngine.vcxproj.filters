@@ -113,5 +113,6 @@
     <None Include="src\Shaders\normalsVisualization.vert" />
     <None Include="src\Shaders\normalsVisualization.geom" />
     <None Include="src\Shaders\normalsVisualization.frag" />
+    <None Include="src\Shaders\baseInstanced.vert" />
   </ItemGroup>
 </Project>

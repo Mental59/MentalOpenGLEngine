@@ -16,34 +16,24 @@ Mesh::~Mesh()
 
 void Mesh::Draw(ShaderProgram& shader)
 {
-	unsigned int diffuseTextureNumber = 1;
-	unsigned int specularTextureNumber = 1;
-
-	for (int i = 0; i < mTextures.size(); i++)
-	{
-		if (mTextures[i].Type == Core::Diffuse)
-		{
-			shader.SetUniform1i(std::format(DIFFUSE_TEXTURE_NAME, diffuseTextureNumber++), i);
-		}
-		if (mTextures[i].Type == Core::Specular)
-		{
-			shader.SetUniform1i(std::format(SPECULAR_TEXTURE_NAME, specularTextureNumber++), i);
-		}
-
-		glActiveTexture(GL_TEXTURE0 + i);
-		glBindTexture(GL_TEXTURE_2D, mTextures[i].ID);
-	}
+	BindTextures(shader);
 
 	glBindVertexArray(mVAO);
 	glDrawElements(GL_TRIANGLES, mNumIndices, GL_UNSIGNED_INT, 0);
-
 	glBindVertexArray(0);
 
-	for (int i = 0; i < mTextures.size(); i++)
-	{
-		glActiveTexture(GL_TEXTURE0 + i);
-		glBindTexture(GL_TEXTURE_2D, 0);
-	}
+	UnbindTextures();
+}
+
+void Mesh::DrawInstanced(ShaderProgram& shader, int n)
+{
+	BindTextures(shader);
+
+	glBindVertexArray(mVAO);
+	glDrawElementsInstanced(GL_TRIANGLES, mNumIndices, GL_UNSIGNED_INT, 0, n);
+	glBindVertexArray(0);
+
+	UnbindTextures();
 }
 
 void Mesh::Setup(const std::vector<Core::Vertex>& vertices, const std::vector<unsigned int>& indices, const std::vector<Core::Texture>& textures)
@@ -76,4 +66,34 @@ void Mesh::Setup(const std::vector<Core::Vertex>& vertices, const std::vector<un
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+}
+
+void Mesh::BindTextures(ShaderProgram& shader)
+{
+	unsigned int diffuseTextureNumber = 1;
+	unsigned int specularTextureNumber = 1;
+
+	for (int i = 0; i < mTextures.size(); i++)
+	{
+		if (mTextures[i].Type == Core::Diffuse)
+		{
+			shader.SetUniform1i(std::format(DIFFUSE_TEXTURE_NAME, diffuseTextureNumber++), i);
+		}
+		if (mTextures[i].Type == Core::Specular)
+		{
+			shader.SetUniform1i(std::format(SPECULAR_TEXTURE_NAME, specularTextureNumber++), i);
+		}
+
+		glActiveTexture(GL_TEXTURE0 + i);
+		glBindTexture(GL_TEXTURE_2D, mTextures[i].ID);
+	}
+}
+
+void Mesh::UnbindTextures()
+{
+	for (int i = 0; i < mTextures.size(); i++)
+	{
+		glActiveTexture(GL_TEXTURE0 + i);
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
 }

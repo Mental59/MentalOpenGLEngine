@@ -61,6 +61,11 @@ std::vector<std::shared_ptr<Model>> MODELS;
 std::vector<std::shared_ptr<Model>> SPHERES;
 std::vector<std::shared_ptr<Model>> TRANSPARENT;
 
+Model ASTEROID_MODEL;
+Model MARS_MODEL;
+
+constexpr int ASTEROIDS_NUM = 10000;
+glm::mat4 ASTEROID_TRANSFORMS[ASTEROIDS_NUM];
 
 Graphics::Engine::Engine(const int windowWidth, const int windowHeight, const char* title) :
 	mWindowWidth(windowWidth),
@@ -164,6 +169,7 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	glfwSetInputMode(mWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	Shader baseVertexShader("src/Shaders/base.vert", Shader::Vertex);
+	Shader baseInstancedVertexShader("src/Shaders/baseInstanced.vert", Shader::Vertex);
 	Shader baseFragmentShader("src/Shaders/base.frag", Shader::Fragment);
 	Shader outlineFragmentShader("src/Shaders/outline.frag", Shader::Fragment);
 	Shader environmentMappingFragmentShader("src/Shaders/environmentMapping.frag", Shader::Fragment);
@@ -177,11 +183,12 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	Shader normalsVisualizationGeometryShader("src/Shaders/normalsVisualization.geom", Shader::Geometry);
 
 	mBaseShaderProgram.Build({ baseVertexShader, baseFragmentShader });
+	mBaseInstancedShaderProgram.Build({ baseInstancedVertexShader, baseFragmentShader });
 	mOutlineShaderProgram.Build({ baseVertexShader, outlineFragmentShader });
 	mEnvironmentMappingShaderProgram.Build({ baseVertexShader, environmentMappingFragmentShader });
 	mSkyboxShaderProgram.Build({ cubemapVertexShader, cubemapFragmentShader });
 	mFramebufferScreenShaderProgram.Build({ framebufferVertexShader, framebufferFragmentShader });
-	mNormalsVisualizationShaderProgram.Build({ normalsVisualizationVertexShader, normalsVisualizationFragmentShader , normalsVisualizationGeometryShader });
+	mNormalsVisualizationShaderProgram.Build({ normalsVisualizationVertexShader, normalsVisualizationFragmentShader, normalsVisualizationGeometryShader });
 
 	// Setting texture units
 	mFramebufferScreenShaderProgram.Bind();
@@ -197,6 +204,7 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	//Setting uniform block bindings
 	unsigned int uniformMatricesBlockBinding = 0;
 	mBaseShaderProgram.SetUniformBlockBinding("Matrices", uniformMatricesBlockBinding);
+	mBaseInstancedShaderProgram.SetUniformBlockBinding("Matrices", uniformMatricesBlockBinding);
 	mOutlineShaderProgram.SetUniformBlockBinding("Matrices", uniformMatricesBlockBinding);
 	mEnvironmentMappingShaderProgram.SetUniformBlockBinding("Matrices", uniformMatricesBlockBinding);
 
@@ -226,21 +234,27 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	mDefaultTexture = { defaultDiffuseTextureId, Core::Diffuse };
 
 	// Setup models
-	ImportModels(MODEL_IMPORTS, &MODELS);
-	ImportModels(MODEL_IMPORT_SPHERES, &SPHERES);
+	//ImportModels(MODEL_IMPORTS, &MODELS);
+	//ImportModels(MODEL_IMPORT_SPHERES, &SPHERES);
 	//ImportModels(MODEL_IMPORT_TRANSPARENT, &TRANSPARENT);
 
 	mFrameBuffer.Create(mWindowWidth, mWindowHeight);
 	//mRearViewFrameBuffer.Create(mWindowWidth, mWindowHeight);
 	mScreenQuad.Create();
 
+	unsigned int rockTextureId = GLLoadTextureFromFile("resources/objects/rock/rock.png");
+	mLoadedTextures["resources/objects/rock/rock.png"] = rockTextureId;
+	ASTEROID_MODEL.SetDefaultTexture({ rockTextureId, Core::Diffuse });
+	ASTEROID_MODEL.Load("resources/objects/rock/rock.obj");
+	MARS_MODEL.Load("resources/objects/planet/planet.obj");
+
 	const char* faces[6]{
-		"resources/skyboxes/SnowyForest/right.png",
-		"resources/skyboxes/SnowyForest/left.png",
-		"resources/skyboxes/SnowyForest/top.png",
-		"resources/skyboxes/SnowyForest/bottom.png",
-		"resources/skyboxes/SnowyForest/front.png",
-		"resources/skyboxes/SnowyForest/back.png"
+		"resources/skyboxes/SpaceLightblue/right.png",
+		"resources/skyboxes/SpaceLightblue/left.png",
+		"resources/skyboxes/SpaceLightblue/top.png",
+		"resources/skyboxes/SpaceLightblue/bottom.png",
+		"resources/skyboxes/SpaceLightblue/front.png",
+		"resources/skyboxes/SpaceLightblue/back.png"
 	};
 	mCubemap.Load(faces);
 
@@ -256,6 +270,36 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW);
+
+	srand(glfwGetTime());
+	float radius = 40.0;
+	float offset = 10.0f;
+	for (int i = 0; i < ASTEROIDS_NUM; i++)
+	{
+		glm::mat4 model = glm::mat4(1.0f);
+
+		// 1. translation: displace along circle with 'radius' in range [-offset, offset]
+		float angle = (float)i / (float)ASTEROIDS_NUM * 360.0f;
+		float displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+		float x = sin(angle) * radius + displacement;
+		displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+		float y = displacement * 0.4f; // keep height of field smaller compared to width of x and z
+		displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+		float z = cos(angle) * radius + displacement;
+		model = glm::translate(model, glm::vec3(x, y, z));
+
+		// 2. scale: scale between 0.05 and 0.25f
+		float scale = (rand() % 20) / 100.0f + 0.05;
+		model = glm::scale(model, glm::vec3(scale));
+
+		// 3. rotation: add random rotation around a (semi)randomly picked rotation axis vector
+		float rotAngle = (rand() % 360);
+		model = glm::rotate(model, rotAngle, glm::vec3(0.4f, 0.6f, 0.8f));
+
+		ASTEROID_TRANSFORMS[i] = model;
+	}
+
+	ASTEROID_MODEL.SetupInstancedDrawing(ASTEROID_TRANSFORMS, ASTEROIDS_NUM, 3);
 
 	return true;
 }
@@ -370,6 +414,11 @@ void Graphics::Engine::DrawScene(
 	const glm::mat4& projection
 )
 {
+	static glm::vec3 lighColor(0.0f, 0.5f, 0.7f);
+	static glm::vec3 ambientColor = glm::vec3(0.1f, 0.1f, 0.1f) * lighColor;
+	static glm::vec3 diffuseColor = glm::vec3(0.5f, 0.5f, 0.5f) * lighColor;
+	static glm::vec3 specularColor = glm::vec3(0.2f, 0.2f, 0.2f) * lighColor;
+
 	glBindBuffer(GL_UNIFORM_BUFFER, mUBOMatrices);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
 	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projection));
@@ -378,10 +427,18 @@ void Graphics::Engine::DrawScene(
 	mBaseShaderProgram.Bind();
 	mBaseShaderProgram.SetUniformVec3("uViewPos", glm::value_ptr(mCamera.GetWorldPosition()));
 	mBaseShaderProgram.SetUniform1f("uMaterial.shininess", 128.0f);
-	mBaseShaderProgram.SetUniformVec3("uLight.direction", -0.2f, -1.0f, -0.3f);
-	mBaseShaderProgram.SetUniformVec3("uLight.ambient", 0.2f, 0.2f, 0.2f);
-	mBaseShaderProgram.SetUniformVec3("uLight.diffuse", 0.5f, 0.5f, 0.5f);
-	mBaseShaderProgram.SetUniformVec3("uLight.specular", 1.0f, 1.0f, 1.0f);
+	mBaseShaderProgram.SetUniformVec3("uLight.direction", -0.2f, -1.0f, -0.9f);
+	mBaseShaderProgram.SetUniformVec3("uLight.ambient", glm::value_ptr(ambientColor));
+	mBaseShaderProgram.SetUniformVec3("uLight.diffuse", glm::value_ptr(diffuseColor));
+	mBaseShaderProgram.SetUniformVec3("uLight.specular", glm::value_ptr(specularColor));
+
+	mBaseInstancedShaderProgram.Bind();
+	mBaseInstancedShaderProgram.SetUniformVec3("uViewPos", glm::value_ptr(mCamera.GetWorldPosition()));
+	mBaseInstancedShaderProgram.SetUniform1f("uMaterial.shininess", 128.0f);
+	mBaseInstancedShaderProgram.SetUniformVec3("uLight.direction", -0.2f, -1.0f, -0.9f);
+	mBaseInstancedShaderProgram.SetUniformVec3("uLight.ambient", glm::value_ptr(ambientColor));
+	mBaseInstancedShaderProgram.SetUniformVec3("uLight.diffuse", glm::value_ptr(diffuseColor));
+	mBaseInstancedShaderProgram.SetUniformVec3("uLight.specular", glm::value_ptr(specularColor));
 
 	mOutlineShaderProgram.Bind();
 	mOutlineShaderProgram.SetUniformVec3("uOutlineColor", 1, 0, 1);
@@ -390,18 +447,26 @@ void Graphics::Engine::DrawScene(
 	mNormalsVisualizationShaderProgram.SetUniformMat4("uView", glm::value_ptr(view));
 	mNormalsVisualizationShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(projection));
 
-	mEnvironmentMappingShaderProgram.Bind();
-	mEnvironmentMappingShaderProgram.SetUniformVec3("uViewPos", glm::value_ptr(mCamera.GetWorldPosition()));
-	mEnvironmentMappingShaderProgram.SetUniform1f("uTime", static_cast<float>(glfwGetTime()));
-	mCubemap.BindTexture(0);
+	//mEnvironmentMappingShaderProgram.Bind();
+	//mEnvironmentMappingShaderProgram.SetUniformVec3("uViewPos", glm::value_ptr(mCamera.GetWorldPosition()));
+	//mEnvironmentMappingShaderProgram.SetUniform1f("uTime", static_cast<float>(glfwGetTime()));
+	//mCubemap.BindTexture(0);
 
-	DrawModels(MODELS, mBaseShaderProgram, false);
-	DrawModels(MODELS, mNormalsVisualizationShaderProgram, false);
+	mBaseShaderProgram.Bind();
+	glm::mat4 marsModelMat(1.0f);
+	marsModelMat = glm::rotate(marsModelMat, glm::radians((float)glfwGetTime()) * 5.0f, glm::vec3(0.0f, 0.5f, 1.0f));
+	MARS_MODEL.Draw(mBaseShaderProgram, marsModelMat);
 
-	DrawModels(SPHERES, mBaseShaderProgram, false);
+	mBaseInstancedShaderProgram.Bind();
+	ASTEROID_MODEL.DrawInstanced(mBaseInstancedShaderProgram, ASTEROIDS_NUM);
+
+	//DrawModels(MODELS, mBaseShaderProgram, false);
+	//DrawModels(MODELS, mNormalsVisualizationShaderProgram, false);
+
+	//DrawModels(SPHERES, mBaseShaderProgram, false);
 	//DrawModels(SPHERES, mNormalsVisualizationShaderProgram, false);
 
-	DrawTransparentModels(TRANSPARENT, mBaseShaderProgram);
+	//DrawTransparentModels(TRANSPARENT, mBaseShaderProgram);
 
 	mSkyboxShaderProgram.Bind();
 	mSkyboxShaderProgram.SetUniformMat4("uView", glm::value_ptr(glm::mat4(glm::mat3(view))));

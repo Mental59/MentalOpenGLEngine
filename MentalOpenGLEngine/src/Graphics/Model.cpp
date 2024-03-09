@@ -16,10 +16,13 @@ Model::~Model()
 	{
 		glDeleteTextures(1, &loadedTextures.second);
 	}
+	glDeleteBuffers(1, &mInstanceMatrixVBO);
 }
 
-Model::Model(bool flipTexturesVertically) : mFlipTexturesVertically(flipTexturesVertically)
+Model::Model(bool flipTexturesVertically) :
+	mFlipTexturesVertically(flipTexturesVertically), mInstanceMatrixVBO(0u)
 {
+
 }
 
 void Model::Draw(ShaderProgram& shader)
@@ -52,6 +55,24 @@ void Model::Draw(ShaderProgram& shader, const Core::Transform& transform)
 	}
 }
 
+void Model::Draw(ShaderProgram& shader, const glm::mat4& modelMat)
+{
+	shader.SetUniformMat4("uModel", glm::value_ptr(modelMat));
+
+	for (size_t i = 0; i < mMeshes.size(); i++)
+	{
+		mMeshes[i]->Draw(shader);
+	}
+}
+
+void Model::DrawInstanced(ShaderProgram& shader, int n)
+{
+	for (size_t i = 0; i < mMeshes.size(); i++)
+	{
+		mMeshes[i]->DrawInstanced(shader, n);
+	}
+}
+
 void Model::SetDefaultTexture(const Core::Texture& texture)
 {
 	auto it = mDefaultTextures.find(texture.Type);
@@ -73,6 +94,29 @@ void Model::SetTransform(const Core::Transform& transform)
 bool Model::HasDefaultTexture(Core::TextureType textureType) const
 {
 	return mDefaultTextures.find(textureType) != mDefaultTextures.end();
+}
+
+void Model::SetupInstancedDrawing(glm::mat4* instanceMatrices, size_t size, unsigned int location)
+{
+	glGenBuffers(1, &mInstanceMatrixVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, mInstanceMatrixVBO);
+	glBufferData(GL_ARRAY_BUFFER, size * sizeof(glm::mat4), instanceMatrices, GL_STATIC_DRAW);
+
+	for (size_t i = 0; i < mMeshes.size(); i++)
+	{
+		unsigned int VAO = mMeshes[i]->GetVAO();
+		glBindVertexArray(VAO);
+
+		for (unsigned int j = 0; j < 4; j++)
+		{
+			glEnableVertexAttribArray(location + j);
+			glVertexAttribPointer(location + j, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec4), (void*)(j * sizeof(glm::vec4)));
+			glVertexAttribDivisor(location + j, 1);
+		}
+	}
+
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void Model::Load(const std::string& path)
