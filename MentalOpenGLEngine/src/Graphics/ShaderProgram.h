@@ -3,6 +3,7 @@
 #include <string>
 #include <unordered_map>
 #include <glad/glad.h>
+#include <vector>
 
 class ShaderProgram
 {
@@ -10,10 +11,7 @@ public:
 	ShaderProgram();
 	virtual ~ShaderProgram();
 
-	void Build(
-		const char* vertexShaderPath,
-		const char* fragmentShaderPath
-	);
+	void Build(const std::vector<class Shader>& shaders);
 	void Bind();
 	void Unbind();
 

@@ -4,8 +4,10 @@
 #include <glad/glad.h>
 #include "External/stb_image.h"
 
-inline unsigned int GLLoadTextureFromFile(const char* texturePath)
+inline unsigned int GLLoadTextureFromFile(const char* texturePath, bool flipVertically = false)
 {
+	stbi_set_flip_vertically_on_load(flipVertically);
+
 	GLuint textureID = 0;
 
 	int width, height, numChannels;

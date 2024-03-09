@@ -58,6 +58,7 @@ namespace Core
 	{
 		const char* path;
 		Transform transform;
+		bool flipTexturesVertically = false;
 		std::vector<TextureImport> textureImports;
 	};
 }

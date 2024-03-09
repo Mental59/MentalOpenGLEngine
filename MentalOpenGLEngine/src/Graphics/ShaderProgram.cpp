@@ -12,21 +12,23 @@ ShaderProgram::~ShaderProgram()
 	glDeleteProgram(mID);
 }
 
-void ShaderProgram::Build(
-	const char* vertexShaderPath,
-	const char* fragmentShaderPath
-)
+void ShaderProgram::Build(const std::vector<Shader>& shaders)
 {
-	Shader vertexShader(vertexShaderPath, GL_VERTEX_SHADER);
-	Shader fragmentShader(fragmentShaderPath, GL_FRAGMENT_SHADER);
-	vertexShader.Compile();
-	fragmentShader.Compile();
+	//Shader vertexShader(vertexShaderPath, GL_VERTEX_SHADER);
+	//Shader fragmentShader(fragmentShaderPath, GL_FRAGMENT_SHADER);
+	//vertexShader.Compile();
+	//fragmentShader.Compile();
 
 	GLuint shaderProgram;
 	shaderProgram = glCreateProgram();
 
-	glAttachShader(shaderProgram, vertexShader.GetID());
-	glAttachShader(shaderProgram, fragmentShader.GetID());
+	for (size_t i = 0; i < shaders.size(); i++)
+	{
+		glAttachShader(shaderProgram, shaders[i].GetID());
+	}
+
+	//glAttachShader(shaderProgram, vertexShader.GetID());
+	//glAttachShader(shaderProgram, fragmentShader.GetID());
 	glLinkProgram(shaderProgram);
 
 	GLint programLinkStatus;

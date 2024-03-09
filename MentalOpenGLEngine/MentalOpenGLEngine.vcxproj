@@ -190,6 +190,7 @@
     <None Include="src\Shaders\cubemap.frag" />
     <None Include="src\Shaders\cubemap.vert" />
     <None Include="src\Shaders\environmentMapping.frag" />
+    <None Include="src\Shaders\explode.geom" />
     <None Include="src\Shaders\framebufferScreen.frag" />
     <None Include="src\Shaders\framebufferScreen.vert" />
     <None Include="src\Shaders\multipleLights.frag" />
@@ -197,6 +198,9 @@
     <None Include="src\Shaders\lightCube.frag" />
     <None Include="src\Shaders\lightCube.vert" />
     <None Include="src\Shaders\base.vert" />
+    <None Include="src\Shaders\normalsVisualization.frag" />
+    <None Include="src\Shaders\normalsVisualization.geom" />
+    <None Include="src\Shaders\normalsVisualization.vert" />
     <None Include="src\Shaders\noTextures.frag" />
     <None Include="src\Shaders\outline.frag" />
     <None Include="src\Shaders\pointLight.frag" />

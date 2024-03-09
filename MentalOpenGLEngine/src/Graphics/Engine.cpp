@@ -16,16 +16,16 @@
 Graphics::Engine* Graphics::Engine::mInstance(nullptr);
 
 std::vector<Core::ModelImport> MODEL_IMPORTS{
-	{"resources/objects/sponza/sponza.obj", Core::Transform{glm::vec3(0.0f, -20.0f, 0.0f), glm::vec3(0.01f)}},
-	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(15.0f)}, {{"resources/textures/metal.png", Core::Diffuse}}},
+	//{"resources/objects/sponza/sponza.obj", Core::Transform{glm::vec3(0.0f, -20.0f, 0.0f), glm::vec3(0.01f)}},
+	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(15.0f)}, false, {{"resources/textures/metal.png", Core::Diffuse}}},
 
-	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(5.0f, 2.0f, -12.0f), glm::vec3(1.0f)}, {{"resources/textures/marble.jpg", Core::Diffuse}}},
-	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(10.0f, 2.0f, -12.0f), glm::vec3(1.0f)}, {{"resources/textures/marble.jpg", Core::Diffuse}}},
+	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(5.0f, 2.0f, -12.0f), glm::vec3(1.0f)}, false, {{"resources/textures/marble.jpg", Core::Diffuse}}},
+	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(10.0f, 2.0f, -12.0f), glm::vec3(1.0f)}, false, {{"resources/textures/marble.jpg", Core::Diffuse}}},
 
-	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(5.0f, 2.0f, 4.0f), glm::vec3(1.0f)}, {{"resources/textures/marble.jpg", Core::Diffuse}}},
-	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(10.0f, 2.0f, 4.0f), glm::vec3(1.0f)}, {{"resources/textures/marble.jpg", Core::Diffuse}}},
+	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(5.0f, 2.0f, 4.0f), glm::vec3(1.0f)}, false, {{"resources/textures/marble.jpg", Core::Diffuse}}},
+	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(10.0f, 2.0f, 4.0f), glm::vec3(1.0f)}, false, {{"resources/textures/marble.jpg", Core::Diffuse}}},
 };
-std::vector<Core::ModelImport> MODEL_IMPORT_CUBES{
+std::vector<Core::ModelImport> MODEL_IMPORT_SPHERES{
 	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f)}},
 	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(3.0f, 0.0f, 0.0f), glm::vec3(1.0f)}},
 	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(6.0f, 0.0f, 0.0f), glm::vec3(1.0f)}},
@@ -43,20 +43,22 @@ std::vector<Core::ModelImport> MODEL_IMPORT_CUBES{
 	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(6.0f, 6.0f, 0.0f), glm::vec3(1.0f)}},
 	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(-3.0f, 6.0f, 0.0f), glm::vec3(1.0f)}},
 	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(-6.0f, 6.0f, 0.0f), glm::vec3(1.0f)}},
+
+	{"resources/objects/backpack/backpack.obj", Core::Transform{glm::vec3(0.0f, 12.0f, 0.0f), glm::vec3(1.0f)}, true}
 };
 std::vector<Core::ModelImport> MODEL_IMPORT_TRANSPARENT{
-	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(5.0f, 2.0f, -8.0f), glm::vec3(2.0f), 90.0f}, {{"resources/textures/window.png", Core::Diffuse}}},
-	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(10.0f, 2.0f, -8.0f), glm::vec3(2.0f), 90.0f}, {{"resources/textures/window.png", Core::Diffuse}}},
+	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(5.0f, 2.0f, -8.0f), glm::vec3(2.0f), 90.0f}, false, {{"resources/textures/window.png", Core::Diffuse}}},
+	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(10.0f, 2.0f, -8.0f), glm::vec3(2.0f), 90.0f}, false, {{"resources/textures/window.png", Core::Diffuse}}},
 
-	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(5.0f, 2.0f, -4.0f), glm::vec3(2.0f), 90.0f}, {{"resources/textures/window.png", Core::Diffuse}}},
-	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(10.0f, 2.0f, -4.0f), glm::vec3(2.0f), 90.0f}, {{"resources/textures/window.png", Core::Diffuse}}},
+	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(5.0f, 2.0f, -4.0f), glm::vec3(2.0f), 90.0f}, false, {{"resources/textures/window.png", Core::Diffuse}}},
+	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(10.0f, 2.0f, -4.0f), glm::vec3(2.0f), 90.0f}, false, {{"resources/textures/window.png", Core::Diffuse}}},
 
-	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(5.0f, 2.0f, 0.0f), glm::vec3(2.0f), 90.0f}, {{"resources/textures/window.png", Core::Diffuse}}},
-	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(10.0f, 2.0f, 0.0f), glm::vec3(2.0f), 90.0f}, {{"resources/textures/window.png", Core::Diffuse}}},
+	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(5.0f, 2.0f, 0.0f), glm::vec3(2.0f), 90.0f}, false, {{"resources/textures/window.png", Core::Diffuse}}},
+	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(10.0f, 2.0f, 0.0f), glm::vec3(2.0f), 90.0f}, false, {{"resources/textures/window.png", Core::Diffuse}}},
 };
 
 std::vector<std::shared_ptr<Model>> MODELS;
-std::vector<std::shared_ptr<Model>> CUBES;
+std::vector<std::shared_ptr<Model>> SPHERES;
 std::vector<std::shared_ptr<Model>> TRANSPARENT;
 
 
@@ -161,11 +163,25 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 
 	glfwSetInputMode(mWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-	mBaseShaderProgram.Build("src/Shaders/base.vert", "src/Shaders/base.frag");
-	mOutlineShaderProgram.Build("src/Shaders/base.vert", "src/Shaders/outline.frag");
-	mEnvironmentMappingShaderProgram.Build("src/Shaders/base.vert", "src/Shaders/environmentMapping.frag");
-	mSkyboxShaderProgram.Build("src/Shaders/cubemap.vert", "src/Shaders/cubemap.frag");
-	mFramebufferScreenShaderProgram.Build("src/Shaders/framebufferScreen.vert", "src/Shaders/framebufferScreen.frag");
+	Shader baseVertexShader("src/Shaders/base.vert", Shader::Vertex);
+	Shader baseFragmentShader("src/Shaders/base.frag", Shader::Fragment);
+	Shader outlineFragmentShader("src/Shaders/outline.frag", Shader::Fragment);
+	Shader environmentMappingFragmentShader("src/Shaders/environmentMapping.frag", Shader::Fragment);
+	Shader cubemapVertexShader("src/Shaders/cubemap.vert", Shader::Vertex);
+	Shader cubemapFragmentShader("src/Shaders/cubemap.frag", Shader::Fragment);
+	Shader framebufferVertexShader("src/Shaders/framebufferScreen.vert", Shader::Vertex);
+	Shader framebufferFragmentShader("src/Shaders/framebufferScreen.frag", Shader::Fragment);
+	Shader explodeGeometryShader("src/Shaders/explode.geom", Shader::Geometry);
+	Shader normalsVisualizationVertexShader("src/Shaders/normalsVisualization.vert", Shader::Vertex);
+	Shader normalsVisualizationFragmentShader("src/Shaders/normalsVisualization.frag", Shader::Fragment);
+	Shader normalsVisualizationGeometryShader("src/Shaders/normalsVisualization.geom", Shader::Geometry);
+
+	mBaseShaderProgram.Build({ baseVertexShader, baseFragmentShader });
+	mOutlineShaderProgram.Build({ baseVertexShader, outlineFragmentShader });
+	mEnvironmentMappingShaderProgram.Build({ baseVertexShader, environmentMappingFragmentShader });
+	mSkyboxShaderProgram.Build({ cubemapVertexShader, cubemapFragmentShader });
+	mFramebufferScreenShaderProgram.Build({ framebufferVertexShader, framebufferFragmentShader });
+	mNormalsVisualizationShaderProgram.Build({ normalsVisualizationVertexShader, normalsVisualizationFragmentShader , normalsVisualizationGeometryShader });
 
 	// Setting texture units
 	mFramebufferScreenShaderProgram.Bind();
@@ -210,8 +226,8 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	mDefaultTexture = { defaultDiffuseTextureId, Core::Diffuse };
 
 	// Setup models
-	//ImportModels(MODEL_IMPORTS, &MODELS);
-	ImportModels(MODEL_IMPORT_CUBES, &CUBES);
+	ImportModels(MODEL_IMPORTS, &MODELS);
+	ImportModels(MODEL_IMPORT_SPHERES, &SPHERES);
 	//ImportModels(MODEL_IMPORT_TRANSPARENT, &TRANSPARENT);
 
 	mFrameBuffer.Create(mWindowWidth, mWindowHeight);
@@ -370,12 +386,21 @@ void Graphics::Engine::DrawScene(
 	mOutlineShaderProgram.Bind();
 	mOutlineShaderProgram.SetUniformVec3("uOutlineColor", 1, 0, 1);
 
+	mNormalsVisualizationShaderProgram.Bind();
+	mNormalsVisualizationShaderProgram.SetUniformMat4("uView", glm::value_ptr(view));
+	mNormalsVisualizationShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(projection));
+
 	mEnvironmentMappingShaderProgram.Bind();
 	mEnvironmentMappingShaderProgram.SetUniformVec3("uViewPos", glm::value_ptr(mCamera.GetWorldPosition()));
+	mEnvironmentMappingShaderProgram.SetUniform1f("uTime", static_cast<float>(glfwGetTime()));
 	mCubemap.BindTexture(0);
 
 	DrawModels(MODELS, mBaseShaderProgram, false);
-	DrawModels(CUBES, mEnvironmentMappingShaderProgram, false);
+	DrawModels(MODELS, mNormalsVisualizationShaderProgram, false);
+
+	DrawModels(SPHERES, mBaseShaderProgram, false);
+	//DrawModels(SPHERES, mNormalsVisualizationShaderProgram, false);
+
 	DrawTransparentModels(TRANSPARENT, mBaseShaderProgram);
 
 	mSkyboxShaderProgram.Bind();
@@ -473,7 +498,7 @@ void Graphics::Engine::ImportModels(const std::vector<Core::ModelImport>& import
 {
 	for (const Core::ModelImport& modelImport : imports)
 	{
-		std::shared_ptr<Model> model = std::make_shared<Model>();
+		std::shared_ptr<Model> model = std::make_shared<Model>(modelImport.flipTexturesVertically);
 
 		for (const Core::TextureImport& textureImport : modelImport.textureImports)
 		{
@@ -484,7 +509,7 @@ void Graphics::Engine::ImportModels(const std::vector<Core::ModelImport>& import
 			}
 			else
 			{
-				unsigned int textureId = GLLoadTextureFromFile(textureImport.path);
+				unsigned int textureId = GLLoadTextureFromFile(textureImport.path, modelImport.flipTexturesVertically);
 				mLoadedTextures[textureImport.path] = textureId;
 				model->SetDefaultTexture({ textureId, textureImport.type });
 			}

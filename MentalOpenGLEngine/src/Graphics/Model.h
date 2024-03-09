@@ -10,6 +10,7 @@ class Model
 {
 public:
 	virtual ~Model();
+	Model(bool flipTexturesVertically);
 	void Load(const std::string& path);
 	void Draw(ShaderProgram& shader);
 	void Draw(ShaderProgram& shader, const Core::Transform& transform);
@@ -30,6 +31,7 @@ private:
 	);
 	void AddDefaultTexture(std::vector<Core::Texture>* textures, Core::TextureType textureType);
 
+	bool mFlipTexturesVertically;
 	Core::Transform mTransform;
 	std::vector <std::shared_ptr<Mesh>> mMeshes;
 	std::string mDirectory;

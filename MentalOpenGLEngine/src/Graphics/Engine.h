@@ -67,6 +67,7 @@ namespace Graphics
 		ShaderProgram mFramebufferScreenShaderProgram;
 		ShaderProgram mSkyboxShaderProgram;
 		ShaderProgram mEnvironmentMappingShaderProgram;
+		ShaderProgram mNormalsVisualizationShaderProgram;
 
 		FrameBuffer mFrameBuffer;
 		FrameBuffer mRearViewFrameBuffer;

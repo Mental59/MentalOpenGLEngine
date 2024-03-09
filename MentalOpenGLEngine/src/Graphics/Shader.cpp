@@ -4,10 +4,23 @@
 #include <fstream>
 #include <sstream>
 
-Shader::Shader(const char* sourcePath, GLenum type) :
-	mType(type)
+Shader::Shader(const char* sourcePath, ShaderType type)
 {
+	switch (type)
+	{
+	case Shader::Vertex:
+		mType = GL_VERTEX_SHADER;
+		break;
+	case Shader::Fragment:
+		mType = GL_FRAGMENT_SHADER;
+		break;
+	case Shader::Geometry:
+		mType = GL_GEOMETRY_SHADER;
+		break;
+	}
+
 	mSource = ReadSource(sourcePath);
+	Compile();
 }
 
 Shader::~Shader()

@@ -17,9 +17,11 @@ struct Light
 
 out vec4 FragColor;
 
-in vec2 vTexCoords;
-in vec3 vNormal;
-in vec3 vWorldPos;
+in VS_OUT {
+    vec2 texCoords;
+	vec3 normal;
+	vec3 worldPos;
+} fs_in;
 
 uniform vec3 uViewPos;
 uniform Material uMaterial;
@@ -40,7 +42,7 @@ vec3 ComputeDiffuse(const vec3 normal, const vec3 lightDirection, const vec3 dif
 
 vec3 ComputeSpecular(const vec3 normal, const vec3 lightDirection, const vec3 specularColor)
 {
-	vec3 viewDirection = normalize(uViewPos - vWorldPos);
+	vec3 viewDirection = normalize(uViewPos - fs_in.worldPos);
 	vec3 halhwayDirection = normalize(viewDirection + lightDirection);
 	float specularFactor = pow(max(dot(halhwayDirection, normal), 0.0), uMaterial.shininess);
 	vec3 specular = specularFactor * uLight.specular * specularColor;
@@ -55,17 +57,17 @@ float LinearizeDepth(float depth, float near, float far)
 
 void main()
 {
-	vec4 diffuseColor = texture(uMaterial.diffuseTexture1, vTexCoords);
+	vec4 diffuseColor = texture(uMaterial.diffuseTexture1, fs_in.texCoords);
 
 	if (diffuseColor.a < 0.1)
 	{
 		discard;
 	}
 
-	vec3 normal = normalize(vNormal);
+	vec3 normal = normalize(fs_in.normal);
 	vec3 lightDirection = normalize(-uLight.direction);
 	
-    vec3 specularColor = texture(uMaterial.specularTexture1, vTexCoords).rrr;
+    vec3 specularColor = texture(uMaterial.specularTexture1, fs_in.texCoords).rrr;
 
 	vec3 ambient = ComputeAmbient(diffuseColor.rgb);
 	vec3 diffuse = ComputeDiffuse(normal, lightDirection, diffuseColor.rgb);

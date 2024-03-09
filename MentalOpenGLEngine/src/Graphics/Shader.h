@@ -6,7 +6,12 @@
 class Shader
 {
 public:
-	Shader(const char* sourcePath, GLenum type);
+	enum ShaderType
+	{
+		Vertex, Fragment, Geometry
+	};
+
+	Shader(const char* sourcePath, ShaderType type);
 	virtual ~Shader();
 
 	inline const char* GetSource() const { return mSource.c_str(); }

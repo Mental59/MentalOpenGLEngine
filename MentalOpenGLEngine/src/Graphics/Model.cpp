@@ -18,6 +18,10 @@ Model::~Model()
 	}
 }
 
+Model::Model(bool flipTexturesVertically) : mFlipTexturesVertically(flipTexturesVertically)
+{
+}
+
 void Model::Draw(ShaderProgram& shader)
 {
 	glm::mat4 modelMat(1.0f);
@@ -181,7 +185,7 @@ std::vector<Core::Texture> Model::LoadMaterialTextures(aiMaterial* material, aiT
 		}
 		else
 		{
-			textureId = GLLoadTextureFromFile(std::format("{}/{}", mDirectory, textureFilenameString).c_str());
+			textureId = GLLoadTextureFromFile(std::format("{}/{}", mDirectory, textureFilenameString).c_str(), mFlipTexturesVertically);
 			std::cout << "Assimp: Loaded texture " << textureFilenameString << std::endl;
 			mLoadedTextures[textureFilenameString] = textureId;
 		}
