@@ -64,7 +64,7 @@ std::vector<std::shared_ptr<Model>> TRANSPARENT;
 Model ASTEROID_MODEL;
 Model MARS_MODEL;
 
-constexpr int ASTEROIDS_NUM = 10000;
+constexpr int ASTEROIDS_NUM = 100000;
 glm::mat4 ASTEROID_TRANSFORMS[ASTEROIDS_NUM];
 
 Graphics::Engine::Engine(const int windowWidth, const int windowHeight, const char* title) :
@@ -94,17 +94,17 @@ Graphics::Engine::~Engine()
 	glfwTerminate();
 }
 
-void OnResizeCallback(GLFWwindow* window, int width, int height)
+static void OnResizeCallback(GLFWwindow* window, int width, int height)
 {
 	Graphics::Engine::GetInstance()->OnResize(window, width, height);
 }
 
-void OnCursorPoseCallback(GLFWwindow* window, double xpos, double ypos)
+static void OnCursorPoseCallback(GLFWwindow* window, double xpos, double ypos)
 {
 	Graphics::Engine::GetInstance()->OnMouseMove(static_cast<float>(xpos), static_cast<float>(ypos));
 }
 
-void OnMouseScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
+static void OnMouseScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	Graphics::Engine::GetInstance()->OnMouseScroll(static_cast<float>(xoffset), static_cast<float>(yoffset));
 }
@@ -115,7 +115,7 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
+	//glfwWindowHint(GLFW_SAMPLES, 4);
 
 	if (windowedFullscreen)
 	{
@@ -234,11 +234,12 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	mDefaultTexture = { defaultDiffuseTextureId, Core::Diffuse };
 
 	// Setup models
-	//ImportModels(MODEL_IMPORTS, &MODELS);
+	ImportModels(MODEL_IMPORTS, &MODELS);
 	//ImportModels(MODEL_IMPORT_SPHERES, &SPHERES);
 	//ImportModels(MODEL_IMPORT_TRANSPARENT, &TRANSPARENT);
 
-	mFrameBuffer.Create(mWindowWidth, mWindowHeight);
+	int samples = 4;
+	mFrameBuffer.Create(mWindowWidth, mWindowHeight, samples);
 	//mRearViewFrameBuffer.Create(mWindowWidth, mWindowHeight);
 	mScreenQuad.Create();
 
@@ -271,9 +272,11 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW);
 
+	glEnable(GL_MULTISAMPLE);
+
 	srand(glfwGetTime());
-	float radius = 40.0;
-	float offset = 10.0f;
+	float radius = 100.0;
+	float offset = 25.0f;
 	for (int i = 0; i < ASTEROIDS_NUM; i++)
 	{
 		glm::mat4 model = glm::mat4(1.0f);
@@ -414,10 +417,12 @@ void Graphics::Engine::DrawScene(
 	const glm::mat4& projection
 )
 {
-	static glm::vec3 lighColor(0.0f, 0.5f, 0.7f);
-	static glm::vec3 ambientColor = glm::vec3(0.1f, 0.1f, 0.1f) * lighColor;
-	static glm::vec3 diffuseColor = glm::vec3(0.5f, 0.5f, 0.5f) * lighColor;
-	static glm::vec3 specularColor = glm::vec3(0.2f, 0.2f, 0.2f) * lighColor;
+	//static glm::vec3 lightColor(0.0f, 0.5f, 0.7f);
+	static glm::vec3 lightColor(1.f, 1.f, 1.f);
+	static glm::vec3 ambientColor = glm::vec3(0.1f, 0.1f, 0.1f) * lightColor;
+	static glm::vec3 diffuseColor = glm::vec3(0.5f, 0.5f, 0.5f) * lightColor;
+	static glm::vec3 specularColor = glm::vec3(0.2f, 0.2f, 0.2f) * lightColor;
+	static glm::vec3 lightDirection = glm::vec3(-0.2f, -1.0f, -0.9f);
 
 	glBindBuffer(GL_UNIFORM_BUFFER, mUBOMatrices);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
@@ -427,7 +432,7 @@ void Graphics::Engine::DrawScene(
 	mBaseShaderProgram.Bind();
 	mBaseShaderProgram.SetUniformVec3("uViewPos", glm::value_ptr(mCamera.GetWorldPosition()));
 	mBaseShaderProgram.SetUniform1f("uMaterial.shininess", 128.0f);
-	mBaseShaderProgram.SetUniformVec3("uLight.direction", -0.2f, -1.0f, -0.9f);
+	mBaseShaderProgram.SetUniformVec3("uLight.direction", glm::value_ptr(lightDirection));
 	mBaseShaderProgram.SetUniformVec3("uLight.ambient", glm::value_ptr(ambientColor));
 	mBaseShaderProgram.SetUniformVec3("uLight.diffuse", glm::value_ptr(diffuseColor));
 	mBaseShaderProgram.SetUniformVec3("uLight.specular", glm::value_ptr(specularColor));
@@ -435,7 +440,7 @@ void Graphics::Engine::DrawScene(
 	mBaseInstancedShaderProgram.Bind();
 	mBaseInstancedShaderProgram.SetUniformVec3("uViewPos", glm::value_ptr(mCamera.GetWorldPosition()));
 	mBaseInstancedShaderProgram.SetUniform1f("uMaterial.shininess", 128.0f);
-	mBaseInstancedShaderProgram.SetUniformVec3("uLight.direction", -0.2f, -1.0f, -0.9f);
+	mBaseInstancedShaderProgram.SetUniformVec3("uLight.direction", glm::value_ptr(lightDirection));
 	mBaseInstancedShaderProgram.SetUniformVec3("uLight.ambient", glm::value_ptr(ambientColor));
 	mBaseInstancedShaderProgram.SetUniformVec3("uLight.diffuse", glm::value_ptr(diffuseColor));
 	mBaseInstancedShaderProgram.SetUniformVec3("uLight.specular", glm::value_ptr(specularColor));

@@ -6,7 +6,7 @@ in vec2 vTexCoords;
 
 uniform sampler2D uScreenTexture;
 
-const float offset = 1.0 / 300.0;
+const float offset = 1.0 / 600.0;
 const vec2 offsets[9] = vec2[](
     vec2(-offset,  offset), // top-left
     vec2( 0.0f,    offset), // top-center
@@ -20,7 +20,7 @@ const vec2 offsets[9] = vec2[](
 );
 const float kernel[9] = float[](
     -1.0, -1.0, -1.0,
-    -1.0,  8.0, -1.0,
+    -1.0,  9.0, -1.0,
     -1.0, -1.0, -1.0
 );
 
