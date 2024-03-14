@@ -27,7 +27,7 @@ layout (std140) uniform Matrices
 //};
 
 uniform mat4 uModel;
-uniform float texCoordsMultiplier = 1.0;
+uniform float uTexCoordsMultiplier = 1.0;
 
 void main()
 {
@@ -35,7 +35,7 @@ void main()
 
 	vs_out.normal = transpose(inverse(mat3(uModel))) * aNormal;
 
-	vs_out.texCoords = aTexCoords * texCoordsMultiplier;
+	vs_out.texCoords = aTexCoords * uTexCoordsMultiplier;
 
 	gl_Position = uProjection * uView * vec4(vs_out.worldPos, 1.0);
 }

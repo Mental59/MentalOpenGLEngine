@@ -7,13 +7,45 @@ struct Material
 	float shininess;
 };
 
-struct Light
+struct DirectionalLight
 {
 	vec3 direction;
+  
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+};
+
+struct PointLight
+{
+	vec3 position;
+  
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+
+	float constant;
+    float linear;
+    float quadratic;
+};
+
+struct SpotLight
+{
+	vec3 position;
+	vec3 direction;
+	float cutOffCosine;
+	float outerCutOffCosine;
+
 	vec3 ambient;
 	vec3 diffuse;
-	vec3 specular; 
+	vec3 specular;
+
+	float constant;
+    float linear;
+    float quadratic;
 };
+
+#define MAX_POINT_LIGHTS 4
 
 out vec4 FragColor;
 
@@ -25,35 +57,50 @@ in VS_OUT {
 
 uniform vec3 uViewPos;
 uniform Material uMaterial;
-uniform Light uLight;
+uniform DirectionalLight uDirLight;
+uniform PointLight uPointLights[MAX_POINT_LIGHTS];
+uniform int uNumPointLights;
 
-vec3 ComputeAmbient(const vec3 diffuseColor)
-{
-	vec3 ambient = uLight.ambient * diffuseColor;
-	return ambient;
-}
-
-vec3 ComputeDiffuse(const vec3 normal, const vec3 lightDirection, const vec3 diffuseColor)
-{
-	float diffuseFactor = max(dot(normal, lightDirection), 0.0);
-	vec3 diffuse = diffuseFactor * uLight.diffuse * diffuseColor;
-	return diffuse;
-}
-
-vec3 ComputeSpecular(const vec3 normal, const vec3 lightDirection, const vec3 specularColor)
-{
-	vec3 viewDirection = normalize(uViewPos - fs_in.worldPos);
-	vec3 halhwayDirection = normalize(viewDirection + lightDirection);
-	float specularFactor = pow(max(dot(halhwayDirection, normal), 0.0), uMaterial.shininess);
-	vec3 specular = specularFactor * uLight.specular * specularColor;
-	return specular;
-}
+vec3 CalculateDirectionalLight(
+	DirectionalLight light,
+	const vec3 normal,
+	const vec3 viewDirection,
+	const vec3 materialDiffuse,
+	const vec3 materialSpecular
+);
+vec3 CalculatePointLight(
+	PointLight light,
+	const vec3 normal,
+	const vec3 viewDirection,
+	const vec3 materialDiffuse,
+	const vec3 materialSpecular
+);
+vec3 CalculateSpotLight(
+	SpotLight light,
+	const vec3 normal,
+	const vec3 viewDirection,
+	const vec3 materialDiffuse,
+	const vec3 materialSpecular
+);
+vec3 CalculateAmbient(
+	const vec3 lightAmbient,
+	const vec3 materialDiffuse
+);
+vec3 CalculateDiffuse(
+	const vec3 lightDiffuse,
+	const vec3 normal,
+	const vec3 lightDirection,
+	const vec3 materialDiffuse
+);
+vec3 CalculateSpecular(
+	const vec3 lightSpecular,
+	const vec3 normal,
+	const vec3 lightDirection,
+	const vec3 viewDirection,
+	const vec3 materialSpecular
+);
   
-float LinearizeDepth(float depth, float near, float far) 
-{
-    float z = depth * 2.0 - 1.0; // back to NDC 
-    return ((2.0 * near * far) / (far + near - z * (far - near))) / far;	
-}
+float LinearizeDepth(float depth, float near, float far);
 
 void main()
 {
@@ -65,15 +112,121 @@ void main()
 	}
 
 	vec3 normal = normalize(fs_in.normal);
-	vec3 lightDirection = normalize(-uLight.direction);
-	
-    vec3 specularColor = texture(uMaterial.specularTexture1, fs_in.texCoords).rrr;
-
-	vec3 ambient = ComputeAmbient(diffuseColor.rgb);
-	vec3 diffuse = ComputeDiffuse(normal, lightDirection, diffuseColor.rgb);
-	vec3 specular = ComputeSpecular(normal, lightDirection, specularColor);
+	vec3 viewDirection = normalize(uViewPos - fs_in.worldPos);
+	vec3 materialDiffuse = diffuseColor.rgb;
+	vec3 materialSpecular = texture(uMaterial.specularTexture1, fs_in.texCoords).rgb;
 
 	vec3 depth = vec3(LinearizeDepth(gl_FragCoord.z, 0.1, 100.0));
 
-	FragColor = vec4(ambient + diffuse + specular, 1.0);
+	vec3 color = CalculateDirectionalLight(uDirLight, normal, viewDirection, materialDiffuse, materialSpecular);
+	color = vec3(0.0);
+	for (int i = 0; i < min(MAX_POINT_LIGHTS, uNumPointLights); i++)
+	{
+		color += CalculatePointLight(uPointLights[i], normal, viewDirection, materialDiffuse, materialSpecular);
+	}
+
+	FragColor = vec4(color, 1.0);
+}
+
+vec3 CalculateDirectionalLight(
+	DirectionalLight light,
+	const vec3 normal,
+	const vec3 viewDirection,
+	const vec3 materialDiffuse,
+	const vec3 materialSpecular
+)
+{
+	vec3 lightDirection = normalize(-light.direction);
+
+	vec3 ambient = CalculateAmbient(light.ambient, materialDiffuse);
+	vec3 diffuse = CalculateDiffuse(light.diffuse, normal, lightDirection, materialDiffuse);
+	vec3 specular = CalculateSpecular(light.specular, normal, lightDirection, viewDirection, materialSpecular);
+
+	return ambient + diffuse + specular;
+}
+
+vec3 CalculatePointLight(
+	PointLight light,
+	const vec3 normal,
+	const vec3 viewDirection,
+	const vec3 materialDiffuse,
+	const vec3 materialSpecular
+)
+{
+	vec3 lightDirection = normalize(light.position - fs_in.worldPos);
+
+	float distanceToLight = length(light.position - fs_in.worldPos);
+	float attenuation = 1.0 / (light.constant + light.linear * distanceToLight + light.quadratic * distanceToLight * distanceToLight);
+
+	vec3 ambient = CalculateAmbient(light.ambient, materialDiffuse);
+	vec3 diffuse = CalculateDiffuse(light.diffuse, normal, lightDirection, materialDiffuse);
+	vec3 specular = CalculateSpecular(light.specular, normal, lightDirection, viewDirection, materialSpecular);
+
+	return attenuation * (ambient + diffuse + specular);
+}
+
+vec3 CalculateSpotLight(
+	SpotLight light,
+	const vec3 normal,
+	const vec3 viewDirection,
+	const vec3 materialDiffuse,
+	const vec3 materialSpecular
+)
+{
+	vec3 lightDirection = normalize(-light.direction);
+	vec3 lightDirectionFromFragment = normalize(light.position - fs_in.worldPos);
+
+	float distanceToLight = length(light.position - fs_in.worldPos);
+	float attenuation = 1.0 / (light.constant + light.linear * distanceToLight + light.quadratic * distanceToLight * distanceToLight);
+
+	float theta = dot(lightDirectionFromFragment, normalize(-light.direction));
+	float epsilon = light.cutOffCosine - light.outerCutOffCosine;
+	float lightIntensity = clamp((theta - light.outerCutOffCosine) / epsilon, 0.0, 1.0);
+
+	vec3 ambient = CalculateAmbient(light.ambient, materialDiffuse);
+	vec3 diffuse = CalculateDiffuse(light.diffuse, normal, lightDirection, materialDiffuse);
+	vec3 specular = CalculateSpecular(light.specular, normal, lightDirection, viewDirection, materialSpecular);
+
+	return lightIntensity * attenuation * (ambient + diffuse + specular); 
+}
+
+vec3 CalculateAmbient(
+	const vec3 lightAmbient,
+	const vec3 materialDiffuse
+)
+{
+	vec3 ambient = lightAmbient * materialDiffuse;
+	return ambient;
+}
+
+vec3 CalculateDiffuse(
+	const vec3 lightDiffuse,
+	const vec3 normal,
+	const vec3 lightDirection,
+	const vec3 materialDiffuse
+)
+{
+	float diffuseFactor = max(dot(normal, lightDirection), 0.0);
+	vec3 diffuse = diffuseFactor * lightDiffuse * materialDiffuse;
+	return diffuse;
+}
+
+vec3 CalculateSpecular(
+	const vec3 lightSpecular,
+	const vec3 normal,
+	const vec3 lightDirection,
+	const vec3 viewDirection,
+	const vec3 materialSpecular
+)
+{
+	vec3 halhwayDirection = normalize(viewDirection + lightDirection);
+	float specularFactor = pow(max(dot(halhwayDirection, normal), 0.0), uMaterial.shininess);
+	vec3 specular = specularFactor * lightSpecular * materialSpecular;
+	return specular;
+}
+
+float LinearizeDepth(float depth, float near, float far) 
+{
+    float z = depth * 2.0 - 1.0; // back to NDC 
+    return ((2.0 * near * far) / (far + near - z * (far - near))) / far;	
 }
