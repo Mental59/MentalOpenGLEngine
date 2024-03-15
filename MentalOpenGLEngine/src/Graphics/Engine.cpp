@@ -439,7 +439,7 @@ void Graphics::Engine::DrawScene(
 	mBaseShaderProgram.SetUniformVec3("uDirLight.ambient", glm::value_ptr(ambientColor));
 	mBaseShaderProgram.SetUniformVec3("uDirLight.diffuse", glm::value_ptr(diffuseColor));
 	mBaseShaderProgram.SetUniformVec3("uDirLight.specular", glm::value_ptr(specularColor));
-	mBaseShaderProgram.SetUniform1f("uTexCoordsMultiplier", 4.f);
+	mBaseShaderProgram.SetUniform1f("uTexCoordsMultiplier", 6.f);
 	mBaseShaderProgram.SetUniform1i("uNumPointLights", 1);
 	mBaseShaderProgram.SetUniformVec3("uPointLights[0].position", glm::value_ptr(pointLightPos));
 	mBaseShaderProgram.SetUniformVec3("uPointLights[0].ambient", glm::value_ptr(ambientColor));
@@ -447,8 +447,8 @@ void Graphics::Engine::DrawScene(
 	mBaseShaderProgram.SetUniformVec3("uPointLights[0].specular", glm::value_ptr(specularColor));
 	mBaseShaderProgram.SetUniformVec3("uPointLights[0].specular", glm::value_ptr(specularColor));
 	mBaseShaderProgram.SetUniform1f("uPointLights[0].constant", 1.0f);
-	mBaseShaderProgram.SetUniform1f("uPointLights[0].linear", 0.027f);
-	mBaseShaderProgram.SetUniform1f("uPointLights[0].quadratic", 0.0028f);
+	mBaseShaderProgram.SetUniform1f("uPointLights[0].linear", 0.22f);
+	mBaseShaderProgram.SetUniform1f("uPointLights[0].quadratic", 0.2f);
 
 	mBaseInstancedShaderProgram.Bind();
 	mBaseInstancedShaderProgram.SetUniformVec3("uViewPos", glm::value_ptr(mCamera.GetWorldPosition()));
