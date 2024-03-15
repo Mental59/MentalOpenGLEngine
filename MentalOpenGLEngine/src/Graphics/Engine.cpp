@@ -229,7 +229,7 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	//}
 
 	// Load default diffuse texture
-	unsigned int defaultDiffuseTextureId = GLLoadTextureFromFile("resources/textures/default.png");
+	unsigned int defaultDiffuseTextureId = GLLoadTextureFromFile("resources/textures/default.png", false, true);
 	mLoadedTextures["resources/textures/default.png"] = defaultDiffuseTextureId;
 	mDefaultTexture = { defaultDiffuseTextureId, Core::Diffuse };
 
@@ -447,8 +447,8 @@ void Graphics::Engine::DrawScene(
 	mBaseShaderProgram.SetUniformVec3("uPointLights[0].specular", glm::value_ptr(specularColor));
 	mBaseShaderProgram.SetUniformVec3("uPointLights[0].specular", glm::value_ptr(specularColor));
 	mBaseShaderProgram.SetUniform1f("uPointLights[0].constant", 1.0f);
-	mBaseShaderProgram.SetUniform1f("uPointLights[0].linear", 0.09f);
-	mBaseShaderProgram.SetUniform1f("uPointLights[0].quadratic", 0.032f);
+	mBaseShaderProgram.SetUniform1f("uPointLights[0].linear", 0.027f);
+	mBaseShaderProgram.SetUniform1f("uPointLights[0].quadratic", 0.0028f);
 
 	mBaseInstancedShaderProgram.Bind();
 	mBaseInstancedShaderProgram.SetUniformVec3("uViewPos", glm::value_ptr(mCamera.GetWorldPosition()));
@@ -589,13 +589,16 @@ void Graphics::Engine::ImportModels(const std::vector<Core::ModelImport>& import
 		for (const Core::TextureImport& textureImport : modelImport.textureImports)
 		{
 			auto it = mLoadedTextures.find(textureImport.path);
+
+			bool srgb = textureImport.type == Core::Diffuse;
+
 			if (it != mLoadedTextures.end())
 			{
 				model->SetDefaultTexture({ it->second, textureImport.type });
 			}
 			else
 			{
-				unsigned int textureId = GLLoadTextureFromFile(textureImport.path, modelImport.flipTexturesVertically);
+				unsigned int textureId = GLLoadTextureFromFile(textureImport.path, modelImport.flipTexturesVertically, srgb);
 				mLoadedTextures[textureImport.path] = textureId;
 				model->SetDefaultTexture({ textureId, textureImport.type });
 			}

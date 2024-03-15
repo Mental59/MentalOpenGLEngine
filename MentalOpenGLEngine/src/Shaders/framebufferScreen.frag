@@ -42,4 +42,8 @@ void main()
     vec3 screenTextureColor = texture(uScreenTexture, vTexCoords).rgb;
     float average = 0.2126 * screenTextureColor.r + 0.7152 * screenTextureColor.g + 0.0722 * screenTextureColor.b;
     FragColor = vec4(screenTextureColor, 1.0);
+
+    // gamma correction
+    float gamma = 2.2;
+    FragColor.rgb = pow(FragColor.rgb, vec3(1.0 / gamma));
 }

@@ -214,6 +214,7 @@ void Model::AddDefaultTexture(std::vector<Core::Texture>* textures, Core::Textur
 std::vector<Core::Texture> Model::LoadMaterialTextures(aiMaterial* material, aiTextureType textureType, Core::TextureType coreTextureType)
 {
 	std::vector<Core::Texture> textures;
+	bool srgb = coreTextureType == Core::Diffuse;
 
 	for (unsigned int i = 0; i < material->GetTextureCount(textureType); i++)
 	{
@@ -229,7 +230,7 @@ std::vector<Core::Texture> Model::LoadMaterialTextures(aiMaterial* material, aiT
 		}
 		else
 		{
-			textureId = GLLoadTextureFromFile(std::format("{}/{}", mDirectory, textureFilenameString).c_str(), mFlipTexturesVertically);
+			textureId = GLLoadTextureFromFile(std::format("{}/{}", mDirectory, textureFilenameString).c_str(), mFlipTexturesVertically, srgb);
 			std::cout << "Assimp: Loaded texture " << textureFilenameString << std::endl;
 			mLoadedTextures[textureFilenameString] = textureId;
 		}

@@ -4,7 +4,7 @@
 #include <glad/glad.h>
 #include "External/stb_image.h"
 
-inline unsigned int GLLoadTextureFromFile(const char* texturePath, bool flipVertically = false)
+inline unsigned int GLLoadTextureFromFile(const char* texturePath, bool flipVertically = false, bool srgb = false)
 {
 	stbi_set_flip_vertically_on_load(flipVertically);
 
@@ -15,18 +15,22 @@ inline unsigned int GLLoadTextureFromFile(const char* texturePath, bool flipVert
 
 	if (data)
 	{
-		GLenum format = 0;
+		GLenum dataFormat = 0;
+		GLint internalFormat = 0;
+
 		if (numChannels == 1)
 		{
-			format = GL_RED;
+			dataFormat = internalFormat = GL_RED;
 		}
 		else if (numChannels == 3)
 		{
-			format = GL_RGB;
+			dataFormat = GL_RGB;
+			internalFormat = srgb ? GL_SRGB : GL_RGB;
 		}
 		else if (numChannels == 4)
 		{
-			format = GL_RGBA;
+			dataFormat = GL_RGBA;
+			internalFormat = srgb ? GL_SRGB_ALPHA : GL_RGBA;
 		}
 
 		glGenTextures(1, &textureID);
@@ -37,7 +41,7 @@ inline unsigned int GLLoadTextureFromFile(const char* texturePath, bool flipVert
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, dataFormat, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
 
 		glBindTexture(GL_TEXTURE_2D, 0);
