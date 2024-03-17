@@ -51,6 +51,9 @@
     <ClCompile Include="src\Graphics\CubeMap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Graphics\DepthMap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Graphics\Engine.h">
@@ -92,12 +95,15 @@
     <ClInclude Include="src\Graphics\CubeMap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Graphics\DepthMap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\Shaders\base.vert" />
     <None Include="src\Shaders\directionalLight.frag" />
-    <None Include="src\Shaders\lightCube.frag" />
-    <None Include="src\Shaders\lightCube.vert" />
+    <None Include="src\Shaders\lightSource.frag" />
+    <None Include="src\Shaders\lightSource.vert" />
     <None Include="src\Shaders\pointLight.frag" />
     <None Include="src\Shaders\spotLight.frag" />
     <None Include="src\Shaders\multipleLights.frag" />
@@ -114,5 +120,7 @@
     <None Include="src\Shaders\normalsVisualization.geom" />
     <None Include="src\Shaders\normalsVisualization.frag" />
     <None Include="src\Shaders\baseInstanced.vert" />
+    <None Include="src\Shaders\shadowMapping.vert" />
+    <None Include="src\Shaders\shadowMapping.frag" />
   </ItemGroup>
 </Project>

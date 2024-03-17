@@ -11,6 +11,7 @@
 #include "FrameBuffer.h"
 #include "Primitives/ScreenQuad.h"
 #include "CubeMap.h"
+#include "DepthMap.h"
 
 struct GLFWwindow;
 
@@ -40,6 +41,7 @@ namespace Graphics
 
 	private:
 		void DrawScene(const glm::mat4& view, const glm::mat4& projection);
+		void ShadowPass();
 		void ImportModels(
 			const std::vector<Core::ModelImport>& imports,
 			std::vector<std::shared_ptr<Model>>* models
@@ -69,11 +71,14 @@ namespace Graphics
 		ShaderProgram mSkyboxShaderProgram;
 		ShaderProgram mEnvironmentMappingShaderProgram;
 		ShaderProgram mNormalsVisualizationShaderProgram;
+		ShaderProgram mLightSourceShaderProgram;
+		ShaderProgram mShadowMappingShaderProgram;
 
 		FrameBuffer mFrameBuffer;
 		FrameBuffer mRearViewFrameBuffer;
 		ScreenQuad mScreenQuad;
 		CubeMap mCubemap;
+		DepthMap mDepthMap;
 
 		Camera mCamera;
 		std::unordered_map<std::string, unsigned int> mLoadedTextures;

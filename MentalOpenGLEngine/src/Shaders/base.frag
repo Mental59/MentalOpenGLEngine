@@ -53,6 +53,7 @@ in VS_OUT {
     vec2 texCoords;
 	vec3 normal;
 	vec3 worldPos;
+	vec4 posInLightSpace;
 } fs_in;
 
 uniform vec3 uViewPos;
@@ -60,13 +61,15 @@ uniform Material uMaterial;
 uniform DirectionalLight uDirLight;
 uniform PointLight uPointLights[MAX_POINT_LIGHTS];
 uniform int uNumPointLights;
+uniform sampler2D uShadowMap;
 
 vec3 CalculateDirectionalLight(
 	DirectionalLight light,
 	const vec3 normal,
 	const vec3 viewDirection,
 	const vec3 materialDiffuse,
-	const vec3 materialSpecular
+	const vec3 materialSpecular,
+	const float shadow
 );
 vec3 CalculatePointLight(
 	PointLight light,
@@ -102,6 +105,8 @@ vec3 CalculateSpecular(
   
 float LinearizeDepth(float depth, float near, float far);
 
+float CalculateShadow(const vec3 normal, const vec3 lightDirection);
+
 void main()
 {
 	vec4 diffuseColor = texture(uMaterial.diffuseTexture1, fs_in.texCoords);
@@ -115,11 +120,12 @@ void main()
 	vec3 viewDirection = normalize(uViewPos - fs_in.worldPos);
 	vec3 materialDiffuse = diffuseColor.rgb;
 	vec3 materialSpecular = texture(uMaterial.specularTexture1, fs_in.texCoords).rgb;
+	float shadow = CalculateShadow(normal, normalize(-uDirLight.direction));
 
 	vec3 depth = vec3(LinearizeDepth(gl_FragCoord.z, 0.1, 100.0));
 
-	vec3 color = CalculateDirectionalLight(uDirLight, normal, viewDirection, materialDiffuse, materialSpecular);
-	color = vec3(0.0);
+	vec3 color = CalculateDirectionalLight(uDirLight, normal, viewDirection, materialDiffuse, materialSpecular, shadow);
+
 	for (int i = 0; i < min(MAX_POINT_LIGHTS, uNumPointLights); i++)
 	{
 		color += CalculatePointLight(uPointLights[i], normal, viewDirection, materialDiffuse, materialSpecular);
@@ -128,12 +134,36 @@ void main()
 	FragColor = vec4(color, 1.0);
 }
 
+float CalculateShadow(const vec3 normal, const vec3 lightDirection)
+{
+	// perform perspective divide
+    vec3 projCoords = fs_in.posInLightSpace.xyz / fs_in.posInLightSpace.w;
+
+	// transform to the range [0, 1]
+	projCoords = projCoords * 0.5 + 0.5; 
+
+	float closestDepth = texture(uShadowMap, projCoords.xy).r;
+	float currentDepth = projCoords.z;
+
+	float bias = max(0.05 * (1.0 - dot(normal, lightDirection)), 0.005);
+
+	float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
+
+	if (projCoords.z > 1.0)
+	{
+		shadow = 0.0;
+	}
+
+	return shadow;
+}
+
 vec3 CalculateDirectionalLight(
 	DirectionalLight light,
 	const vec3 normal,
 	const vec3 viewDirection,
 	const vec3 materialDiffuse,
-	const vec3 materialSpecular
+	const vec3 materialSpecular,
+	const float shadow
 )
 {
 	vec3 lightDirection = normalize(-light.direction);
@@ -142,7 +172,7 @@ vec3 CalculateDirectionalLight(
 	vec3 diffuse = CalculateDiffuse(light.diffuse, normal, lightDirection, materialDiffuse);
 	vec3 specular = CalculateSpecular(light.specular, normal, lightDirection, viewDirection, materialSpecular);
 
-	return ambient + diffuse + specular;
+	return ambient + (1.0 - shadow) * (diffuse + specular);
 }
 
 vec3 CalculatePointLight(

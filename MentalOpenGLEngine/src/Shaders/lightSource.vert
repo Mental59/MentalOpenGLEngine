@@ -3,8 +3,12 @@
 layout (location = 0) in vec3 aPos;
 
 uniform mat4 uModel;
-uniform mat4 uView;
-uniform mat4 uProjection;
+
+layout (std140) uniform Matrices
+{
+	mat4 uView;
+	mat4 uProjection;
+};
 
 void main()
 {

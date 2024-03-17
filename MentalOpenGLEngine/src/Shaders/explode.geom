@@ -9,6 +9,7 @@ in VS_OUT {
     vec2 texCoords;
 	vec3 normal;
 	vec3 worldPos;
+    vec4 posInLightSpace;
 } gs_in[];
 
 out VS_OUT {

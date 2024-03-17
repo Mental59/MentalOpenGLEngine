@@ -8,6 +8,7 @@ out VS_OUT {
     vec2 texCoords;
 	vec3 normal;
 	vec3 worldPos;
+	vec4 posInLightSpace;
 } vs_out;
 
 layout (std140) uniform Matrices
@@ -27,6 +28,7 @@ layout (std140) uniform Matrices
 //};
 
 uniform mat4 uModel;
+uniform mat4 uLightSpaceMatrix;
 uniform float uTexCoordsMultiplier = 1.0;
 
 void main()
@@ -36,6 +38,8 @@ void main()
 	vs_out.normal = transpose(inverse(mat3(uModel))) * aNormal;
 
 	vs_out.texCoords = aTexCoords * uTexCoordsMultiplier;
+
+	vs_out.posInLightSpace = uLightSpaceMatrix * vec4(vs_out.worldPos, 1.0);
 
 	gl_Position = uProjection * uView * vec4(vs_out.worldPos, 1.0);
 }

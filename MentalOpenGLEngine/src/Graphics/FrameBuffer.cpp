@@ -8,6 +8,9 @@ FrameBuffer::~FrameBuffer()
 	glDeleteFramebuffers(1, &mFramebufferID);
 	glDeleteTextures(1, &mTextureColorMSAAID);
 	glDeleteRenderbuffers(1, &mDepthStencilRenderBufferID);
+
+	glDeleteFramebuffers(1, &mIntermediateFramebufferID);
+	glDeleteTextures(1, &mTextureColorID);
 }
 
 void FrameBuffer::Create(int width, int height, int samples)

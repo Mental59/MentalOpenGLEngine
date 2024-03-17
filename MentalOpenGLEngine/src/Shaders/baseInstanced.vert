@@ -9,6 +9,7 @@ out VS_OUT {
     vec2 texCoords;
 	vec3 normal;
 	vec3 worldPos;
+	vec4 posInLightSpace;
 } vs_out;
 
 layout (std140) uniform Matrices
