@@ -19,10 +19,10 @@ std::vector<Core::ModelImport> MODEL_IMPORTS{
 	//{"resources/objects/sponza/sponza.obj", Core::Transform{glm::vec3(0.0f, -20.0f, 0.0f), glm::vec3(0.01f)}},
 	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(15.0f, 1.0f, 15.0f)}, false, {{"resources/textures/wood.png", Core::Diffuse}}},
 
-	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(4.0f, 4.0f, 1.0f), glm::vec3(1.0f), 45.0f}, true, {{"resources/textures/container2.png", Core::Diffuse}, {"resources/textures/container2_specular.png", Core::Specular}}},
-	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(8.0f, 1.0f, 1.0f), glm::vec3(1.0f)}, true, {{"resources/textures/container2.png", Core::Diffuse}, {"resources/textures/container2_specular.png", Core::Specular}}},
+	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(4.0f, 1.0f, 1.0f), glm::vec3(1.0f), 0.0f}, true, {{"resources/textures/container2.png", Core::Diffuse}, {"resources/textures/container2_specular.png", Core::Specular}}},
+	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(8.0f, 1.0f, 1.0f), glm::vec3(1.0f), 0.0f}, true, {{"resources/textures/container2.png", Core::Diffuse}, {"resources/textures/container2_specular.png", Core::Specular}}},
 
-	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(5.5f, 3.0f, 4.0f), glm::vec3(1.0f), 0.0f}, false, {{"resources/textures/container2.png", Core::Diffuse}, {"resources/textures/container2_specular.png", Core::Specular}}},
+	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(5.5f, 1.0f, 4.0f), glm::vec3(1.0f), 0.0f}, false, {{"resources/textures/container2.png", Core::Diffuse}, {"resources/textures/container2_specular.png", Core::Specular}}},
 	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(8.0f, 1.0f, 4.0f), glm::vec3(1.0f), 0.0f}, false, {{"resources/textures/container2.png", Core::Diffuse}, {"resources/textures/container2_specular.png", Core::Specular}}},
 };
 std::vector<Core::ModelImport> MODEL_IMPORT_SPHERES{
@@ -78,7 +78,7 @@ Graphics::Engine::Engine(const int windowWidth, const int windowHeight, const ch
 	mTitle(title),
 	mWindow(nullptr),
 	mBaseShaderProgram(),
-	mCamera(glm::vec3(0.0f, 0.0f, 3.0f), 5.0f, 0.1f),
+	mCamera(glm::vec3(0.0f, 3.0f, 3.0f), 5.0f, 0.1f),
 	mLastMouseXPos(0.0f), mLastMouseYPos(0.0f), mIsFirstMouseMove(true),
 	mDefaultTexture{},
 	mUBOMatrices(0u)
@@ -447,7 +447,7 @@ void Graphics::Engine::DrawScene(
 	static glm::vec3 diffuseColor = glm::vec3(0.4f, 0.4f, 0.4f) * lightColor;
 	static glm::vec3 specularColor = glm::vec3(1.0f, 1.0f, 1.0f) * lightColor;
 
-	static glm::vec3 pointLightPos(0.0f, 2.0f, 0.0f);
+	static glm::vec3 pointLightPos = -LIGHT_DIRECTION * 3.0f;
 	static float shininess = 32.0f;
 
 	glBindBuffer(GL_UNIFORM_BUFFER, mUBOMatrices);
@@ -509,11 +509,12 @@ void Graphics::Engine::DrawScene(
 	DrawModels(MODELS, mBaseShaderProgram, false);
 	//DrawModels(MODELS, mNormalsVisualizationShaderProgram, false);
 
-	//mLightSourceShaderProgram.Bind();
-	//glm::mat4 lightSourceMat(1.0f);
-	//lightSourceMat = glm::translate(lightSourceMat, pointLightPos);
-	//lightSourceMat = glm::scale(lightSourceMat, glm::vec3(0.1f));
-	//SPHERE_MODEL.Draw(mLightSourceShaderProgram, lightSourceMat);
+	mLightSourceShaderProgram.Bind();
+	mLightSourceShaderProgram.SetUniformVec3("uLightColor", glm::value_ptr(lightColor));
+	glm::mat4 lightSourceMat(1.0f);
+	lightSourceMat = glm::translate(lightSourceMat, pointLightPos);
+	lightSourceMat = glm::scale(lightSourceMat, glm::vec3(0.4f));
+	SPHERE_MODEL.Draw(mLightSourceShaderProgram, lightSourceMat);
 
 	//DrawModels(SPHERES, mBaseShaderProgram, false);
 	//DrawModels(SPHERES, mNormalsVisualizationShaderProgram, false);
