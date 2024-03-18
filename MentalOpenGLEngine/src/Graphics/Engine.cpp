@@ -19,11 +19,11 @@ std::vector<Core::ModelImport> MODEL_IMPORTS{
 	//{"resources/objects/sponza/sponza.obj", Core::Transform{glm::vec3(0.0f, -20.0f, 0.0f), glm::vec3(0.01f)}},
 	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(15.0f, 1.0f, 15.0f)}, false, {{"resources/textures/wood.png", Core::Diffuse}}},
 
-	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(0.0f, 8.0f, -12.0f), glm::vec3(1.0f), 45.0f}, false, {{"resources/textures/wood.png", Core::Diffuse}}},
-	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(8.0f, 2.0f, -12.0f), glm::vec3(1.0f)}, false, {{"resources/textures/wood.png", Core::Diffuse}}},
+	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(4.0f, 4.0f, 1.0f), glm::vec3(1.0f), 45.0f}, true, {{"resources/textures/container2.png", Core::Diffuse}, {"resources/textures/container2_specular.png", Core::Specular}}},
+	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(8.0f, 1.0f, 1.0f), glm::vec3(1.0f)}, true, {{"resources/textures/container2.png", Core::Diffuse}, {"resources/textures/container2_specular.png", Core::Specular}}},
 
-	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(5.0f, 4.0f, 4.0f), glm::vec3(1.0f), 10.0f}, false, {{"resources/textures/wood.png", Core::Diffuse}}},
-	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(8.0f, 2.0f, 4.0f), glm::vec3(1.0f), 60.0f}, false, {{"resources/textures/wood.png", Core::Diffuse}}},
+	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(5.5f, 3.0f, 4.0f), glm::vec3(1.0f), 0.0f}, false, {{"resources/textures/container2.png", Core::Diffuse}, {"resources/textures/container2_specular.png", Core::Specular}}},
+	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(8.0f, 1.0f, 4.0f), glm::vec3(1.0f), 0.0f}, false, {{"resources/textures/container2.png", Core::Diffuse}, {"resources/textures/container2_specular.png", Core::Specular}}},
 };
 std::vector<Core::ModelImport> MODEL_IMPORT_SPHERES{
 	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f)}},
@@ -390,9 +390,9 @@ void Graphics::Engine::OnRender()
 	glViewport(0, 0, mDepthMap.GetWidth(), mDepthMap.GetHeight());
 	mDepthMap.Bind();
 	glClear(GL_DEPTH_BUFFER_BIT);
-	glCullFace(GL_FRONT);
+	//glCullFace(GL_FRONT);
 	ShadowPass();
-	glCullFace(GL_BACK);
+	//glCullFace(GL_BACK);
 
 	//Drawing scene
 	glViewport(0, 0, mWindowWidth, mWindowHeight);
@@ -445,7 +445,7 @@ void Graphics::Engine::DrawScene(
 	static glm::vec3 lightColor(1.f, 1.f, 1.f);
 	static glm::vec3 ambientColor = glm::vec3(0.03f, 0.03f, 0.03f) * lightColor;
 	static glm::vec3 diffuseColor = glm::vec3(0.4f, 0.4f, 0.4f) * lightColor;
-	static glm::vec3 specularColor = glm::vec3(0.5f, 0.5f, 0.5f) * lightColor;
+	static glm::vec3 specularColor = glm::vec3(1.0f, 1.0f, 1.0f) * lightColor;
 
 	static glm::vec3 pointLightPos(0.0f, 2.0f, 0.0f);
 	static float shininess = 32.0f;
@@ -462,7 +462,8 @@ void Graphics::Engine::DrawScene(
 	mBaseShaderProgram.SetUniformVec3("uDirLight.ambient", glm::value_ptr(ambientColor));
 	mBaseShaderProgram.SetUniformVec3("uDirLight.diffuse", glm::value_ptr(diffuseColor));
 	mBaseShaderProgram.SetUniformVec3("uDirLight.specular", glm::value_ptr(specularColor));
-	mBaseShaderProgram.SetUniform1f("uTexCoordsMultiplier", 6.f);
+	//mBaseShaderProgram.SetUniform1f("uTexTiling", 1.0f);
+	//mBaseShaderProgram.SetUniformVec2("uTexDisplacement", glm::value_ptr(glm::vec2(0.0f, 0.0f)));
 	mBaseShaderProgram.SetUniform1i("uNumPointLights", 0);
 	mBaseShaderProgram.SetUniformVec3("uPointLights[0].position", glm::value_ptr(pointLightPos));
 	mBaseShaderProgram.SetUniformVec3("uPointLights[0].ambient", glm::value_ptr(ambientColor));
@@ -506,7 +507,7 @@ void Graphics::Engine::DrawScene(
 	//ASTEROID_MODEL.DrawInstanced(mBaseInstancedShaderProgram, ASTEROIDS_NUM);
 
 	DrawModels(MODELS, mBaseShaderProgram, false);
-	DrawModels(MODELS, mNormalsVisualizationShaderProgram, false);
+	//DrawModels(MODELS, mNormalsVisualizationShaderProgram, false);
 
 	//mLightSourceShaderProgram.Bind();
 	//glm::mat4 lightSourceMat(1.0f);

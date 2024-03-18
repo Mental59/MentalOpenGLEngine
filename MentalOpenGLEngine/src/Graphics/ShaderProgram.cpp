@@ -95,6 +95,11 @@ void ShaderProgram::SetUniformVec3(const std::string& name, const GLfloat* data)
 	glUniform3fv(GetUniformLocation(name), 1, data);
 }
 
+void ShaderProgram::SetUniformVec2(const std::string& name, const GLfloat* data)
+{
+	glUniform2fv(GetUniformLocation(name), 1, data);
+}
+
 void ShaderProgram::SetUniformBlockBinding(const char* uniformBlockName, GLuint binding) const
 {
 	unsigned int blockIndex = glGetUniformBlockIndex(mID, uniformBlockName);

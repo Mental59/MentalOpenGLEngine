@@ -111,10 +111,10 @@ void main()
 {
 	vec4 diffuseColor = texture(uMaterial.diffuseTexture1, fs_in.texCoords);
 
-	if (diffuseColor.a < 0.1)
-	{
-		discard;
-	}
+//	if (diffuseColor.a < 0.1)
+//	{
+//		discard;
+//	}
 
 	vec3 normal = normalize(fs_in.normal);
 	vec3 viewDirection = normalize(uViewPos - fs_in.worldPos);
@@ -136,23 +136,29 @@ void main()
 
 float CalculateShadow(const vec3 normal, const vec3 lightDirection)
 {
-	// perform perspective divide
+	// perform perspective division, so it works for perspective matrices too
     vec3 projCoords = fs_in.posInLightSpace.xyz / fs_in.posInLightSpace.w;
 
-	// transform to the range [0, 1]
+	// conversion to the range [0, 1]
 	projCoords = projCoords * 0.5 + 0.5; 
 
-	float closestDepth = texture(uShadowMap, projCoords.xy).r;
+//	float closestDepth = texture(uShadowMap, projCoords.xy).r;
 	float currentDepth = projCoords.z;
 
-	float bias = max(0.05 * (1.0 - dot(normal, lightDirection)), 0.005);
+	float bias = max(0.005 * (1.0 - dot(normal, lightDirection)), 0.0005);
 
-	float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
-
-	if (projCoords.z > 1.0)
+	// PCF
+	float shadow = 0.0;
+	vec2 texelSize = 1.0 / textureSize(uShadowMap, 0);
+	for (int x = -2; x <= 2; x++)
 	{
-		shadow = 0.0;
+		for (int y = -2; y <= 2; y++)
+		{
+			float pcfDepth = texture(uShadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
+			shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+		}
 	}
+	shadow /= 25.0;
 
 	return shadow;
 }
