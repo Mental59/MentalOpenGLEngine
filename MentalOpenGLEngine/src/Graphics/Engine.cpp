@@ -17,13 +17,14 @@ Graphics::Engine* Graphics::Engine::mInstance(nullptr);
 
 std::vector<Core::ModelImport> MODEL_IMPORTS{
 	//{"resources/objects/sponza/sponza.obj", Core::Transform{glm::vec3(0.0f, -20.0f, 0.0f), glm::vec3(0.01f)}},
-	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(15.0f, 1.0f, 15.0f)}, false, {{"resources/textures/wood.png", Core::Diffuse}}},
+	//{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(15.0f, 1.0f, 15.0f)}, false, {{"resources/textures/wood.png", Core::Diffuse}}},
 
-	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(4.0f, 1.0f, 1.0f), glm::vec3(1.0f), 0.0f}, true, {{"resources/textures/container2.png", Core::Diffuse}, {"resources/textures/container2_specular.png", Core::Specular}}},
-	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(8.0f, 1.0f, 1.0f), glm::vec3(1.0f), 0.0f}, true, {{"resources/textures/container2.png", Core::Diffuse}, {"resources/textures/container2_specular.png", Core::Specular}}},
+	//{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(4.0f, 1.0f, 1.0f), glm::vec3(1.0f), 0.0f}, true, {{"resources/textures/container2.png", Core::Diffuse}, {"resources/textures/container2_specular.png", Core::Specular}}},
+	//{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(8.0f, 1.0f, 1.0f), glm::vec3(1.0f), 0.0f}, true, {{"resources/textures/container2.png", Core::Diffuse}, {"resources/textures/container2_specular.png", Core::Specular}}},
 
-	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(5.5f, 1.0f, 4.0f), glm::vec3(1.0f), 0.0f}, false, {{"resources/textures/container2.png", Core::Diffuse}, {"resources/textures/container2_specular.png", Core::Specular}}},
-	{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(8.0f, 1.0f, 4.0f), glm::vec3(1.0f), 0.0f}, false, {{"resources/textures/container2.png", Core::Diffuse}, {"resources/textures/container2_specular.png", Core::Specular}}},
+	//{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(5.5f, 1.0f, 4.0f), glm::vec3(1.0f), 0.0f}, false, {{"resources/textures/container2.png", Core::Diffuse}, {"resources/textures/container2_specular.png", Core::Specular}}},
+	//{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(8.0f, 1.0f, 4.0f), glm::vec3(1.0f), 0.0f}, false, {{"resources/textures/container2.png", Core::Diffuse}, {"resources/textures/container2_specular.png", Core::Specular}}},
+	{"resources/objects/backpack/backpack.obj", Core::Transform{glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.5f), -90.0f, glm::vec3(0.0f, 1.0f, 0.0f)}, true}
 };
 std::vector<Core::ModelImport> MODEL_IMPORT_SPHERES{
 	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f)}},
@@ -64,9 +65,12 @@ std::vector<std::shared_ptr<Model>> TRANSPARENT;
 Model ASTEROID_MODEL;
 Model MARS_MODEL;
 Model SPHERE_MODEL;
+Model CUBE_MODEL;
 
 glm::vec3 LIGHT_DIRECTION = glm::vec3(2.0f, -4.0f, 1.0f);
-glm::mat4 LIGHT_SPACE_MAT;
+glm::mat4 DIR_LIGHT_SPACE_MAT;
+glm::vec3 DIR_LIGHT_POS;
+glm::vec3 POINT_LIGHT_POS(2.0f, 0.0f, 4.0f);
 
 //constexpr int ASTEROIDS_NUM = 100000;
 //glm::mat4 ASTEROID_TRANSFORMS[ASTEROIDS_NUM];
@@ -78,12 +82,58 @@ Graphics::Engine::Engine(const int windowWidth, const int windowHeight, const ch
 	mTitle(title),
 	mWindow(nullptr),
 	mBaseShaderProgram(),
-	mCamera(glm::vec3(0.0f, 3.0f, 3.0f), 5.0f, 0.1f),
+	mCamera(glm::vec3(0.0f, 0.0f, 0.0f), 5.0f, 0.1f),
 	mLastMouseXPos(0.0f), mLastMouseYPos(0.0f), mIsFirstMouseMove(true),
 	mDefaultTexture{},
 	mUBOMatrices(0u)
 {
 	mInstance = this;
+}
+
+static void DrawCubes(ShaderProgram& shader)
+{
+	shader.Bind();
+
+	// room cube
+	glm::mat4 model = glm::mat4(1.0f);
+	model = glm::scale(model, glm::vec3(5.0f));
+	glDisable(GL_CULL_FACE); // note that we disable culling here since we render 'inside' the cube instead of the usual 'outside' which throws off the normal culling methods.
+	shader.SetUniform1i("uInverseNormals", 1); // A small little hack to invert normals when drawing cube from the inside so lighting still works.
+	CUBE_MODEL.Draw(shader, model);
+	shader.SetUniform1i("uInverseNormals", 0); // and of course disable it
+	glEnable(GL_CULL_FACE);
+
+	// cubes
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(4.0f, -3.5f, 0.0));
+	model = glm::scale(model, glm::vec3(0.5f));
+	CUBE_MODEL.Draw(shader, model);
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(2.0f, 3.0f, 1.0));
+	model = glm::scale(model, glm::vec3(0.75f));
+	CUBE_MODEL.Draw(shader, model);
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(-3.0f, -1.0f, 0.0));
+	model = glm::scale(model, glm::vec3(0.5f));
+	CUBE_MODEL.Draw(shader, model);
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(-1.5f, 1.0f, 1.5));
+	model = glm::scale(model, glm::vec3(0.5f));
+	CUBE_MODEL.Draw(shader, model);
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(-1.5f, 2.0f, -3.0));
+	model = glm::rotate(model, glm::radians(60.0f), glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
+	model = glm::scale(model, glm::vec3(0.75f));
+	CUBE_MODEL.Draw(shader, model);
+
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(0.0f, 8.0f, 0.0f));
+	CUBE_MODEL.Draw(shader, model);
+
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(0.0f, 6.0f, 0.0f));
+	model = glm::scale(model, glm::vec3(10.0f, 0.05f, 10.0f));
+	CUBE_MODEL.Draw(shader, model);
 }
 
 Graphics::Engine::~Engine()
@@ -187,8 +237,11 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	Shader normalsVisualizationGeometryShader("src/Shaders/normalsVisualization.geom", Shader::Geometry);
 	Shader lightSourceVertexShader("src/Shaders/lightSource.vert", Shader::Vertex);
 	Shader lightSourceFragmentShader("src/Shaders/lightSource.frag", Shader::Fragment);
-	Shader shadowMappingVertexShader("src/Shaders/shadowMapping.vert", Shader::Vertex);
-	Shader shadowMappingFragmentShader("src/Shaders/shadowMapping.frag", Shader::Fragment);
+	Shader dirShadowMappingVertexShader("src/Shaders/directionalShadowMapping.vert", Shader::Vertex);
+	Shader dirShadowMappingFragmentShader("src/Shaders/directionalShadowMapping.frag", Shader::Fragment);
+	Shader pointShadowMappingVertShader("src/Shaders/pointShadowMapping.vert", Shader::Vertex);
+	Shader pointShadowMappingFragShader("src/Shaders/pointShadowMapping.frag", Shader::Fragment);
+	Shader pointShadowMappingGeomShader("src/Shaders/pointShadowMapping.geom", Shader::Geometry);
 
 	mBaseShaderProgram.Build({ baseVertexShader, baseFragmentShader });
 	mBaseInstancedShaderProgram.Build({ baseInstancedVertexShader, baseFragmentShader });
@@ -198,7 +251,8 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	mFramebufferScreenShaderProgram.Build({ framebufferVertexShader, framebufferFragmentShader });
 	mNormalsVisualizationShaderProgram.Build({ normalsVisualizationVertexShader, normalsVisualizationFragmentShader, normalsVisualizationGeometryShader });
 	mLightSourceShaderProgram.Build({ lightSourceFragmentShader, lightSourceVertexShader });
-	mShadowMappingShaderProgram.Build({ shadowMappingFragmentShader, shadowMappingVertexShader });
+	mDirectionalShadowMappingShaderProgram.Build({ dirShadowMappingFragmentShader, dirShadowMappingVertexShader });
+	mPointShadowMappingShaderProgram.Build({ pointShadowMappingVertShader, pointShadowMappingFragShader, pointShadowMappingGeomShader });
 
 	// Setting texture units
 	mFramebufferScreenShaderProgram.Bind();
@@ -212,6 +266,7 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	mEnvironmentMappingShaderProgram.Unbind();
 	mBaseShaderProgram.Bind();
 	mBaseShaderProgram.SetUniform1i("uShadowMap", 16);
+	mBaseShaderProgram.SetUniform1i("uShadowCubeMap", 17);
 	mBaseShaderProgram.Unbind();
 
 	//Setting uniform block bindings
@@ -229,7 +284,8 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	glBindBufferRange(GL_UNIFORM_BUFFER, uniformMatricesBlockBinding, mUBOMatrices, 0, bufferSize);
 
-	mDepthMap.Build(2048, 2048);
+	mDirectionalDepthMap.Build(2048, 2048, DepthMap::Directional);
+	mPointDepthMap.Build(2048, 2048, DepthMap::Point);
 
 	//constexpr unsigned int uniformsNum = 6;
 	//const char* uniformNames[uniformsNum]{
@@ -265,6 +321,12 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	//ASTEROID_MODEL.Load("resources/objects/rock/rock.obj");
 	//MARS_MODEL.Load("resources/objects/planet/planet.obj");
 	SPHERE_MODEL.Load("resources/objects/sphere/sphere.obj");
+
+	const char* texturePath = "resources/textures/wood.png";
+	unsigned int cubeTextureId = GLLoadTextureFromFile(texturePath);
+	mLoadedTextures[texturePath] = cubeTextureId;
+	CUBE_MODEL.SetDefaultTexture({ cubeTextureId, Core::Diffuse });
+	CUBE_MODEL.Load("resources/objects/cube/cube.obj");
 
 	//const char* faces[6]{
 	//	"resources/skyboxes/SpaceLightblue/right.png",
@@ -387,12 +449,7 @@ void Graphics::Engine::OnInput()
 void Graphics::Engine::OnRender()
 {
 	//Render to depth map
-	glViewport(0, 0, mDepthMap.GetWidth(), mDepthMap.GetHeight());
-	mDepthMap.Bind();
-	glClear(GL_DEPTH_BUFFER_BIT);
-	//glCullFace(GL_FRONT);
 	ShadowPass();
-	//glCullFace(GL_BACK);
 
 	//Drawing scene
 	glViewport(0, 0, mWindowWidth, mWindowHeight);
@@ -420,20 +477,51 @@ void Graphics::Engine::OnRender()
 
 void Graphics::Engine::ShadowPass()
 {
-	//setting up matrices
 	float nearPlane = 0.1f, farPlane = 100.0f;
-	glm::mat4 lightProjection = glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, nearPlane, farPlane);
-	glm::mat4 lightView = glm::lookAt(
-		-LIGHT_DIRECTION * 3.0f,
+
+	glm::mat4 dirLightProjection = glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, nearPlane, farPlane);
+	DIR_LIGHT_POS = -LIGHT_DIRECTION * 3.0f;
+	glm::mat4 dirLightView = glm::lookAt(
+		DIR_LIGHT_POS,
 		glm::vec3(0.0f, 0.0f, 0.0f),
 		glm::vec3(0.0f, 1.0f, 0.0f)
 	);
-	LIGHT_SPACE_MAT = lightProjection * lightView;
+	DIR_LIGHT_SPACE_MAT = dirLightProjection * dirLightView;
 
-	mShadowMappingShaderProgram.Bind();
-	mShadowMappingShaderProgram.SetUniformMat4("uLightSpaceMatrix", glm::value_ptr(LIGHT_SPACE_MAT));
+	float shadowAspect = static_cast<float>(mPointDepthMap.GetWidth()) / static_cast<float>(mPointDepthMap.GetHeight());
+	glm::mat4 pointLightProjection = glm::perspective(glm::radians(90.0f), shadowAspect, nearPlane, farPlane);
+	glm::mat4 pointShadowTransforms[6];
+	pointShadowTransforms[0] = pointLightProjection * glm::lookAt(POINT_LIGHT_POS, POINT_LIGHT_POS + glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)); // right
+	pointShadowTransforms[1] = pointLightProjection * glm::lookAt(POINT_LIGHT_POS, POINT_LIGHT_POS + glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)); // left
+	pointShadowTransforms[2] = pointLightProjection * glm::lookAt(POINT_LIGHT_POS, POINT_LIGHT_POS + glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)); // top
+	pointShadowTransforms[3] = pointLightProjection * glm::lookAt(POINT_LIGHT_POS, POINT_LIGHT_POS + glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)); // bottom
+	pointShadowTransforms[4] = pointLightProjection * glm::lookAt(POINT_LIGHT_POS, POINT_LIGHT_POS + glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)); // back
+	pointShadowTransforms[5] = pointLightProjection * glm::lookAt(POINT_LIGHT_POS, POINT_LIGHT_POS + glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f)); // forward
 
-	DrawModels(MODELS, mShadowMappingShaderProgram, false);
+	mDirectionalShadowMappingShaderProgram.Bind();
+	mDirectionalShadowMappingShaderProgram.SetUniformMat4("uLightSpaceMatrix", glm::value_ptr(DIR_LIGHT_SPACE_MAT));
+
+	mPointShadowMappingShaderProgram.Bind();
+	for (unsigned int i = 0; i < 6; i++)
+	{
+		mPointShadowMappingShaderProgram.SetUniformMat4(
+			std::format("uShadowMatrices[{}]", i), glm::value_ptr(pointShadowTransforms[i])
+		);
+	}
+	mPointShadowMappingShaderProgram.SetUniformVec3("uLightPos", glm::value_ptr(POINT_LIGHT_POS));
+	mPointShadowMappingShaderProgram.SetUniform1f("uFarPlane", farPlane);
+
+	glViewport(0, 0, mDirectionalDepthMap.GetWidth(), mDirectionalDepthMap.GetHeight());
+	mDirectionalDepthMap.Bind();
+	glClear(GL_DEPTH_BUFFER_BIT);
+	DrawCubes(mDirectionalShadowMappingShaderProgram);
+
+	glViewport(0, 0, mPointDepthMap.GetWidth(), mPointDepthMap.GetHeight());
+	mPointDepthMap.Bind();
+	glClear(GL_DEPTH_BUFFER_BIT);
+	DrawCubes(mPointShadowMappingShaderProgram);
+
+	DrawModels(MODELS, mPointShadowMappingShaderProgram, false);
 }
 
 void Graphics::Engine::DrawScene(
@@ -447,7 +535,6 @@ void Graphics::Engine::DrawScene(
 	static glm::vec3 diffuseColor = glm::vec3(0.4f, 0.4f, 0.4f) * lightColor;
 	static glm::vec3 specularColor = glm::vec3(1.0f, 1.0f, 1.0f) * lightColor;
 
-	static glm::vec3 pointLightPos = -LIGHT_DIRECTION * 3.0f;
 	static float shininess = 32.0f;
 
 	glBindBuffer(GL_UNIFORM_BUFFER, mUBOMatrices);
@@ -464,18 +551,20 @@ void Graphics::Engine::DrawScene(
 	mBaseShaderProgram.SetUniformVec3("uDirLight.specular", glm::value_ptr(specularColor));
 	//mBaseShaderProgram.SetUniform1f("uTexTiling", 1.0f);
 	//mBaseShaderProgram.SetUniformVec2("uTexDisplacement", glm::value_ptr(glm::vec2(0.0f, 0.0f)));
-	mBaseShaderProgram.SetUniform1i("uNumPointLights", 0);
-	mBaseShaderProgram.SetUniformVec3("uPointLights[0].position", glm::value_ptr(pointLightPos));
+	mBaseShaderProgram.SetUniform1i("uNumPointLights", 1);
+	mBaseShaderProgram.SetUniformVec3("uPointLights[0].position", glm::value_ptr(POINT_LIGHT_POS));
 	mBaseShaderProgram.SetUniformVec3("uPointLights[0].ambient", glm::value_ptr(ambientColor));
 	mBaseShaderProgram.SetUniformVec3("uPointLights[0].diffuse", glm::value_ptr(diffuseColor));
 	mBaseShaderProgram.SetUniformVec3("uPointLights[0].specular", glm::value_ptr(specularColor));
-	mBaseShaderProgram.SetUniformVec3("uPointLights[0].specular", glm::value_ptr(specularColor));
 	mBaseShaderProgram.SetUniform1f("uPointLights[0].constant", 1.0f);
-	mBaseShaderProgram.SetUniform1f("uPointLights[0].linear", 0.022f);
-	mBaseShaderProgram.SetUniform1f("uPointLights[0].quadratic", 0.0019f);
-	mBaseShaderProgram.SetUniformMat4("uLightSpaceMatrix", glm::value_ptr(LIGHT_SPACE_MAT));
-	glActiveTexture(GL_TEXTURE16);
-	glBindTexture(GL_TEXTURE_2D, mDepthMap.GetTextureColorId());
+	mBaseShaderProgram.SetUniform1f("uPointLights[0].linear", 0.045f);
+	mBaseShaderProgram.SetUniform1f("uPointLights[0].quadratic", 0.0075f);
+	mBaseShaderProgram.SetUniform1f("uPointLights[0].farPlane", 100.0f);
+	mBaseShaderProgram.SetUniformMat4("uLightSpaceMatrix", glm::value_ptr(DIR_LIGHT_SPACE_MAT));
+	glActiveTexture(GL_TEXTURE0 + 16);
+	glBindTexture(GL_TEXTURE_2D, mDirectionalDepthMap.GetTextureColorId());
+	glActiveTexture(GL_TEXTURE0 + 17);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, mPointDepthMap.GetTextureColorId());
 
 	mBaseInstancedShaderProgram.Bind();
 	mBaseInstancedShaderProgram.SetUniformVec3("uViewPos", glm::value_ptr(mCamera.GetWorldPosition()));
@@ -512,9 +601,15 @@ void Graphics::Engine::DrawScene(
 	mLightSourceShaderProgram.Bind();
 	mLightSourceShaderProgram.SetUniformVec3("uLightColor", glm::value_ptr(lightColor));
 	glm::mat4 lightSourceMat(1.0f);
-	lightSourceMat = glm::translate(lightSourceMat, pointLightPos);
+	lightSourceMat = glm::translate(lightSourceMat, DIR_LIGHT_POS);
 	lightSourceMat = glm::scale(lightSourceMat, glm::vec3(0.4f));
 	SPHERE_MODEL.Draw(mLightSourceShaderProgram, lightSourceMat);
+	lightSourceMat = glm::mat4(1.0f);
+	lightSourceMat = glm::translate(lightSourceMat, POINT_LIGHT_POS);
+	lightSourceMat = glm::scale(lightSourceMat, glm::vec3(0.4f));
+	SPHERE_MODEL.Draw(mLightSourceShaderProgram, lightSourceMat);
+
+	DrawCubes(mBaseShaderProgram);
 
 	//DrawModels(SPHERES, mBaseShaderProgram, false);
 	//DrawModels(SPHERES, mNormalsVisualizationShaderProgram, false);

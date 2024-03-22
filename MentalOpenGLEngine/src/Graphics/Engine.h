@@ -72,13 +72,15 @@ namespace Graphics
 		ShaderProgram mEnvironmentMappingShaderProgram;
 		ShaderProgram mNormalsVisualizationShaderProgram;
 		ShaderProgram mLightSourceShaderProgram;
-		ShaderProgram mShadowMappingShaderProgram;
+		ShaderProgram mDirectionalShadowMappingShaderProgram;
+		ShaderProgram mPointShadowMappingShaderProgram;
 
 		FrameBuffer mFrameBuffer;
 		FrameBuffer mRearViewFrameBuffer;
 		ScreenQuad mScreenQuad;
 		CubeMap mCubemap;
-		DepthMap mDepthMap;
+		DepthMap mDirectionalDepthMap;
+		DepthMap mPointDepthMap;
 
 		Camera mCamera;
 		std::unordered_map<std::string, unsigned int> mLoadedTextures;

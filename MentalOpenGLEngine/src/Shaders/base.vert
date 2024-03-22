@@ -31,12 +31,15 @@ uniform mat4 uModel;
 uniform mat4 uLightSpaceMatrix;
 uniform float uTexTiling = 1.0f;
 uniform vec2 uTexDisplacement = vec2(0.0);
+uniform bool uInverseNormals = false;
 
 void main()
 {
+	vec3 normal = uInverseNormals ? -aNormal : aNormal;
+
 	vs_out.worldPos = vec3(uModel * vec4(aPos, 1.0));
 
-	vs_out.normal = transpose(inverse(mat3(uModel))) * aNormal;
+	vs_out.normal = transpose(inverse(mat3(uModel))) * normal;
 
 	vs_out.texCoords = aTexCoords * uTexTiling + uTexDisplacement;
 

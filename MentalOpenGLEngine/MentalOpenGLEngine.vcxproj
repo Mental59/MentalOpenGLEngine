@@ -207,8 +207,11 @@
     <None Include="src\Shaders\noTextures.frag" />
     <None Include="src\Shaders\outline.frag" />
     <None Include="src\Shaders\pointLight.frag" />
-    <None Include="src\Shaders\shadowMapping.frag" />
-    <None Include="src\Shaders\shadowMapping.vert" />
+    <None Include="src\Shaders\directionalShadowMapping.frag" />
+    <None Include="src\Shaders\directionalShadowMapping.vert" />
+    <None Include="src\Shaders\pointShadowMapping.frag" />
+    <None Include="src\Shaders\pointShadowMapping.geom" />
+    <None Include="src\Shaders\pointShadowMapping.vert" />
     <None Include="src\Shaders\spotLight.frag" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

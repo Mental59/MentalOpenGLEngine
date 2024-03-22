@@ -3,7 +3,12 @@
 class DepthMap
 {
 public:
-	void Build(unsigned int width, unsigned int height);
+	enum DepthMapType
+	{
+		Directional, Point
+	};
+
+	void Build(unsigned int width, unsigned int height, DepthMapType type = Directional);
 	void Bind();
 	void Unbind();
 	virtual ~DepthMap();
