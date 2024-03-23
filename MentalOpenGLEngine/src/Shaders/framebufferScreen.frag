@@ -44,6 +44,6 @@ void main()
     FragColor = vec4(screenTextureColor, 1.0);
 
     // gamma correction
-    float gamma = 1.0;
+    float gamma = 2.2;
     FragColor.rgb = pow(FragColor.rgb, vec3(1.0 / gamma));
 }

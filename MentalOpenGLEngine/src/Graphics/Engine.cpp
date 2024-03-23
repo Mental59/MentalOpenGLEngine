@@ -358,6 +358,7 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	glFrontFace(GL_CCW);
 
 	glEnable(GL_MULTISAMPLE);
+	//glEnable(GL_FRAMEBUFFER_SRGB);
 
 	//srand(glfwGetTime());
 	//float radius = 100.0;

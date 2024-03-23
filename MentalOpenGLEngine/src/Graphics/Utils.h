@@ -10,8 +10,6 @@ inline unsigned int GLLoadTextureFromFile(const char* texturePath, bool flipVert
 
 	GLuint textureID = 0;
 
-	srgb = false;
-
 	int width, height, numChannels;
 	unsigned char* data = stbi_load(texturePath, &width, &height, &numChannels, 0);
 
@@ -22,17 +20,18 @@ inline unsigned int GLLoadTextureFromFile(const char* texturePath, bool flipVert
 
 		if (numChannels == 1)
 		{
-			dataFormat = internalFormat = GL_RED;
+			dataFormat = GL_RED;
+			internalFormat = GL_R8;
 		}
 		else if (numChannels == 3)
 		{
 			dataFormat = GL_RGB;
-			internalFormat = srgb ? GL_SRGB : GL_RGB;
+			internalFormat = srgb ? GL_SRGB8 : GL_RGB8;
 		}
 		else if (numChannels == 4)
 		{
 			dataFormat = GL_RGBA;
-			internalFormat = srgb ? GL_SRGB_ALPHA : GL_RGBA;
+			internalFormat = srgb ? GL_SRGB8_ALPHA8 : GL_RGBA8;
 		}
 
 		glGenTextures(1, &textureID);
