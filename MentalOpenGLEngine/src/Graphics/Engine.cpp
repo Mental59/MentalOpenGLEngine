@@ -24,7 +24,8 @@ std::vector<Core::ModelImport> MODEL_IMPORTS{
 
 	//{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(5.5f, 1.0f, 4.0f), glm::vec3(1.0f), 0.0f}, false, {{"resources/textures/container2.png", Core::Diffuse}, {"resources/textures/container2_specular.png", Core::Specular}}},
 	//{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(8.0f, 1.0f, 4.0f), glm::vec3(1.0f), 0.0f}, false, {{"resources/textures/container2.png", Core::Diffuse}, {"resources/textures/container2_specular.png", Core::Specular}}},
-	{"resources/objects/backpack/backpack.obj", Core::Transform{glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.5f), -90.0f, glm::vec3(0.0f, 1.0f, 0.0f)}, true}
+	//{"resources/objects/backpack/backpack.obj", Core::Transform{glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.5f), -90.0f, glm::vec3(0.0f, 1.0f, 0.0f)}, true}
+	{ "resources/objects/nanosuit/nanosuit.obj", Core::Transform{glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.1f), 0.0f, glm::vec3(0.0f, 1.0f, 0.0f)}, false }
 };
 std::vector<Core::ModelImport> MODEL_IMPORT_SPHERES{
 	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f)}},
@@ -322,21 +323,26 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	//MARS_MODEL.Load("resources/objects/planet/planet.obj");
 	SPHERE_MODEL.Load("resources/objects/sphere/sphere.obj");
 
-	const char* texturePath = "resources/textures/wood.png";
+	const char* texturePath = "resources/textures/container2.png";
 	unsigned int cubeTextureId = GLLoadTextureFromFile(texturePath);
 	mLoadedTextures[texturePath] = cubeTextureId;
+	texturePath = "resources/textures/container2_specular.png";
+	unsigned int cubeTextureSpecularId = GLLoadTextureFromFile(texturePath);
+	mLoadedTextures[texturePath] = cubeTextureSpecularId;
+
 	CUBE_MODEL.SetDefaultTexture({ cubeTextureId, Core::Diffuse });
+	CUBE_MODEL.SetDefaultTexture({ cubeTextureSpecularId, Core::Specular });
 	CUBE_MODEL.Load("resources/objects/cube/cube.obj");
 
-	//const char* faces[6]{
-	//	"resources/skyboxes/SpaceLightblue/right.png",
-	//	"resources/skyboxes/SpaceLightblue/left.png",
-	//	"resources/skyboxes/SpaceLightblue/top.png",
-	//	"resources/skyboxes/SpaceLightblue/bottom.png",
-	//	"resources/skyboxes/SpaceLightblue/front.png",
-	//	"resources/skyboxes/SpaceLightblue/back.png"
-	//};
-	//mCubemap.Load(faces);
+	const char* faces[6]{
+		"resources/skyboxes/SpaceLightblue/right.png",
+		"resources/skyboxes/SpaceLightblue/left.png",
+		"resources/skyboxes/SpaceLightblue/top.png",
+		"resources/skyboxes/SpaceLightblue/bottom.png",
+		"resources/skyboxes/SpaceLightblue/front.png",
+		"resources/skyboxes/SpaceLightblue/back.png"
+	};
+	mCubemap.Load(faces);
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe mode
 
@@ -557,8 +563,8 @@ void Graphics::Engine::DrawScene(
 	mBaseShaderProgram.SetUniformVec3("uPointLights[0].diffuse", glm::value_ptr(diffuseColor));
 	mBaseShaderProgram.SetUniformVec3("uPointLights[0].specular", glm::value_ptr(specularColor));
 	mBaseShaderProgram.SetUniform1f("uPointLights[0].constant", 1.0f);
-	mBaseShaderProgram.SetUniform1f("uPointLights[0].linear", 0.045f);
-	mBaseShaderProgram.SetUniform1f("uPointLights[0].quadratic", 0.0075f);
+	mBaseShaderProgram.SetUniform1f("uPointLights[0].linear", 0.014f);
+	mBaseShaderProgram.SetUniform1f("uPointLights[0].quadratic", 0.0007f);
 	mBaseShaderProgram.SetUniform1f("uPointLights[0].farPlane", 100.0f);
 	mBaseShaderProgram.SetUniformMat4("uLightSpaceMatrix", glm::value_ptr(DIR_LIGHT_SPACE_MAT));
 	glActiveTexture(GL_TEXTURE0 + 16);
@@ -616,11 +622,11 @@ void Graphics::Engine::DrawScene(
 
 	//DrawTransparentModels(TRANSPARENT, mBaseShaderProgram);
 
-	//mSkyboxShaderProgram.Bind();
-	//mSkyboxShaderProgram.SetUniformMat4("uView", glm::value_ptr(glm::mat4(glm::mat3(view))));
-	//mSkyboxShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(projection));
-	//mCubemap.BindTexture(0);
-	//mCubemap.Draw();
+	mSkyboxShaderProgram.Bind();
+	mSkyboxShaderProgram.SetUniformMat4("uView", glm::value_ptr(glm::mat4(glm::mat3(view))));
+	mSkyboxShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(projection));
+	mCubemap.BindTexture(0);
+	mCubemap.Draw();
 }
 
 void Graphics::Engine::OnMouseMove(float xpos, float ypos)

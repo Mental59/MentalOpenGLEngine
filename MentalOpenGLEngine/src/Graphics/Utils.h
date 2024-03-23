@@ -10,6 +10,8 @@ inline unsigned int GLLoadTextureFromFile(const char* texturePath, bool flipVert
 
 	GLuint textureID = 0;
 
+	srgb = false;
+
 	int width, height, numChannels;
 	unsigned char* data = stbi_load(texturePath, &width, &height, &numChannels, 0);
 
