@@ -195,7 +195,8 @@ float CalculatePointShadow(const vec3 lightPos, const float farPlane)
 	}
 	shadow /= float(numSamples); 
 
-//	FragColor = vec4(vec3(closestDepth / farPlane), 1.0); 
+//	float closestDepth = texture(uShadowCubeMap, fragToLight).r;
+//	FragColor = vec4(vec3(closestDepth), 1.0);
 
     return shadow;
 }

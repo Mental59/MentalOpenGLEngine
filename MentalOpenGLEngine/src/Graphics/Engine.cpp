@@ -399,9 +399,15 @@ void Graphics::Engine::Run()
 	{
 		OnInput();
 		UpdateTimer();
+		Update();
 		OnRender();
 		glfwPollEvents();
 	}
+}
+
+void Graphics::Engine::Update()
+{
+	POINT_LIGHT_POS.x = sin(Time::LastFrame) * 4.0f;
 }
 
 void Graphics::Engine::UpdateTimer()

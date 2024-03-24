@@ -31,6 +31,7 @@ namespace Graphics
 
 		bool Init(bool vsync, bool windowedFullscreen);
 		void Run();
+		void Update();
 		void UpdateTimer();
 
 		virtual void OnResize(GLFWwindow* window, int width, int height);
