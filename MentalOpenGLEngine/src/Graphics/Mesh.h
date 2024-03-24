@@ -1,6 +1,8 @@
 #pragma once
 
 #include <vector>
+#include <unordered_map>
+#include <string>
 #include "CoreTypes.h"
 #include "Graphics/ShaderProgram.h"
 
@@ -19,10 +21,16 @@ public:
 private:
 	void BindTextures(ShaderProgram& shader);
 	void UnbindTextures();
+	void SetTexture(
+		ShaderProgram& shader,
+		const std::string& textureName,
+		unsigned int unit,
+		unsigned int textureId
+	) const;
 
 	unsigned int mVAO, mVBO, mEBO;
 	unsigned int mNumIndices, mNumVertices;
 
-	std::vector<Core::Texture> mTextures;
+	std::unordered_map<Core::TextureType, Core::Texture> mTextures;
 };
 

@@ -73,6 +73,11 @@ void Model::DrawInstanced(ShaderProgram& shader, int n)
 	}
 }
 
+bool Model::HasTexture(Core::TextureType type) const
+{
+	return false;
+}
+
 void Model::SetDefaultTexture(const Core::Texture& texture)
 {
 	auto it = mDefaultTextures.find(texture.Type);
@@ -122,7 +127,7 @@ void Model::SetupInstancedDrawing(glm::mat4* instanceMatrices, size_t size, unsi
 void Model::Load(const std::string& path)
 {
 	Assimp::Importer importer;
-	const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+	const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace);
 
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{
@@ -191,12 +196,15 @@ void Model::ProcessMesh(aiMesh* mesh, const aiScene* scene, std::shared_ptr<Mesh
 		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 		std::vector<Core::Texture> diffuseMaps = LoadMaterialTextures(material, aiTextureType_DIFFUSE, Core::Diffuse);
 		std::vector<Core::Texture> specularMaps = LoadMaterialTextures(material, aiTextureType_SPECULAR, Core::Specular);
+		std::vector<Core::Texture> normalMaps = LoadMaterialTextures(material, aiTextureType_HEIGHT, Core::Normal);
 
 		if (diffuseMaps.size() == 0) AddDefaultTexture(&diffuseMaps, Core::Diffuse);
 		if (specularMaps.size() == 0) AddDefaultTexture(&specularMaps, Core::Specular);
+		if (normalMaps.size() == 0) AddDefaultTexture(&normalMaps, Core::Normal);
 
 		textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 		textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+		textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
 	}
 
 	resMesh->Setup(vertices, indices, textures);

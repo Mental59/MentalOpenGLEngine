@@ -15,58 +15,12 @@
 
 Graphics::Engine* Graphics::Engine::mInstance(nullptr);
 
-std::vector<Core::ModelImport> MODEL_IMPORTS{
-	//{"resources/objects/sponza/sponza.obj", Core::Transform{glm::vec3(0.0f, -20.0f, 0.0f), glm::vec3(0.01f)}},
-	//{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(15.0f, 1.0f, 15.0f)}, false, {{"resources/textures/wood.png", Core::Diffuse}}},
-
-	//{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(4.0f, 1.0f, 1.0f), glm::vec3(1.0f), 0.0f}, true, {{"resources/textures/container2.png", Core::Diffuse}, {"resources/textures/container2_specular.png", Core::Specular}}},
-	//{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(8.0f, 1.0f, 1.0f), glm::vec3(1.0f), 0.0f}, true, {{"resources/textures/container2.png", Core::Diffuse}, {"resources/textures/container2_specular.png", Core::Specular}}},
-
-	//{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(5.5f, 1.0f, 4.0f), glm::vec3(1.0f), 0.0f}, false, {{"resources/textures/container2.png", Core::Diffuse}, {"resources/textures/container2_specular.png", Core::Specular}}},
-	//{"resources/objects/cube/cube.obj", Core::Transform{glm::vec3(8.0f, 1.0f, 4.0f), glm::vec3(1.0f), 0.0f}, false, {{"resources/textures/container2.png", Core::Diffuse}, {"resources/textures/container2_specular.png", Core::Specular}}},
-	//{"resources/objects/backpack/backpack.obj", Core::Transform{glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.5f), -90.0f, glm::vec3(0.0f, 1.0f, 0.0f)}, true}
-	{ "resources/objects/nanosuit/nanosuit.obj", Core::Transform{glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.1f), 0.0f, glm::vec3(0.0f, 1.0f, 0.0f)}, false }
-};
-std::vector<Core::ModelImport> MODEL_IMPORT_SPHERES{
-	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f)}},
-	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(3.0f, 0.0f, 0.0f), glm::vec3(1.0f)}},
-	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(6.0f, 0.0f, 0.0f), glm::vec3(1.0f)}},
-	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(-3.0f, 0.0f, 0.0f), glm::vec3(1.0f)}},
-	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(-6.0f, 0.0f, 0.0f), glm::vec3(1.0f)}},
-
-	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3(1.0f)}},
-	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(3.0f, 3.0f, 0.0f), glm::vec3(1.0f)}},
-	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(6.0f, 3.0f, 0.0f), glm::vec3(1.0f)}},
-	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(-3.0f, 3.0f, 0.0f), glm::vec3(1.0f)}},
-	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(-6.0f, 3.0f, 0.0f), glm::vec3(1.0f)}},
-
-	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(0.0f, 6.0f, 0.0f), glm::vec3(1.0f)}},
-	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(3.0f, 6.0f, 0.0f), glm::vec3(1.0f)}},
-	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(6.0f, 6.0f, 0.0f), glm::vec3(1.0f)}},
-	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(-3.0f, 6.0f, 0.0f), glm::vec3(1.0f)}},
-	{"resources/objects/sphere/sphere.obj", Core::Transform{glm::vec3(-6.0f, 6.0f, 0.0f), glm::vec3(1.0f)}},
-
-	{"resources/objects/backpack/backpack.obj", Core::Transform{glm::vec3(0.0f, 12.0f, 0.0f), glm::vec3(1.0f)}, true}
-};
-std::vector<Core::ModelImport> MODEL_IMPORT_TRANSPARENT{
-	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(5.0f, 2.0f, -8.0f), glm::vec3(2.0f), 90.0f}, false, {{"resources/textures/window.png", Core::Diffuse}}},
-	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(10.0f, 2.0f, -8.0f), glm::vec3(2.0f), 90.0f}, false, {{"resources/textures/window.png", Core::Diffuse}}},
-
-	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(5.0f, 2.0f, -4.0f), glm::vec3(2.0f), 90.0f}, false, {{"resources/textures/window.png", Core::Diffuse}}},
-	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(10.0f, 2.0f, -4.0f), glm::vec3(2.0f), 90.0f}, false, {{"resources/textures/window.png", Core::Diffuse}}},
-
-	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(5.0f, 2.0f, 0.0f), glm::vec3(2.0f), 90.0f}, false, {{"resources/textures/window.png", Core::Diffuse}}},
-	{"resources/objects/plane/plane.obj", Core::Transform{glm::vec3(10.0f, 2.0f, 0.0f), glm::vec3(2.0f), 90.0f}, false, {{"resources/textures/window.png", Core::Diffuse}}},
-};
-
-std::vector<std::shared_ptr<Model>> MODELS;
-std::vector<std::shared_ptr<Model>> SPHERES;
-std::vector<std::shared_ptr<Model>> TRANSPARENT;
-
 Model ASTEROID_MODEL;
 Model MARS_MODEL;
 Model SPHERE_MODEL;
 Model CUBE_MODEL;
+Model BRICKWALL_MODEL;
+Model NANOSUIT_MODEL;
 
 glm::vec3 LIGHT_DIRECTION = glm::vec3(2.0f, -4.0f, 1.0f);
 glm::mat4 DIR_LIGHT_SPACE_MAT;
@@ -89,52 +43,6 @@ Graphics::Engine::Engine(const int windowWidth, const int windowHeight, const ch
 	mUBOMatrices(0u)
 {
 	mInstance = this;
-}
-
-static void DrawCubes(ShaderProgram& shader)
-{
-	shader.Bind();
-
-	// room cube
-	glm::mat4 model = glm::mat4(1.0f);
-	model = glm::scale(model, glm::vec3(5.0f));
-	glDisable(GL_CULL_FACE); // note that we disable culling here since we render 'inside' the cube instead of the usual 'outside' which throws off the normal culling methods.
-	shader.SetUniform1i("uInverseNormals", 1); // A small little hack to invert normals when drawing cube from the inside so lighting still works.
-	CUBE_MODEL.Draw(shader, model);
-	shader.SetUniform1i("uInverseNormals", 0); // and of course disable it
-	glEnable(GL_CULL_FACE);
-
-	// cubes
-	model = glm::mat4(1.0f);
-	model = glm::translate(model, glm::vec3(4.0f, -3.5f, 0.0));
-	model = glm::scale(model, glm::vec3(0.5f));
-	CUBE_MODEL.Draw(shader, model);
-	model = glm::mat4(1.0f);
-	model = glm::translate(model, glm::vec3(2.0f, 3.0f, 1.0));
-	model = glm::scale(model, glm::vec3(0.75f));
-	CUBE_MODEL.Draw(shader, model);
-	model = glm::mat4(1.0f);
-	model = glm::translate(model, glm::vec3(-3.0f, -1.0f, 0.0));
-	model = glm::scale(model, glm::vec3(0.5f));
-	CUBE_MODEL.Draw(shader, model);
-	model = glm::mat4(1.0f);
-	model = glm::translate(model, glm::vec3(-1.5f, 1.0f, 1.5));
-	model = glm::scale(model, glm::vec3(0.5f));
-	CUBE_MODEL.Draw(shader, model);
-	model = glm::mat4(1.0f);
-	model = glm::translate(model, glm::vec3(-1.5f, 2.0f, -3.0));
-	model = glm::rotate(model, glm::radians(60.0f), glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
-	model = glm::scale(model, glm::vec3(0.75f));
-	CUBE_MODEL.Draw(shader, model);
-
-	model = glm::mat4(1.0f);
-	model = glm::translate(model, glm::vec3(0.0f, 8.0f, 0.0f));
-	CUBE_MODEL.Draw(shader, model);
-
-	model = glm::mat4(1.0f);
-	model = glm::translate(model, glm::vec3(0.0f, 6.0f, 0.0f));
-	model = glm::scale(model, glm::vec3(10.0f, 0.05f, 10.0f));
-	CUBE_MODEL.Draw(shader, model);
 }
 
 Graphics::Engine::~Engine()
@@ -306,11 +214,6 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	mLoadedTextures["resources/textures/default.png"] = defaultDiffuseTextureId;
 	mDefaultTexture = { defaultDiffuseTextureId, Core::Diffuse };
 
-	// Setup models
-	ImportModels(MODEL_IMPORTS, &MODELS);
-	//ImportModels(MODEL_IMPORT_SPHERES, &SPHERES);
-	//ImportModels(MODEL_IMPORT_TRANSPARENT, &TRANSPARENT);
-
 	int samples = 4;
 	mFrameBuffer.Create(mWindowWidth, mWindowHeight, samples);
 	//mRearViewFrameBuffer.Create(mWindowWidth, mWindowHeight);
@@ -323,16 +226,15 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	//MARS_MODEL.Load("resources/objects/planet/planet.obj");
 	SPHERE_MODEL.Load("resources/objects/sphere/sphere.obj");
 
-	const char* texturePath = "resources/textures/container2.png";
-	unsigned int cubeTextureId = GLLoadTextureFromFile(texturePath);
-	mLoadedTextures[texturePath] = cubeTextureId;
-	texturePath = "resources/textures/container2_specular.png";
-	unsigned int cubeTextureSpecularId = GLLoadTextureFromFile(texturePath);
-	mLoadedTextures[texturePath] = cubeTextureSpecularId;
-
-	CUBE_MODEL.SetDefaultTexture({ cubeTextureId, Core::Diffuse });
-	CUBE_MODEL.SetDefaultTexture({ cubeTextureSpecularId, Core::Specular });
+	CUBE_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/container2.png", false, true), Core::Diffuse });
+	CUBE_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/container2_specular.png"), Core::Specular });
 	CUBE_MODEL.Load("resources/objects/cube/cube.obj");
+
+	BRICKWALL_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/brickwall.jpg", false, true), Core::Diffuse });
+	BRICKWALL_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/brickwall_normal.jpg", false, false), Core::Normal });
+	BRICKWALL_MODEL.Load("resources/objects/cube/cube.obj");
+
+	NANOSUIT_MODEL.Load("resources/objects/nanosuit/nanosuit.obj");
 
 	const char* faces[6]{
 		"resources/skyboxes/SpaceLightblue/right.png",
@@ -408,6 +310,7 @@ void Graphics::Engine::Run()
 void Graphics::Engine::Update()
 {
 	POINT_LIGHT_POS.x = sin(Time::LastFrame) * 4.0f;
+	POINT_LIGHT_POS.z = cos(Time::LastFrame) * 4.0f;
 }
 
 void Graphics::Engine::UpdateTimer()
@@ -471,7 +374,8 @@ void Graphics::Engine::OnRender()
 	glClearColor(0.3, 0.3, 0.3, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	glStencilMask(0x00);
-	DrawScene(mCamera.GetViewMatrix(), mCamera.GetProjectionMatrix(mAspectRatio));
+	SetupScene(mCamera.GetViewMatrix(), mCamera.GetProjectionMatrix(mAspectRatio));
+	DrawScene(mBaseShaderProgram);
 	mFrameBuffer.Unbind();
 
 	//Post processing
@@ -527,17 +431,71 @@ void Graphics::Engine::ShadowPass()
 	glViewport(0, 0, mDirectionalDepthMap.GetWidth(), mDirectionalDepthMap.GetHeight());
 	mDirectionalDepthMap.Bind();
 	glClear(GL_DEPTH_BUFFER_BIT);
-	DrawCubes(mDirectionalShadowMappingShaderProgram);
+	DrawScene(mDirectionalShadowMappingShaderProgram);
 
 	glViewport(0, 0, mPointDepthMap.GetWidth(), mPointDepthMap.GetHeight());
 	mPointDepthMap.Bind();
 	glClear(GL_DEPTH_BUFFER_BIT);
-	DrawCubes(mPointShadowMappingShaderProgram);
-
-	DrawModels(MODELS, mPointShadowMappingShaderProgram, false);
+	DrawScene(mPointShadowMappingShaderProgram);
 }
 
-void Graphics::Engine::DrawScene(
+void Graphics::Engine::DrawScene(ShaderProgram& shader)
+{
+	shader.Bind();
+
+	// room cube
+	glm::mat4 model = glm::mat4(1.0f);
+	model = glm::scale(model, glm::vec3(5.0f));
+	glDisable(GL_CULL_FACE); // note that we disable culling here since we render 'inside' the cube instead of the usual 'outside' which throws off the normal culling methods.
+	shader.SetUniform1i("uInverseNormals", 1); // A small little hack to invert normals when drawing cube from the inside so lighting still works.
+	CUBE_MODEL.Draw(shader, model);
+	shader.SetUniform1i("uInverseNormals", 0); // and of course disable it
+	glEnable(GL_CULL_FACE);
+
+	// cubes
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(4.0f, -3.5f, 0.0));
+	model = glm::scale(model, glm::vec3(0.5f));
+	CUBE_MODEL.Draw(shader, model);
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(2.0f, 3.0f, 1.0));
+	model = glm::scale(model, glm::vec3(0.75f));
+	CUBE_MODEL.Draw(shader, model);
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(-3.0f, -1.0f, 0.0));
+	model = glm::scale(model, glm::vec3(0.5f));
+	CUBE_MODEL.Draw(shader, model);
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(-1.5f, 1.0f, 1.5));
+	model = glm::scale(model, glm::vec3(0.5f));
+	CUBE_MODEL.Draw(shader, model);
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(-1.5f, 2.0f, -3.0));
+	model = glm::rotate(model, glm::radians(60.0f), glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
+	model = glm::scale(model, glm::vec3(0.75f));
+	CUBE_MODEL.Draw(shader, model);
+
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(0.0f, 8.0f, 0.0f));
+	CUBE_MODEL.Draw(shader, model);
+
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(0.0f, 6.0f, 0.0f));
+	model = glm::scale(model, glm::vec3(10.0f, 0.05f, 10.0f));
+	CUBE_MODEL.Draw(shader, model);
+
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
+	model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	model = glm::scale(model, glm::vec3(1.0f, 1.0f, 0.2f));
+	BRICKWALL_MODEL.Draw(shader, model);
+
+	model = glm::mat4(1.0f);
+	model = glm::scale(model, glm::vec3(0.1f));
+	NANOSUIT_MODEL.Draw(shader, model);
+}
+
+void Graphics::Engine::SetupScene(
 	const glm::mat4& view,
 	const glm::mat4& projection
 )
@@ -548,7 +506,7 @@ void Graphics::Engine::DrawScene(
 	static glm::vec3 diffuseColor = glm::vec3(0.4f, 0.4f, 0.4f) * lightColor;
 	static glm::vec3 specularColor = glm::vec3(1.0f, 1.0f, 1.0f) * lightColor;
 
-	static float shininess = 32.0f;
+	static float shininess = 256.0f;
 
 	glBindBuffer(GL_UNIFORM_BUFFER, mUBOMatrices);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
@@ -558,6 +516,7 @@ void Graphics::Engine::DrawScene(
 	mBaseShaderProgram.Bind();
 	mBaseShaderProgram.SetUniformVec3("uViewPos", glm::value_ptr(mCamera.GetWorldPosition()));
 	mBaseShaderProgram.SetUniform1f("uMaterial.shininess", shininess);
+	mBaseShaderProgram.SetUniformVec3("uMaterial.specular", glm::value_ptr(glm::vec3(0.1f)));
 	mBaseShaderProgram.SetUniformVec3("uDirLight.direction", glm::value_ptr(LIGHT_DIRECTION));
 	mBaseShaderProgram.SetUniformVec3("uDirLight.ambient", glm::value_ptr(ambientColor));
 	mBaseShaderProgram.SetUniformVec3("uDirLight.diffuse", glm::value_ptr(diffuseColor));
@@ -608,9 +567,6 @@ void Graphics::Engine::DrawScene(
 	//mBaseInstancedShaderProgram.Bind();
 	//ASTEROID_MODEL.DrawInstanced(mBaseInstancedShaderProgram, ASTEROIDS_NUM);
 
-	DrawModels(MODELS, mBaseShaderProgram, false);
-	//DrawModels(MODELS, mNormalsVisualizationShaderProgram, false);
-
 	mLightSourceShaderProgram.Bind();
 	mLightSourceShaderProgram.SetUniformVec3("uLightColor", glm::value_ptr(lightColor));
 	glm::mat4 lightSourceMat(1.0f);
@@ -621,13 +577,6 @@ void Graphics::Engine::DrawScene(
 	lightSourceMat = glm::translate(lightSourceMat, POINT_LIGHT_POS);
 	lightSourceMat = glm::scale(lightSourceMat, glm::vec3(0.4f));
 	SPHERE_MODEL.Draw(mLightSourceShaderProgram, lightSourceMat);
-
-	DrawCubes(mBaseShaderProgram);
-
-	//DrawModels(SPHERES, mBaseShaderProgram, false);
-	//DrawModels(SPHERES, mNormalsVisualizationShaderProgram, false);
-
-	//DrawTransparentModels(TRANSPARENT, mBaseShaderProgram);
 
 	mSkyboxShaderProgram.Bind();
 	mSkyboxShaderProgram.SetUniformMat4("uView", glm::value_ptr(glm::mat4(glm::mat3(view))));
@@ -718,6 +667,13 @@ void Graphics::Engine::DrawTransparentModels(const std::vector<std::shared_ptr<M
 	{
 		it->second->Draw(shader);
 	}
+}
+
+unsigned int Graphics::Engine::LoadTexture(const char* path, bool flip, bool srgb)
+{
+	unsigned int textureId = GLLoadTextureFromFile(path, flip, srgb);
+	mLoadedTextures[path] = textureId;
+	return textureId;
 }
 
 void Graphics::Engine::ImportModels(const std::vector<Core::ModelImport>& imports, std::vector<std::shared_ptr<Model>>* models)

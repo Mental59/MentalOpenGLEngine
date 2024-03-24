@@ -38,7 +38,14 @@ void Mesh::DrawInstanced(ShaderProgram& shader, int n)
 
 void Mesh::Setup(const std::vector<Core::Vertex>& vertices, const std::vector<unsigned int>& indices, const std::vector<Core::Texture>& textures)
 {
-	mTextures = textures;
+	for (const Core::Texture& texture : textures)
+	{
+		if (mTextures.find(texture.Type) == mTextures.end())
+		{
+			mTextures[texture.Type] = texture;
+		}
+	}
+
 	mNumIndices = indices.size();
 	mNumVertices = vertices.size();
 
@@ -70,30 +77,67 @@ void Mesh::Setup(const std::vector<Core::Vertex>& vertices, const std::vector<un
 
 void Mesh::BindTextures(ShaderProgram& shader)
 {
-	unsigned int diffuseTextureNumber = 1;
-	unsigned int specularTextureNumber = 1;
+	auto diffuseTexture = mTextures.find(Core::Diffuse);
+	auto specularTexture = mTextures.find(Core::Specular);
+	auto normalTexture = mTextures.find(Core::Normal);
 
-	for (int i = 0; i < mTextures.size(); i++)
+	if (diffuseTexture != mTextures.end())
 	{
-		if (mTextures[i].Type == Core::Diffuse)
-		{
-			shader.SetUniform1i(std::format(DIFFUSE_TEXTURE_NAME, diffuseTextureNumber++), i);
-		}
-		if (mTextures[i].Type == Core::Specular)
-		{
-			shader.SetUniform1i(std::format(SPECULAR_TEXTURE_NAME, specularTextureNumber++), i);
-		}
-
-		glActiveTexture(GL_TEXTURE0 + i);
-		glBindTexture(GL_TEXTURE_2D, mTextures[i].ID);
+		SetTexture(shader, std::format(DIFFUSE_TEXTURE_NAME, 1), 0, diffuseTexture->second.ID);
 	}
+
+	if (specularTexture != mTextures.end())
+	{
+		SetTexture(shader, std::format(SPECULAR_TEXTURE_NAME, 1), 1, specularTexture->second.ID);
+		shader.SetUniform1i("uUseSpecularTexture", 1);
+	}
+	else
+	{
+		shader.SetUniform1i("uUseSpecularTexture", 0);
+	}
+
+	if (normalTexture != mTextures.end())
+	{
+		SetTexture(shader, std::format(NORMAL_TEXTURE_NAME, 1), 2, normalTexture->second.ID);
+		shader.SetUniform1i("uUseNormalTexture", 1);
+	}
+	else
+	{
+		shader.SetUniform1i("uUseNormalTexture", 0);
+	}
+
+	//for (int i = 0; i < mTextures.size(); i++)
+	//{
+	//	if (mTextures[i].Type == Core::Diffuse)
+	//	{
+	//		shader.SetUniform1i(std::format(DIFFUSE_TEXTURE_NAME, diffuseTextureNumber++), i);
+	//	}
+	//	if (mTextures[i].Type == Core::Specular)
+	//	{
+	//		shader.SetUniform1i(std::format(SPECULAR_TEXTURE_NAME, specularTextureNumber++), i);
+	//	}
+	//	if (mTextures[i].Type == Core::Normal)
+	//	{
+	//		shader.SetUniform1i(std::format(NORMAL_TEXTURE_NAME, normalTextureNumber++), i);
+	//	}
+
+	//	glActiveTexture(GL_TEXTURE0 + i);
+	//	glBindTexture(GL_TEXTURE_2D, mTextures[i].ID);
+	//}
 }
 
 void Mesh::UnbindTextures()
 {
-	for (int i = 0; i < mTextures.size(); i++)
+	for (int i = 0; i < Core::TextureTypeCount; i++)
 	{
 		glActiveTexture(GL_TEXTURE0 + i);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
+}
+
+void Mesh::SetTexture(ShaderProgram& shader, const std::string& textureName, unsigned int unit, unsigned int textureId) const
+{
+	shader.SetUniform1i(textureName, unit);
+	glActiveTexture(GL_TEXTURE0 + unit);
+	glBindTexture(GL_TEXTURE_2D, textureId);
 }

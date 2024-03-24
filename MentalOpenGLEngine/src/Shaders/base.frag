@@ -4,7 +4,9 @@ struct Material
 {
 	sampler2D diffuseTexture1;
 	sampler2D specularTexture1;
+	sampler2D normalTexture1;
 	float shininess;
+	vec3 specular;
 };
 
 struct DirectionalLight
@@ -65,6 +67,8 @@ uniform PointLight uPointLights[MAX_POINT_LIGHTS];
 uniform int uNumPointLights;
 uniform sampler2D uShadowMap;
 uniform samplerCube uShadowCubeMap;
+uniform bool uUseNormalTexture = false;
+uniform bool uUseSpecularTexture = false;
 
 vec3 CalculateDirectionalLight(
 	DirectionalLight light,
@@ -133,8 +137,20 @@ void main()
 
 	vec3 normal = normalize(fs_in.normal);
 	vec3 viewDirection = normalize(uViewPos - fs_in.worldPos);
+	if (uUseNormalTexture)
+	{
+		normal = texture(uMaterial.normalTexture1, fs_in.texCoords).rgb;
+		normal = normalize(normal * 2.0 - 1.0);
+	}
+
 	vec3 materialDiffuse = diffuseColor.rgb;
-	vec3 materialSpecular = texture(uMaterial.specularTexture1, fs_in.texCoords).rgb;
+
+	vec3 materialSpecular = uMaterial.specular;
+	if (uUseSpecularTexture)
+	{
+		materialSpecular = texture(uMaterial.specularTexture1, fs_in.texCoords).rgb;
+	}
+
 	float shadow = CalculateDirShadow(normal, normalize(-uDirLight.direction));
 
 	vec3 depth = vec3(LinearizeDepth(gl_FragCoord.z, 0.1, 100.0));

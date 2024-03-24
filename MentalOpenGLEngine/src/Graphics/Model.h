@@ -19,6 +19,7 @@ public:
 	void DrawInstanced(ShaderProgram& shader, int n);
 
 	inline bool HasTextures() const { return mLoadedTextures.size() > 0; }
+	bool HasTexture(Core::TextureType type) const;
 	inline const Core::Transform& GetTransform() const { return mTransform; }
 	void SetDefaultTexture(const Core::Texture& texture);
 	void SetTransform(const Core::Transform& transform);

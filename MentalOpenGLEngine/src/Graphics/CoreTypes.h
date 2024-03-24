@@ -13,11 +13,15 @@
 #define SPECULAR_TEXTURE_NAME "uMaterial.specularTexture{}"
 #endif // !SPECULAR_TEXTURE_NAME
 
+#ifndef NORMAL_TEXTURE_NAME
+#define NORMAL_TEXTURE_NAME "uMaterial.normalTexture{}"
+#endif // !NORMAL_TEXTURE_NAME
+
 namespace Core
 {
 	enum TextureType
 	{
-		Diffuse = 0, Specular
+		Diffuse = 0, Specular, Normal, TextureTypeCount
 	};
 
 	struct BuildTextureOptions

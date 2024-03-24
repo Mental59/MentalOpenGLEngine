@@ -41,7 +41,8 @@ namespace Graphics
 		virtual void OnMouseScroll(float xOffset, float yOffset);
 
 	private:
-		void DrawScene(const glm::mat4& view, const glm::mat4& projection);
+		void DrawScene(ShaderProgram& shader);
+		void SetupScene(const glm::mat4& view, const glm::mat4& projection);
 		void ShadowPass();
 		void ImportModels(
 			const std::vector<Core::ModelImport>& imports,
@@ -56,6 +57,7 @@ namespace Graphics
 			const std::vector<std::shared_ptr<Model>>& models,
 			ShaderProgram& shader
 		);
+		unsigned int LoadTexture(const char* path, bool flip = false, bool srgb = false);
 
 		static Engine* mInstance;
 
