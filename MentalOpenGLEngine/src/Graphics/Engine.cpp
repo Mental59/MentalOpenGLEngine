@@ -37,7 +37,7 @@ Graphics::Engine::Engine(const int windowWidth, const int windowHeight, const ch
 	mTitle(title),
 	mWindow(nullptr),
 	mBaseShaderProgram(),
-	mCamera(glm::vec3(0.0f, 0.0f, 0.0f), 5.0f, 0.1f),
+	mCamera(glm::vec3(4.8f, 1.0f, 4.8f), 5.0f, 0.1f),
 	mLastMouseXPos(0.0f), mLastMouseYPos(0.0f), mIsFirstMouseMove(true),
 	mDefaultTexture{},
 	mUBOMatrices(0u)
@@ -309,8 +309,8 @@ void Graphics::Engine::Run()
 
 void Graphics::Engine::Update()
 {
-	POINT_LIGHT_POS.x = sin(Time::LastFrame) * 4.0f;
-	POINT_LIGHT_POS.z = cos(Time::LastFrame) * 4.0f;
+	POINT_LIGHT_POS.x = sin(Time::LastFrame * 2.0f) * 4.0f;
+	POINT_LIGHT_POS.z = cos(Time::LastFrame * 2.0f) * 4.0f;
 }
 
 void Graphics::Engine::UpdateTimer()
