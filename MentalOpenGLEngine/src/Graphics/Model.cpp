@@ -176,6 +176,11 @@ void Model::ProcessMesh(aiMesh* mesh, const aiScene* scene, std::shared_ptr<Mesh
 		if (mesh->mTextureCoords[0])
 		{
 			vertex.TextureCoordinates = glm::vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);
+			vertex.Tangent = glm::vec3(
+				mesh->mTangents[i].x,
+				mesh->mTangents[i].y,
+				mesh->mTangents[i].z
+			);
 		}
 
 		vertices.push_back(vertex);

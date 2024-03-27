@@ -6,7 +6,8 @@ in VS_OUT {
     vec2 texCoords;
 	vec3 normal;
 	vec3 worldPos;
-    vec4 posInLightSpace;
+	vec4 posInLightSpace;
+	mat3 TBN;
 } fs_in;
 
 uniform vec3 uViewPos;

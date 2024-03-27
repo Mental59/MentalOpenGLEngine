@@ -153,7 +153,7 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	Shader pointShadowMappingGeomShader("src/Shaders/pointShadowMapping.geom", Shader::Geometry);
 
 	mBaseShaderProgram.Build({ baseVertexShader, baseFragmentShader });
-	mBaseInstancedShaderProgram.Build({ baseInstancedVertexShader, baseFragmentShader });
+	//mBaseInstancedShaderProgram.Build({ baseInstancedVertexShader, baseFragmentShader });
 	mOutlineShaderProgram.Build({ baseVertexShader, outlineFragmentShader });
 	mEnvironmentMappingShaderProgram.Build({ baseVertexShader, environmentMappingFragmentShader });
 	mSkyboxShaderProgram.Build({ cubemapVertexShader, cubemapFragmentShader });
@@ -236,15 +236,15 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 
 	NANOSUIT_MODEL.Load("resources/objects/nanosuit/nanosuit.obj");
 
-	const char* faces[6]{
-		"resources/skyboxes/SpaceLightblue/right.png",
-		"resources/skyboxes/SpaceLightblue/left.png",
-		"resources/skyboxes/SpaceLightblue/top.png",
-		"resources/skyboxes/SpaceLightblue/bottom.png",
-		"resources/skyboxes/SpaceLightblue/front.png",
-		"resources/skyboxes/SpaceLightblue/back.png"
-	};
-	mCubemap.Load(faces);
+	//const char* faces[6]{
+	//	"resources/skyboxes/SpaceLightblue/right.png",
+	//	"resources/skyboxes/SpaceLightblue/left.png",
+	//	"resources/skyboxes/SpaceLightblue/top.png",
+	//	"resources/skyboxes/SpaceLightblue/bottom.png",
+	//	"resources/skyboxes/SpaceLightblue/front.png",
+	//	"resources/skyboxes/SpaceLightblue/back.png"
+	//};
+	//mCubemap.Load(faces);
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe mode
 
@@ -292,6 +292,40 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 
 	//ASTEROID_MODEL.SetupInstancedDrawing(ASTEROID_TRANSFORMS, ASTEROIDS_NUM, 3);
 
+	//Calculating tangent and bitangent vectors manually for a plane
+	//positions
+	glm::vec3 pos1(-1.0f, 1.0f, 0.0f);
+	glm::vec3 pos2(-1.0f, -1.0f, 0.0f);
+	glm::vec3 pos3(1.0f, -1.0f, 0.0f);
+	glm::vec3 pos4(1.0f, 1.0f, 0.0f);
+	// uv coordinates
+	glm::vec2 uv1(0.0f, 1.0f);
+	glm::vec2 uv2(0.0f, 0.0f);
+	glm::vec2 uv3(1.0f, 0.0f);
+	glm::vec2 uv4(1.0f, 1.0f);
+
+	glm::vec3 normal(0.0f, 0.0f, 1.0f);
+
+	glm::vec3 edge1 = pos2 - pos1;
+	glm::vec3 edge2 = pos3 - pos1;
+	glm::vec2 deltaUV1 = uv2 - uv1;
+	glm::vec2 deltaUV2 = uv3 - uv1;
+
+	glm::vec3 tangent1, bitangent1;
+	float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+
+	tangent1.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
+	tangent1.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
+	tangent1.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+	tangent1 = glm::normalize(tangent1);
+
+	bitangent1.x = f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
+	bitangent1.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
+	bitangent1.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
+	bitangent1 = glm::normalize(bitangent1);
+
+	std::cout << std::format("tangent1=({}, {}, {}); bitangent1=({}, {}, {})\n", tangent1.x, tangent1.y, tangent1.z, bitangent1.x, bitangent1.y, bitangent1.z);
+
 	return true;
 }
 
@@ -309,8 +343,8 @@ void Graphics::Engine::Run()
 
 void Graphics::Engine::Update()
 {
-	POINT_LIGHT_POS.x = sin(Time::LastFrame * 2.0f) * 4.0f;
-	POINT_LIGHT_POS.z = cos(Time::LastFrame * 2.0f) * 4.0f;
+	POINT_LIGHT_POS.x = sin(Time::LastFrame) * 4.0f;
+	POINT_LIGHT_POS.z = cos(Time::LastFrame) * 4.0f;
 }
 
 void Graphics::Engine::UpdateTimer()
@@ -538,16 +572,16 @@ void Graphics::Engine::SetupScene(
 	glActiveTexture(GL_TEXTURE0 + 17);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, mPointDepthMap.GetTextureColorId());
 
-	mBaseInstancedShaderProgram.Bind();
-	mBaseInstancedShaderProgram.SetUniformVec3("uViewPos", glm::value_ptr(mCamera.GetWorldPosition()));
-	mBaseInstancedShaderProgram.SetUniform1f("uMaterial.shininess", shininess);
-	mBaseInstancedShaderProgram.SetUniformVec3("uDirLight.direction", glm::value_ptr(LIGHT_DIRECTION));
-	mBaseInstancedShaderProgram.SetUniformVec3("uDirLight.ambient", glm::value_ptr(ambientColor));
-	mBaseInstancedShaderProgram.SetUniformVec3("uDirLight.diffuse", glm::value_ptr(diffuseColor));
-	mBaseInstancedShaderProgram.SetUniformVec3("uDirLight.specular", glm::value_ptr(specularColor));
+	//mBaseInstancedShaderProgram.Bind();
+	//mBaseInstancedShaderProgram.SetUniformVec3("uViewPos", glm::value_ptr(mCamera.GetWorldPosition()));
+	//mBaseInstancedShaderProgram.SetUniform1f("uMaterial.shininess", shininess);
+	//mBaseInstancedShaderProgram.SetUniformVec3("uDirLight.direction", glm::value_ptr(LIGHT_DIRECTION));
+	//mBaseInstancedShaderProgram.SetUniformVec3("uDirLight.ambient", glm::value_ptr(ambientColor));
+	//mBaseInstancedShaderProgram.SetUniformVec3("uDirLight.diffuse", glm::value_ptr(diffuseColor));
+	//mBaseInstancedShaderProgram.SetUniformVec3("uDirLight.specular", glm::value_ptr(specularColor));
 
-	mOutlineShaderProgram.Bind();
-	mOutlineShaderProgram.SetUniformVec3("uOutlineColor", 1, 0, 1);
+	//mOutlineShaderProgram.Bind();
+	//mOutlineShaderProgram.SetUniformVec3("uOutlineColor", 1, 0, 1);
 
 	mNormalsVisualizationShaderProgram.Bind();
 	mNormalsVisualizationShaderProgram.SetUniformMat4("uView", glm::value_ptr(view));
@@ -578,11 +612,11 @@ void Graphics::Engine::SetupScene(
 	lightSourceMat = glm::scale(lightSourceMat, glm::vec3(0.4f));
 	SPHERE_MODEL.Draw(mLightSourceShaderProgram, lightSourceMat);
 
-	mSkyboxShaderProgram.Bind();
-	mSkyboxShaderProgram.SetUniformMat4("uView", glm::value_ptr(glm::mat4(glm::mat3(view))));
-	mSkyboxShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(projection));
-	mCubemap.BindTexture(0);
-	mCubemap.Draw();
+	//mSkyboxShaderProgram.Bind();
+	//mSkyboxShaderProgram.SetUniformMat4("uView", glm::value_ptr(glm::mat4(glm::mat3(view))));
+	//mSkyboxShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(projection));
+	//mCubemap.BindTexture(0);
+	//mCubemap.Draw();
 }
 
 void Graphics::Engine::OnMouseMove(float xpos, float ypos)

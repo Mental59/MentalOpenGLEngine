@@ -7,6 +7,9 @@ struct Material
 	sampler2D normalTexture1;
 	float shininess;
 	vec3 specular;
+
+	bool useNormalTexture;
+	bool useSpecularTexture;
 };
 
 struct DirectionalLight
@@ -58,6 +61,7 @@ in VS_OUT {
 	vec3 normal;
 	vec3 worldPos;
 	vec4 posInLightSpace;
+	mat3 TBN;
 } fs_in;
 
 uniform vec3 uViewPos;
@@ -67,8 +71,6 @@ uniform PointLight uPointLights[MAX_POINT_LIGHTS];
 uniform int uNumPointLights;
 uniform sampler2D uShadowMap;
 uniform samplerCube uShadowCubeMap;
-uniform bool uUseNormalTexture = false;
-uniform bool uUseSpecularTexture = false;
 
 vec3 CalculateDirectionalLight(
 	DirectionalLight light,
@@ -137,16 +139,18 @@ void main()
 
 	vec3 normal = normalize(fs_in.normal);
 	vec3 viewDirection = normalize(uViewPos - fs_in.worldPos);
-	if (uUseNormalTexture)
+	if (uMaterial.useNormalTexture)
 	{
 		normal = texture(uMaterial.normalTexture1, fs_in.texCoords).rgb;
-		normal = normalize(normal * 2.0 - 1.0);
+		normal = normal * 2.0 - 1.0; // transform to range [-1, 1]
+		normal *= fs_in.TBN;
+		normal = normalize(normal);
 	}
 
 	vec3 materialDiffuse = diffuseColor.rgb;
 
 	vec3 materialSpecular = uMaterial.specular;
-	if (uUseSpecularTexture)
+	if (uMaterial.useSpecularTexture)
 	{
 		materialSpecular = texture(uMaterial.specularTexture1, fs_in.texCoords).rgb;
 	}
@@ -186,7 +190,8 @@ float CalculateDirShadow(const vec3 normal, const vec3 lightDirection)
 		for (int y = -2; y <= 2; y++)
 		{
 			float pcfDepth = texture(uShadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
-			shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+			bool isInShadow = currentDepth - bias > pcfDepth;
+			shadow += float(isInShadow);
 		}
 	}
 	shadow /= 25.0;
@@ -201,13 +206,14 @@ float CalculatePointShadow(const vec3 lightPos, const float farPlane)
 	float shadow = 0.0;
 	float bias   = 0.05;
 	float viewDistance = length(uViewPos - fs_in.worldPos);
-	float diskRadius = (1.0 + (viewDistance / farPlane)) / 50.0;  
+	float diskRadius = (1.0 + (viewDistance / farPlane)) / 50.0;
+
 	for(int i = 0; i < numSamples; i++)
 	{
 		float closestDepth = texture(uShadowCubeMap, fragToLight + gridSamplingDisk[i] * diskRadius).r;
 		closestDepth *= farPlane;   // undo mapping [0;1]
-		if(currentDepth - bias > closestDepth)
-			shadow += 1.0;
+		bool isInShadow = currentDepth - bias > closestDepth;
+		shadow += float(isInShadow);
 	}
 	shadow /= float(numSamples); 
 

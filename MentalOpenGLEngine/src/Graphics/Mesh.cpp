@@ -70,6 +70,9 @@ void Mesh::Setup(const std::vector<Core::Vertex>& vertices, const std::vector<un
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Core::Vertex), (const void*)offsetof(Core::Vertex, TextureCoordinates));
 	glEnableVertexAttribArray(2);
 
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Core::Vertex), (const void*)offsetof(Core::Vertex, Tangent));
+	glEnableVertexAttribArray(3);
+
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -89,21 +92,21 @@ void Mesh::BindTextures(ShaderProgram& shader)
 	if (specularTexture != mTextures.end())
 	{
 		SetTexture(shader, std::format(SPECULAR_TEXTURE_NAME, 1), 1, specularTexture->second.ID);
-		shader.SetUniform1i("uUseSpecularTexture", 1);
+		shader.SetUniform1i("uMaterial.useSpecularTexture", 1);
 	}
 	else
 	{
-		shader.SetUniform1i("uUseSpecularTexture", 0);
+		shader.SetUniform1i("uMaterial.useSpecularTexture", 0);
 	}
 
 	if (normalTexture != mTextures.end())
 	{
 		SetTexture(shader, std::format(NORMAL_TEXTURE_NAME, 1), 2, normalTexture->second.ID);
-		shader.SetUniform1i("uUseNormalTexture", 1);
+		shader.SetUniform1i("uMaterial.useNormalTexture", 1);
 	}
 	else
 	{
-		shader.SetUniform1i("uUseNormalTexture", 0);
+		shader.SetUniform1i("uMaterial.useNormalTexture", 0);
 	}
 
 	//for (int i = 0; i < mTextures.size(); i++)
