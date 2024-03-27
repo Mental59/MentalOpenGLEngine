@@ -141,7 +141,7 @@ void main()
 	vec3 viewDirection = normalize(uViewPos - fs_in.worldPos);
 	if (uMaterial.useNormalTexture)
 	{
-		normal = texture(uMaterial.normalTexture1, fs_in.texCoords).rgb;
+		normal = normalize(texture(uMaterial.normalTexture1, fs_in.texCoords).rgb);
 		normal = normal * 2.0 - 1.0; // transform to range [-1, 1]
 		normal *= fs_in.TBN;
 		normal = normalize(normal);
