@@ -25,7 +25,7 @@ Model NANOSUIT_MODEL;
 glm::vec3 LIGHT_DIRECTION = glm::vec3(2.0f, -4.0f, 1.0f);
 glm::mat4 DIR_LIGHT_SPACE_MAT;
 glm::vec3 DIR_LIGHT_POS;
-glm::vec3 POINT_LIGHT_POS(2.0f, 0.0f, 4.0f);
+glm::vec3 POINT_LIGHT_POS(0.0f, 0.0f, 4.0f);
 
 //constexpr int ASTEROIDS_NUM = 100000;
 //glm::mat4 ASTEROID_TRANSFORMS[ASTEROIDS_NUM];
@@ -479,11 +479,12 @@ void Graphics::Engine::DrawScene(ShaderProgram& shader)
 
 	// room cube
 	glm::mat4 model = glm::mat4(1.0f);
+	model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	model = glm::scale(model, glm::vec3(5.0f));
 	glDisable(GL_CULL_FACE); // note that we disable culling here since we render 'inside' the cube instead of the usual 'outside' which throws off the normal culling methods.
-	shader.SetUniform1i("uInverseNormals", 1); // A small little hack to invert normals when drawing cube from the inside so lighting still works.
-	CUBE_MODEL.Draw(shader, model);
-	shader.SetUniform1i("uInverseNormals", 0); // and of course disable it
+	shader.SetUniform1f("uNormalsMultiplier", -1.0f); // A small little hack to invert normals when drawing cube from the inside so lighting still works.
+	BRICKWALL_MODEL.Draw(shader, model);
+	shader.SetUniform1f("uNormalsMultiplier", 1.0f); // and of course disable it
 	glEnable(GL_CULL_FACE);
 
 	// cubes

@@ -11,6 +11,7 @@ out VS_OUT {
 	vec3 worldPos;
 	vec4 posInLightSpace;
 	mat3 TBN;
+	float normalsMultiplier;
 } vs_out;
 
 layout (std140) uniform Matrices
@@ -33,12 +34,12 @@ uniform mat4 uModel;
 uniform mat4 uLightSpaceMatrix;
 uniform float uTexTiling = 1.0f;
 uniform vec2 uTexDisplacement = vec2(0.0);
-uniform bool uInverseNormals = false;
+uniform float uNormalsMultiplier = 1.0;
 
-mat3 TBNMat()
+mat3 TBNMat(const vec3 normal)
 {
 	vec3 T = normalize(vec3(uModel * vec4(aTangent,   0.0)));
-	vec3 N = normalize(vec3(uModel * vec4(aNormal,    0.0)));
+	vec3 N = normalize(vec3(uModel * vec4(normal,    0.0)));
 
 	// re-orthogonalize T with respect to N
 	T = normalize(T - dot(T, N) * N);
@@ -53,7 +54,7 @@ mat3 TBNMat()
 
 void main()
 {
-	vec3 normal = uInverseNormals ? -aNormal : aNormal;
+	vec3 normal = aNormal * uNormalsMultiplier;
 
 	vs_out.worldPos = vec3(uModel * vec4(aPos, 1.0));
 
@@ -63,7 +64,9 @@ void main()
 
 	vs_out.posInLightSpace = uLightSpaceMatrix * vec4(vs_out.worldPos, 1.0);
 
-	vs_out.TBN = TBNMat();
+	vs_out.TBN = TBNMat(normal);
+
+	vs_out.normalsMultiplier = uNormalsMultiplier;
 
 	gl_Position = uProjection * uView * vec4(vs_out.worldPos, 1.0);
 }

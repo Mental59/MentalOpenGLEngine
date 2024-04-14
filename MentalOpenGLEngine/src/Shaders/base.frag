@@ -62,6 +62,7 @@ in VS_OUT {
 	vec3 worldPos;
 	vec4 posInLightSpace;
 	mat3 TBN;
+	float normalsMultiplier;
 } fs_in;
 
 uniform vec3 uViewPos;
