@@ -83,6 +83,7 @@ void Mesh::BindTextures(ShaderProgram& shader)
 	auto diffuseTexture = mTextures.find(Core::Diffuse);
 	auto specularTexture = mTextures.find(Core::Specular);
 	auto normalTexture = mTextures.find(Core::Normal);
+	auto heightTexture = mTextures.find(Core::Height);
 
 	if (diffuseTexture != mTextures.end())
 	{
@@ -109,24 +110,15 @@ void Mesh::BindTextures(ShaderProgram& shader)
 		shader.SetUniform1i("uMaterial.useNormalTexture", 0);
 	}
 
-	//for (int i = 0; i < mTextures.size(); i++)
-	//{
-	//	if (mTextures[i].Type == Core::Diffuse)
-	//	{
-	//		shader.SetUniform1i(std::format(DIFFUSE_TEXTURE_NAME, diffuseTextureNumber++), i);
-	//	}
-	//	if (mTextures[i].Type == Core::Specular)
-	//	{
-	//		shader.SetUniform1i(std::format(SPECULAR_TEXTURE_NAME, specularTextureNumber++), i);
-	//	}
-	//	if (mTextures[i].Type == Core::Normal)
-	//	{
-	//		shader.SetUniform1i(std::format(NORMAL_TEXTURE_NAME, normalTextureNumber++), i);
-	//	}
-
-	//	glActiveTexture(GL_TEXTURE0 + i);
-	//	glBindTexture(GL_TEXTURE_2D, mTextures[i].ID);
-	//}
+	if (heightTexture != mTextures.end())
+	{
+		SetTexture(shader, std::format(HEIGHT_TEXTURE_NAME, 1), 3, heightTexture->second.ID);
+		shader.SetUniform1i("uMaterial.useHeightTexture", 1);
+	}
+	else
+	{
+		shader.SetUniform1i("uMaterial.useHeightTexture", 0);
+	}
 }
 
 void Mesh::UnbindTextures()

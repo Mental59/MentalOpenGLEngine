@@ -202,14 +202,17 @@ void Model::ProcessMesh(aiMesh* mesh, const aiScene* scene, std::shared_ptr<Mesh
 		std::vector<Core::Texture> diffuseMaps = LoadMaterialTextures(material, aiTextureType_DIFFUSE, Core::Diffuse);
 		std::vector<Core::Texture> specularMaps = LoadMaterialTextures(material, aiTextureType_SPECULAR, Core::Specular);
 		std::vector<Core::Texture> normalMaps = LoadMaterialTextures(material, aiTextureType_HEIGHT, Core::Normal);
+		std::vector<Core::Texture> heightMaps = LoadMaterialTextures(material, aiTextureType_AMBIENT, Core::Height);
 
 		if (diffuseMaps.size() == 0) AddDefaultTexture(&diffuseMaps, Core::Diffuse);
 		if (specularMaps.size() == 0) AddDefaultTexture(&specularMaps, Core::Specular);
 		if (normalMaps.size() == 0) AddDefaultTexture(&normalMaps, Core::Normal);
+		if (heightMaps.size() == 0) AddDefaultTexture(&heightMaps, Core::Height);
 
 		textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 		textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 		textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
+		textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 	}
 
 	resMesh->Setup(vertices, indices, textures);

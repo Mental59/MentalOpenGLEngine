@@ -7,8 +7,12 @@ in VS_OUT {
 	vec3 normal;
 	vec3 worldPos;
 	vec4 posInLightSpace;
-	mat3 TBN;
+	mat3 tangentToWorld;
 	float normalsMultiplier;
+
+	vec3 tangentPos;
+	vec3 tangentViewPos;
+	vec3 worldViewPos;
 } fs_in;
 
 uniform vec3 uViewPos;

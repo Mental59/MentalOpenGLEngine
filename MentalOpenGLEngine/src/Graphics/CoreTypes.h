@@ -17,11 +17,16 @@
 #define NORMAL_TEXTURE_NAME "uMaterial.normalTexture{}"
 #endif // !NORMAL_TEXTURE_NAME
 
+#ifndef HEIGHT_TEXTURE_NAME
+#define HEIGHT_TEXTURE_NAME "uMaterial.heightTexture{}"
+#endif // !HEIGHT_TEXTURE_NAME
+
+
 namespace Core
 {
 	enum TextureType
 	{
-		Diffuse = 0, Specular, Normal, TextureTypeCount
+		Diffuse = 0, Specular, Normal, Height, TextureTypeCount
 	};
 
 	struct BuildTextureOptions

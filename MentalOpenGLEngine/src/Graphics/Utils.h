@@ -49,7 +49,8 @@ inline unsigned int GLLoadTextureFromFile(const char* texturePath, bool flipVert
 	}
 	else
 	{
-		std::cout << "Failed to load texture at path " << texturePath << std::endl;
+		const char* reason = stbi_failure_reason();
+		std::cout << "Failed to load texture at path " << texturePath << "\nReason: " << reason << std::endl;
 	}
 
 	stbi_image_free(data);

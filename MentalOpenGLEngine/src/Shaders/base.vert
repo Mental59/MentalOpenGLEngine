@@ -10,8 +10,12 @@ out VS_OUT {
 	vec3 normal;
 	vec3 worldPos;
 	vec4 posInLightSpace;
-	mat3 TBN;
+	mat3 tangentToWorld;
 	float normalsMultiplier;
+
+	vec3 tangentPos;
+	vec3 tangentViewPos;
+	vec3 worldViewPos;
 } vs_out;
 
 layout (std140) uniform Matrices
@@ -35,17 +39,18 @@ uniform mat4 uLightSpaceMatrix;
 uniform float uTexTiling = 1.0f;
 uniform vec2 uTexDisplacement = vec2(0.0);
 uniform float uNormalsMultiplier = 1.0;
+uniform vec3 uViewPos;
 
-mat3 TBNMat(const vec3 normal)
+mat3 TBNMat(const vec3 normal, const mat3 normalMatrix)
 {
-	vec3 T = normalize(vec3(uModel * vec4(aTangent,   0.0)));
-	vec3 N = normalize(vec3(uModel * vec4(normal,    0.0)));
+	vec3 T = normalize(normalMatrix * aTangent);
+	vec3 N = normalize(normalMatrix * normal);
 
 	// re-orthogonalize T with respect to N
 	T = normalize(T - dot(T, N) * N);
 
 	// then retrieve perpendicular vector B with the cross product of T and N
-	vec3 B = cross(N, T);
+	vec3 B = cross(T, N);
 
 	mat3 TBN = mat3(T, B, N);
 
@@ -58,15 +63,20 @@ void main()
 
 	vs_out.worldPos = vec3(uModel * vec4(aPos, 1.0));
 
-	vs_out.normal = transpose(inverse(mat3(uModel))) * normal;
+	mat3 normalMatrix = transpose(inverse(mat3(uModel)));
+	vs_out.normal = normalize(normalMatrix * normal);
 
 	vs_out.texCoords = aTexCoords * uTexTiling + uTexDisplacement;
 
 	vs_out.posInLightSpace = uLightSpaceMatrix * vec4(vs_out.worldPos, 1.0);
 
-	vs_out.TBN = TBNMat(normal);
+	vs_out.tangentToWorld = TBNMat(aNormal, normalMatrix);
 
 	vs_out.normalsMultiplier = uNormalsMultiplier;
+
+	vs_out.tangentPos = transpose(vs_out.tangentToWorld) * vs_out.worldPos;
+	vs_out.tangentViewPos = transpose(vs_out.tangentToWorld) * uViewPos;
+	vs_out.worldViewPos = uViewPos;
 
 	gl_Position = uProjection * uView * vec4(vs_out.worldPos, 1.0);
 }

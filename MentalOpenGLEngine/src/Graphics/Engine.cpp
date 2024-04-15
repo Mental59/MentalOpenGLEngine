@@ -230,8 +230,9 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	CUBE_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/container2_specular.png"), Core::Specular });
 	CUBE_MODEL.Load("resources/objects/cube/cube.obj");
 
-	BRICKWALL_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/brickwall.jpg", false, true), Core::Diffuse });
-	BRICKWALL_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/brickwall_normal.jpg", false, false), Core::Normal });
+	BRICKWALL_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/bricks2.jpg", false, true), Core::Diffuse });
+	BRICKWALL_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/bricks2_normal.jpg", false, false), Core::Normal });
+	BRICKWALL_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/bricks2_disp.jpg", false, false), Core::Height });
 	BRICKWALL_MODEL.Load("resources/objects/cube/cube.obj");
 
 	NANOSUIT_MODEL.Load("resources/objects/nanosuit/nanosuit.obj");
@@ -324,7 +325,12 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	bitangent1.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
 	bitangent1 = glm::normalize(bitangent1);
 
-	std::cout << std::format("tangent1=({}, {}, {}); bitangent1=({}, {}, {})\n", tangent1.x, tangent1.y, tangent1.z, bitangent1.x, bitangent1.y, bitangent1.z);
+	std::cout << std::format(
+		"tangent1=({}, {}, {}); bitangent1=({}, {}, {}); normal=({}, {}, {})\n",
+		tangent1.x, tangent1.y, tangent1.z,
+		bitangent1.x, bitangent1.y, bitangent1.z,
+		normal.x, normal.y, normal.z
+	);
 
 	return true;
 }
@@ -564,10 +570,11 @@ void Graphics::Engine::SetupScene(
 	mBaseShaderProgram.SetUniformVec3("uPointLights[0].diffuse", glm::value_ptr(diffuseColor));
 	mBaseShaderProgram.SetUniformVec3("uPointLights[0].specular", glm::value_ptr(specularColor));
 	mBaseShaderProgram.SetUniform1f("uPointLights[0].constant", 1.0f);
-	mBaseShaderProgram.SetUniform1f("uPointLights[0].linear", 0.014f);
-	mBaseShaderProgram.SetUniform1f("uPointLights[0].quadratic", 0.0007f);
+	mBaseShaderProgram.SetUniform1f("uPointLights[0].linear", 0.14f);
+	mBaseShaderProgram.SetUniform1f("uPointLights[0].quadratic", 0.07f);
 	mBaseShaderProgram.SetUniform1f("uPointLights[0].farPlane", 100.0f);
 	mBaseShaderProgram.SetUniformMat4("uLightSpaceMatrix", glm::value_ptr(DIR_LIGHT_SPACE_MAT));
+	//mBaseShaderProgram.SetUniform1f("uHeightScale", 0.1f);
 	glActiveTexture(GL_TEXTURE0 + 16);
 	glBindTexture(GL_TEXTURE_2D, mDirectionalDepthMap.GetTextureColorId());
 	glActiveTexture(GL_TEXTURE0 + 17);

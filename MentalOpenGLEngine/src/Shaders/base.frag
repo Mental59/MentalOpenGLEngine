@@ -5,11 +5,14 @@ struct Material
 	sampler2D diffuseTexture1;
 	sampler2D specularTexture1;
 	sampler2D normalTexture1;
+	sampler2D heightTexture1;
+
 	float shininess;
 	vec3 specular;
 
 	bool useNormalTexture;
 	bool useSpecularTexture;
+	bool useHeightTexture;
 };
 
 struct DirectionalLight
@@ -61,17 +64,21 @@ in VS_OUT {
 	vec3 normal;
 	vec3 worldPos;
 	vec4 posInLightSpace;
-	mat3 TBN;
+	mat3 tangentToWorld;
 	float normalsMultiplier;
+
+	vec3 tangentPos;
+	vec3 tangentViewPos;
+	vec3 worldViewPos;
 } fs_in;
 
-uniform vec3 uViewPos;
 uniform Material uMaterial;
 uniform DirectionalLight uDirLight;
 uniform PointLight uPointLights[MAX_POINT_LIGHTS];
 uniform int uNumPointLights;
 uniform sampler2D uShadowMap;
 uniform samplerCube uShadowCubeMap;
+uniform float uHeightScale = 0.1;
 
 vec3 CalculateDirectionalLight(
 	DirectionalLight light,
@@ -87,6 +94,7 @@ vec3 CalculatePointLight(
 	const vec3 viewDirection,
 	const vec3 materialDiffuse,
 	const vec3 materialSpecular,
+	const vec3 fragPos,
 	const float shadow
 );
 vec3 CalculateSpotLight(
@@ -94,7 +102,8 @@ vec3 CalculateSpotLight(
 	const vec3 normal,
 	const vec3 viewDirection,
 	const vec3 materialDiffuse,
-	const vec3 materialSpecular
+	const vec3 materialSpecular,
+	const vec3 fragPos
 );
 vec3 CalculateAmbient(
 	const vec3 lightAmbient,
@@ -117,7 +126,9 @@ vec3 CalculateSpecular(
 float LinearizeDepth(float depth, float near, float far);
 
 float CalculateDirShadow(const vec3 normal, const vec3 lightDirection);
-float CalculatePointShadow(const vec3 lightPos, const float farPlane);
+float CalculatePointShadow(const vec3 lightPos, const float farPlane, const vec3 fragPos, const vec3 viewPos);
+
+vec2 ParallaxOcclusionMapping(const vec2 texCoords, const vec3 viewDirection, const float minLayers, const float maxLayers);
 
 const int numSamples = 20;
 vec3 gridSamplingDisk[numSamples] = vec3[]
@@ -131,21 +142,24 @@ vec3 gridSamplingDisk[numSamples] = vec3[]
 
 void main()
 {
-	vec4 diffuseColor = texture(uMaterial.diffuseTexture1, fs_in.texCoords);
+	vec3 viewDirectionTangent = normalize(fs_in.tangentViewPos - fs_in.tangentPos);
+	vec3 viewDirectionWorld = normalize(fs_in.worldViewPos - fs_in.worldPos);
+
+	vec2 texCoords = uMaterial.useHeightTexture ? ParallaxOcclusionMapping(fs_in.texCoords, viewDirectionTangent, 8.0, 32.0) : fs_in.texCoords;
+
+	vec4 diffuseColor = texture(uMaterial.diffuseTexture1, texCoords);
 
 //	if (diffuseColor.a < 0.1)
 //	{
 //		discard;
 //	}
-
+	
 	vec3 normal = normalize(fs_in.normal);
-	vec3 viewDirection = normalize(uViewPos - fs_in.worldPos);
 	if (uMaterial.useNormalTexture)
 	{
-		normal = normalize(texture(uMaterial.normalTexture1, fs_in.texCoords).rgb);
+		normal = normalize(texture(uMaterial.normalTexture1, texCoords).rgb * fs_in.normalsMultiplier);
 		normal = normal * 2.0 - 1.0; // transform to range [-1, 1]
-		normal *= fs_in.TBN;
-		normal = normalize(normal);
+		normal = normalize(fs_in.tangentToWorld * normal);
 	}
 
 	vec3 materialDiffuse = diffuseColor.rgb;
@@ -153,21 +167,60 @@ void main()
 	vec3 materialSpecular = uMaterial.specular;
 	if (uMaterial.useSpecularTexture)
 	{
-		materialSpecular = texture(uMaterial.specularTexture1, fs_in.texCoords).rgb;
+		materialSpecular = texture(uMaterial.specularTexture1, texCoords).rgb;
 	}
 
+//	vec3 depth = vec3(LinearizeDepth(gl_FragCoord.z, 0.1, 100.0));
+
+	//directional lighting
 	float shadow = CalculateDirShadow(normal, normalize(-uDirLight.direction));
+	vec3 color = CalculateDirectionalLight(uDirLight, normal, viewDirectionWorld, materialDiffuse, materialSpecular, shadow);
 
-	vec3 depth = vec3(LinearizeDepth(gl_FragCoord.z, 0.1, 100.0));
-
-	vec3 color = CalculateDirectionalLight(uDirLight, normal, viewDirection, materialDiffuse, materialSpecular, shadow);
+	//point lighting
 	for (int i = 0; i < min(MAX_POINT_LIGHTS, uNumPointLights); i++)
 	{
-		shadow = CalculatePointShadow(uPointLights[i].position, uPointLights[i].farPlane);
-		color += CalculatePointLight(uPointLights[i], normal, viewDirection, materialDiffuse, materialSpecular, shadow);
+		shadow = CalculatePointShadow(uPointLights[i].position, uPointLights[i].farPlane, fs_in.worldPos, fs_in.worldViewPos);
+		color += CalculatePointLight(uPointLights[i], normal, viewDirectionWorld, materialDiffuse, materialSpecular, fs_in.worldPos, shadow);
 	}
 
 	FragColor = vec4(color, 1.0);
+}
+
+vec2 ParallaxOcclusionMapping(const vec2 texCoords, const vec3 viewDirection, const float minLayers, const float maxLayers)
+{
+	float numLayers = mix(maxLayers, minLayers, abs(dot(vec3(0.0, 0.0, 1.0), viewDirection)));
+
+	float layerDepth = 1.0 / numLayers;
+	float currentLayerDepth = 0.0;
+
+	vec2 p = viewDirection.xy * uHeightScale;
+	vec2 deltaTexCoords = p / numLayers;
+
+	vec2 currentTexCoords = texCoords;
+	float currentDepthMapValue = texture(uMaterial.heightTexture1, texCoords).r;
+	
+	while(currentLayerDepth < currentDepthMapValue)
+	{
+		// shift texture coordinates along direction of P
+		currentTexCoords -= deltaTexCoords;
+		// get depthmap value at current texture coordinates
+		currentDepthMapValue = texture(uMaterial.heightTexture1, currentTexCoords).r;  
+		// get depth of next layer
+		currentLayerDepth += layerDepth;  
+	}
+
+	// get texture coordinates before collision (reverse operations)
+	vec2 prevTexCoords = currentTexCoords + deltaTexCoords;
+
+	// get depth after and before collision for linear interpolation
+	float afterDepth  = currentDepthMapValue - currentLayerDepth;
+	float beforeDepth = texture(uMaterial.heightTexture1, prevTexCoords).r - currentLayerDepth + layerDepth;
+
+	// interpolation of texture coordinates
+	float weight = afterDepth / (afterDepth - beforeDepth);
+	vec2 finalTexCoords = prevTexCoords * weight + currentTexCoords * (1.0 - weight);
+
+	return finalTexCoords;
 }
 
 float CalculateDirShadow(const vec3 normal, const vec3 lightDirection)
@@ -200,13 +253,13 @@ float CalculateDirShadow(const vec3 normal, const vec3 lightDirection)
 	return shadow;
 }
 
-float CalculatePointShadow(const vec3 lightPos, const float farPlane)
+float CalculatePointShadow(const vec3 lightPos, const float farPlane, const vec3 fragPos, const vec3 viewPos)
 {
-	vec3 fragToLight = fs_in.worldPos - lightPos;
+	vec3 fragToLight = fragPos - lightPos;
 	float currentDepth = length(fragToLight);
 	float shadow = 0.0;
 	float bias   = 0.05;
-	float viewDistance = length(uViewPos - fs_in.worldPos);
+	float viewDistance = length(viewPos - fragPos);
 	float diskRadius = (1.0 + (viewDistance / farPlane)) / 50.0;
 
 	for(int i = 0; i < numSamples; i++)
@@ -248,12 +301,13 @@ vec3 CalculatePointLight(
 	const vec3 viewDirection,
 	const vec3 materialDiffuse,
 	const vec3 materialSpecular,
+	const vec3 fragPos,
 	const float shadow
 )
 {
-	vec3 lightDirection = normalize(light.position - fs_in.worldPos);
+	vec3 lightDirection = normalize(light.position - fragPos);
 
-	float distanceToLight = length(light.position - fs_in.worldPos);
+	float distanceToLight = length(light.position - fragPos);
 	float attenuation = 1.0 / (light.constant + light.linear * distanceToLight + light.quadratic * distanceToLight * distanceToLight);
 
 	vec3 ambient = CalculateAmbient(light.ambient, materialDiffuse);
@@ -268,13 +322,14 @@ vec3 CalculateSpotLight(
 	const vec3 normal,
 	const vec3 viewDirection,
 	const vec3 materialDiffuse,
-	const vec3 materialSpecular
+	const vec3 materialSpecular,
+	const vec3 fragPos
 )
 {
 	vec3 lightDirection = normalize(-light.direction);
-	vec3 lightDirectionFromFragment = normalize(light.position - fs_in.worldPos);
+	vec3 lightDirectionFromFragment = normalize(light.position - fragPos);
 
-	float distanceToLight = length(light.position - fs_in.worldPos);
+	float distanceToLight = length(light.position - fragPos);
 	float attenuation = 1.0 / (light.constant + light.linear * distanceToLight + light.quadratic * distanceToLight * distanceToLight);
 
 	float theta = dot(lightDirectionFromFragment, normalize(-light.direction));
