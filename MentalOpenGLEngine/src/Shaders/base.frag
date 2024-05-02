@@ -173,13 +173,14 @@ void main()
 //	vec3 depth = vec3(LinearizeDepth(gl_FragCoord.z, 0.1, 100.0));
 
 	//directional lighting
-	float shadow = CalculateDirShadow(normal, normalize(-uDirLight.direction));
+//	float shadow = CalculateDirShadow(normal, normalize(-uDirLight.direction));
+	float shadow = 0.0;
 	vec3 color = CalculateDirectionalLight(uDirLight, normal, viewDirectionWorld, materialDiffuse, materialSpecular, shadow);
 
 	//point lighting
 	for (int i = 0; i < min(MAX_POINT_LIGHTS, uNumPointLights); i++)
 	{
-		shadow = CalculatePointShadow(uPointLights[i].position, uPointLights[i].farPlane, fs_in.worldPos, fs_in.worldViewPos);
+//		shadow = CalculatePointShadow(uPointLights[i].position, uPointLights[i].farPlane, fs_in.worldPos, fs_in.worldViewPos);
 		color += CalculatePointLight(uPointLights[i], normal, viewDirectionWorld, materialDiffuse, materialSpecular, fs_in.worldPos, shadow);
 	}
 
@@ -188,14 +189,19 @@ void main()
 
 vec2 ParallaxOcclusionMapping(const vec2 texCoords, const vec3 viewDirection, const float minLayers, const float maxLayers)
 {
+	// number of depth layers
 	float numLayers = mix(maxLayers, minLayers, abs(dot(vec3(0.0, 0.0, 1.0), viewDirection)));
 
+	// calculate the size of each layer
 	float layerDepth = 1.0 / numLayers;
+	// depth of current layer
 	float currentLayerDepth = 0.0;
 
+	// the amount to shift the texture coordinates per layer (from vector P)
 	vec2 p = viewDirection.xy * uHeightScale;
 	vec2 deltaTexCoords = p / numLayers;
 
+	// set initial values
 	vec2 currentTexCoords = texCoords;
 	float currentDepthMapValue = texture(uMaterial.heightTexture1, texCoords).r;
 	
@@ -214,7 +220,7 @@ vec2 ParallaxOcclusionMapping(const vec2 texCoords, const vec3 viewDirection, co
 
 	// get depth after and before collision for linear interpolation
 	float afterDepth  = currentDepthMapValue - currentLayerDepth;
-	float beforeDepth = texture(uMaterial.heightTexture1, prevTexCoords).r - currentLayerDepth + layerDepth;
+	float beforeDepth = texture(uMaterial.heightTexture1, prevTexCoords).r - (currentLayerDepth - layerDepth);
 
 	// interpolation of texture coordinates
 	float weight = afterDepth / (afterDepth - beforeDepth);
