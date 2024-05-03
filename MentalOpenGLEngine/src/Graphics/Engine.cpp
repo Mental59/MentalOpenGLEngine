@@ -594,7 +594,7 @@ void Graphics::Engine::SetupScene(
 	{
 		glm::vec3 ambientColor = glm::vec3(0.0f) * lightColors[i];
 		glm::vec3 diffuseColor = glm::vec3(1.0f) * lightColors[i];
-		glm::vec3 specularColor = glm::vec3(0.0f) * lightColors[i];
+		glm::vec3 specularColor = glm::vec3(0.25f) * lightColors[i];
 
 		mBaseShaderProgram.SetUniformVec3(std::format("uPointLights[{}].position", i), glm::value_ptr(lightPositions[i]));
 		mBaseShaderProgram.SetUniformVec3(std::format("uPointLights[{}].ambient", i), glm::value_ptr(ambientColor));
@@ -642,17 +642,17 @@ void Graphics::Engine::SetupScene(
 	//mBaseInstancedShaderProgram.Bind();
 	//ASTEROID_MODEL.DrawInstanced(mBaseInstancedShaderProgram, ASTEROIDS_NUM);
 
-	//mLightSourceShaderProgram.Bind();
-	//mLightSourceShaderProgram.SetUniformVec3("uLightColor", glm::value_ptr(lightColor));
 	//glm::mat4 lightSourceMat(1.0f);
 	//lightSourceMat = glm::translate(lightSourceMat, DIR_LIGHT_POS);
 	//lightSourceMat = glm::scale(lightSourceMat, glm::vec3(0.4f));
 	//SPHERE_MODEL.Draw(mLightSourceShaderProgram, lightSourceMat);
 
-	for (const glm::vec3& lightPos : lightPositions)
+	mLightSourceShaderProgram.Bind();
+	for (int i = 0; i < 4; i++)
 	{
+		mLightSourceShaderProgram.SetUniformVec3("uLightColor", glm::value_ptr(lightColors[i]));
 		glm::mat4 lightSourceMat = glm::mat4(1.0f);
-		lightSourceMat = glm::translate(lightSourceMat, lightPos);
+		lightSourceMat = glm::translate(lightSourceMat, lightPositions[i]);
 		lightSourceMat = glm::scale(lightSourceMat, glm::vec3(0.1f));
 		SPHERE_MODEL.Draw(mLightSourceShaderProgram, lightSourceMat);
 	}

@@ -40,7 +40,7 @@ vec3 KernelEffect()
 void main()
 {   
     const float gamma = 2.2;
-    const float exposure = 2.0;
+    const float exposure = 1.0;
 
     vec3 screenTextureColor = texture(uScreenTexture, vTexCoords).rgb;
     
