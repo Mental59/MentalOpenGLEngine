@@ -38,12 +38,14 @@ vec3 KernelEffect()
 }
 
 void main()
-{
-    vec3 screenTextureColor = texture(uScreenTexture, vTexCoords).rgb;
-    float average = 0.2126 * screenTextureColor.r + 0.7152 * screenTextureColor.g + 0.0722 * screenTextureColor.b;
-    FragColor = vec4(screenTextureColor, 1.0);
+{   
+    const float gamma = 2.2;
+    const float exposure = 2.0;
 
-    // gamma correction
-    float gamma = 2.2;
-    FragColor.rgb = pow(FragColor.rgb, vec3(1.0 / gamma));
+    vec3 screenTextureColor = texture(uScreenTexture, vTexCoords).rgb;
+    
+    vec3 mapped = vec3(1.0) - exp(-screenTextureColor * exposure);
+    mapped = pow(mapped, vec3(1.0 / gamma));
+    
+    FragColor = vec4(mapped, 1.0);
 }

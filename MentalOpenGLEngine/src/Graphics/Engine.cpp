@@ -38,7 +38,7 @@ Graphics::Engine::Engine(const int windowWidth, const int windowHeight, const ch
 	mTitle(title),
 	mWindow(nullptr),
 	mBaseShaderProgram(),
-	mCamera(glm::vec3(4.8f, 1.0f, 4.8f), 5.0f, 0.1f),
+	mCamera(glm::vec3(0.0f, 0.0f, 0.0f), 5.0f, 0.1f),
 	mLastMouseXPos(0.0f), mLastMouseYPos(0.0f), mIsFirstMouseMove(true),
 	mDefaultTexture{},
 	mUBOMatrices(0u)
@@ -586,7 +586,7 @@ void Graphics::Engine::SetupScene(
 	mBaseShaderProgram.SetUniformVec3("uDirLight.ambient", glm::value_ptr(ambientColor));
 	mBaseShaderProgram.SetUniformVec3("uDirLight.diffuse", glm::value_ptr(diffuseColor));
 	mBaseShaderProgram.SetUniformVec3("uDirLight.specular", glm::value_ptr(specularColor));
-	mBaseShaderProgram.SetUniform1f("uTexTiling", 4.0f);
+	mBaseShaderProgram.SetUniform1f("uTexTiling", 1.0f);
 	//mBaseShaderProgram.SetUniformVec2("uTexDisplacement", glm::value_ptr(glm::vec2(0.0f, 0.0f)));
 
 	mBaseShaderProgram.SetUniform1i("uNumPointLights", 4);
@@ -642,20 +642,20 @@ void Graphics::Engine::SetupScene(
 	//mBaseInstancedShaderProgram.Bind();
 	//ASTEROID_MODEL.DrawInstanced(mBaseInstancedShaderProgram, ASTEROIDS_NUM);
 
-	mLightSourceShaderProgram.Bind();
-	mLightSourceShaderProgram.SetUniformVec3("uLightColor", glm::value_ptr(lightColor));
-	glm::mat4 lightSourceMat(1.0f);
-	lightSourceMat = glm::translate(lightSourceMat, DIR_LIGHT_POS);
-	lightSourceMat = glm::scale(lightSourceMat, glm::vec3(0.4f));
-	SPHERE_MODEL.Draw(mLightSourceShaderProgram, lightSourceMat);
+	//mLightSourceShaderProgram.Bind();
+	//mLightSourceShaderProgram.SetUniformVec3("uLightColor", glm::value_ptr(lightColor));
+	//glm::mat4 lightSourceMat(1.0f);
+	//lightSourceMat = glm::translate(lightSourceMat, DIR_LIGHT_POS);
+	//lightSourceMat = glm::scale(lightSourceMat, glm::vec3(0.4f));
+	//SPHERE_MODEL.Draw(mLightSourceShaderProgram, lightSourceMat);
 
-	//for (const glm::vec3& lightPos : lightPositions)
-	//{
-	//	lightSourceMat = glm::mat4(1.0f);
-	//	lightSourceMat = glm::translate(lightSourceMat, lightPos);
-	//	lightSourceMat = glm::scale(lightSourceMat, glm::vec3(0.2f));
-	//	SPHERE_MODEL.Draw(mLightSourceShaderProgram, lightSourceMat);
-	//}
+	for (const glm::vec3& lightPos : lightPositions)
+	{
+		glm::mat4 lightSourceMat = glm::mat4(1.0f);
+		lightSourceMat = glm::translate(lightSourceMat, lightPos);
+		lightSourceMat = glm::scale(lightSourceMat, glm::vec3(0.1f));
+		SPHERE_MODEL.Draw(mLightSourceShaderProgram, lightSourceMat);
+	}
 
 	//mSkyboxShaderProgram.Bind();
 	//mSkyboxShaderProgram.SetUniformMat4("uView", glm::value_ptr(glm::mat4(glm::mat3(view))));

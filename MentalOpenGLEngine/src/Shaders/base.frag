@@ -175,7 +175,8 @@ void main()
 	//directional lighting
 //	float shadow = CalculateDirShadow(normal, normalize(-uDirLight.direction));
 	float shadow = 0.0;
-	vec3 color = CalculateDirectionalLight(uDirLight, normal, viewDirectionWorld, materialDiffuse, materialSpecular, shadow);
+//	vec3 color = CalculateDirectionalLight(uDirLight, normal, viewDirectionWorld, materialDiffuse, materialSpecular, shadow);
+	vec3 color = vec3(0.0);
 
 	//point lighting
 	for (int i = 0; i < min(MAX_POINT_LIGHTS, uNumPointLights); i++)

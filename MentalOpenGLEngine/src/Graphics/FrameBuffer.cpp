@@ -23,7 +23,7 @@ void FrameBuffer::Create(int width, int height, int samples)
 
 	glGenTextures(1, &mTextureColorMSAAID);
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, mTextureColorMSAAID);
-	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, GL_RGB32F, width, height, GL_TRUE);
+	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, GL_RGBA16F, width, height, GL_TRUE);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, mTextureColorMSAAID, 0);
 
 	glGenRenderbuffers(1, &mDepthStencilRenderBufferID);
@@ -44,7 +44,7 @@ void FrameBuffer::Create(int width, int height, int samples)
 	glBindFramebuffer(GL_FRAMEBUFFER, mIntermediateFramebufferID);
 	glGenTextures(1, &mTextureColorID);
 	glBindTexture(GL_TEXTURE_2D, mTextureColorID);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mTextureColorID, 0);
