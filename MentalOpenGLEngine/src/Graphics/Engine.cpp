@@ -19,7 +19,7 @@ Model ASTEROID_MODEL;
 Model MARS_MODEL;
 Model SPHERE_MODEL;
 Model CUBE_MODEL;
-Model BRICKWALL_MODEL;
+Model FLOOR_MODEL;
 Model NANOSUIT_MODEL;
 Model SPONZA_MODEL;
 
@@ -231,10 +231,10 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	CUBE_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/container2_specular.png"), Core::Specular });
 	CUBE_MODEL.Load("resources/objects/cube/cube.obj");
 
-	BRICKWALL_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/bricks2.jpg", false, true), Core::Diffuse });
-	BRICKWALL_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/bricks2_normal.jpg", false, false), Core::Normal });
-	BRICKWALL_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/bricks2_disp.jpg", false, false), Core::Height });
-	BRICKWALL_MODEL.Load("resources/objects/cube/cube.obj");
+	FLOOR_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/wood.png", false, true), Core::Diffuse });
+	//FLOOR_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/bricks2_normal.jpg", false, false), Core::Normal });
+	//FLOOR_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/bricks2_disp.jpg", false, false), Core::Height });
+	FLOOR_MODEL.Load("resources/objects/cube/cube.obj");
 
 	NANOSUIT_MODEL.Load("resources/objects/nanosuit/nanosuit.obj");
 
@@ -491,7 +491,7 @@ void Graphics::Engine::DrawScene(ShaderProgram& shader)
 	model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0));
 	model = glm::scale(model, glm::vec3(12.5f, 0.5f, 12.5f));
 	mBaseShaderProgram.SetUniform1f("uTexTiling", 4.0f);
-	BRICKWALL_MODEL.Draw(shader, model);
+	FLOOR_MODEL.Draw(shader, model);
 	mBaseShaderProgram.SetUniform1f("uTexTiling", 1.0f);
 
 	model = glm::mat4(1.0f);
@@ -572,9 +572,9 @@ void Graphics::Engine::SetupScene(
 	mBaseShaderProgram.SetUniform1i("uNumPointLights", 4);
 	for (int i = 0; i < 4; i++)
 	{
-		glm::vec3 ambientColor = glm::vec3(0.0f) * lightColors[i];
+		glm::vec3 ambientColor = glm::vec3(0.025f) * lightColors[i];
 		glm::vec3 diffuseColor = glm::vec3(1.0f) * lightColors[i];
-		glm::vec3 specularColor = glm::vec3(0.5f) * lightColors[i];
+		glm::vec3 specularColor = glm::vec3(0.75f) * lightColors[i];
 
 		mBaseShaderProgram.SetUniformVec3(std::format("uPointLights[{}].position", i), glm::value_ptr(lightPositions[i]));
 		mBaseShaderProgram.SetUniformVec3(std::format("uPointLights[{}].ambient", i), glm::value_ptr(ambientColor));
