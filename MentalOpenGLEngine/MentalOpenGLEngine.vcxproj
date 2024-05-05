@@ -190,12 +190,14 @@
   <ItemGroup>
     <None Include="src\Shaders\base.frag" />
     <None Include="src\Shaders\baseInstanced.vert" />
+    <None Include="src\Shaders\gaussianBlur.frag" />
     <None Include="src\Shaders\cubemap.frag" />
     <None Include="src\Shaders\cubemap.vert" />
     <None Include="src\Shaders\environmentMapping.frag" />
     <None Include="src\Shaders\explode.geom" />
     <None Include="src\Shaders\framebufferScreen.frag" />
     <None Include="src\Shaders\framebufferScreen.vert" />
+    <None Include="src\Shaders\gaussianBlur.vert" />
     <None Include="src\Shaders\multipleLights.frag" />
     <None Include="src\Shaders\directionalLight.frag" />
     <None Include="src\Shaders\lightSource.frag" />

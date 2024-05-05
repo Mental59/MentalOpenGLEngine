@@ -125,5 +125,7 @@
     <None Include="src\Shaders\pointShadowMapping.vert" />
     <None Include="src\Shaders\pointShadowMapping.frag" />
     <None Include="src\Shaders\pointShadowMapping.geom" />
+    <None Include="src\Shaders\gaussianBlur.frag" />
+    <None Include="src\Shaders\gaussianBlur.vert" />
   </ItemGroup>
 </Project>

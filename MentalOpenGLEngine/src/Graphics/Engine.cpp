@@ -55,6 +55,9 @@ Graphics::Engine::~Engine()
 
 	glDeleteBuffers(1, &mUBOMatrices);
 
+	glDeleteFramebuffers(2, mPingPongFrameBuffers);
+	glDeleteTextures(2, mPingPongColorBuffers);
+
 	glfwTerminate();
 }
 
@@ -153,6 +156,9 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	Shader pointShadowMappingFragShader("src/Shaders/pointShadowMapping.frag", Shader::Fragment);
 	Shader pointShadowMappingGeomShader("src/Shaders/pointShadowMapping.geom", Shader::Geometry);
 
+	Shader gaussianBlurVertShader("src/Shaders/gaussianBlur.vert", Shader::Vertex);
+	Shader gaussianBlurFragShader("src/Shaders/gaussianBlur.frag", Shader::Fragment);
+
 	mBaseShaderProgram.Build({ baseVertexShader, baseFragmentShader });
 	//mBaseInstancedShaderProgram.Build({ baseInstancedVertexShader, baseFragmentShader });
 	mOutlineShaderProgram.Build({ baseVertexShader, outlineFragmentShader });
@@ -163,10 +169,12 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	mLightSourceShaderProgram.Build({ lightSourceFragmentShader, lightSourceVertexShader });
 	mDirectionalShadowMappingShaderProgram.Build({ dirShadowMappingFragmentShader, dirShadowMappingVertexShader });
 	mPointShadowMappingShaderProgram.Build({ pointShadowMappingVertShader, pointShadowMappingFragShader, pointShadowMappingGeomShader });
+	mGaussianBlurShaderProgram.Build({ gaussianBlurVertShader, gaussianBlurFragShader });
 
 	// Setting texture units
 	mFramebufferScreenShaderProgram.Bind();
 	mFramebufferScreenShaderProgram.SetUniform1i("uScreenTexture", 0);
+	mFramebufferScreenShaderProgram.SetUniform1i("uBloomTexture", 1);
 	mFramebufferScreenShaderProgram.Unbind();
 	mSkyboxShaderProgram.Bind();
 	mSkyboxShaderProgram.SetUniform1i("uSkybox", 0);
@@ -178,6 +186,9 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	mBaseShaderProgram.SetUniform1i("uShadowMap", 16);
 	mBaseShaderProgram.SetUniform1i("uShadowCubeMap", 17);
 	mBaseShaderProgram.Unbind();
+	mGaussianBlurShaderProgram.Bind();
+	mGaussianBlurShaderProgram.SetUniform1i("uImage", 0);
+	mGaussianBlurShaderProgram.Unbind();
 
 	//Setting uniform block bindings
 	unsigned int uniformMatricesBlockBinding = 0;
@@ -215,10 +226,28 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	mLoadedTextures["resources/textures/default.png"] = defaultDiffuseTextureId;
 	mDefaultTexture = { defaultDiffuseTextureId, Core::Diffuse };
 
-	int samples = 4;
+	int samples = 8;
 	mFrameBuffer.Create(mWindowWidth, mWindowHeight, samples);
 	//mRearViewFrameBuffer.Create(mWindowWidth, mWindowHeight);
 	mScreenQuad.Create();
+
+	// Pingpong fbos for blurring
+	glGenFramebuffers(2, mPingPongFrameBuffers);
+	glGenTextures(2, mPingPongColorBuffers);
+	for (int i = 0; i < 2; i++)
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, mPingPongFrameBuffers[i]);
+		glBindTexture(GL_TEXTURE_2D, mPingPongColorBuffers[i]);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, mWindowWidth, mWindowHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mPingPongColorBuffers[i], 0);
+
+		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+			std::cout << "Ping Pong Framebuffer is not complete!" << std::endl;
+	}
 
 	//unsigned int rockTextureId = GLLoadTextureFromFile("resources/objects/rock/rock.png");
 	//mLoadedTextures["resources/objects/rock/rock.png"] = rockTextureId;
@@ -414,13 +443,32 @@ void Graphics::Engine::OnRender()
 	glViewport(0, 0, mWindowWidth, mWindowHeight);
 	mFrameBuffer.Bind();
 	glStencilMask(0xFF);
-	glClearColor(0.3, 0.3, 0.3, 1.0f);
+	glClearColor(0.1, 0.1, 0.1, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	glStencilMask(0x00);
 	SetupScene(mCamera.GetViewMatrix(), mCamera.GetProjectionMatrix(mAspectRatio));
 	DrawScene(mBaseShaderProgram);
 	//DrawScene(mNormalsVisualizationShaderProgram);
+	mFrameBuffer.Blit();
 	mFrameBuffer.Unbind();
+
+	//Blurring bright fragments with two-pass Gaussian Blur 
+	mGaussianBlurShaderProgram.Bind();
+	bool isHorizontal = true, isFirstIteration = true;
+	unsigned int numPasses = 10;
+	glDisable(GL_DEPTH_TEST);
+	for (unsigned int i = 0; i < numPasses * 2; i++)
+	{
+		mGaussianBlurShaderProgram.SetUniform1i("uHorizontal", isHorizontal);
+		glBindFramebuffer(GL_FRAMEBUFFER, mPingPongFrameBuffers[isHorizontal]);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, isFirstIteration ? mFrameBuffer.GetBrightTextureColorId() : mPingPongColorBuffers[!isHorizontal]);
+		mScreenQuad.Draw();
+		isHorizontal = !isHorizontal;
+		isFirstIteration = false;
+	}
+	glEnable(GL_DEPTH_TEST);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	//Post processing
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -429,6 +477,8 @@ void Graphics::Engine::OnRender()
 	mFramebufferScreenShaderProgram.SetUniformMat4("uModelMat", glm::value_ptr(glm::mat4(1.0f)));
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, mFrameBuffer.GetTextureColorId());
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, mPingPongColorBuffers[!isHorizontal]);
 	glDisable(GL_DEPTH_TEST);
 	mScreenQuad.Draw();
 	glEnable(GL_DEPTH_TEST);

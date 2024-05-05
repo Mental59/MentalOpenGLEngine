@@ -77,6 +77,7 @@ namespace Graphics
 		ShaderProgram mLightSourceShaderProgram;
 		ShaderProgram mDirectionalShadowMappingShaderProgram;
 		ShaderProgram mPointShadowMappingShaderProgram;
+		ShaderProgram mGaussianBlurShaderProgram;
 
 		FrameBuffer mFrameBuffer;
 		FrameBuffer mRearViewFrameBuffer;
@@ -94,5 +95,8 @@ namespace Graphics
 		bool mIsFirstMouseMove;
 
 		unsigned int mUBOMatrices;
+
+		unsigned int mPingPongFrameBuffers[2];
+		unsigned int mPingPongColorBuffers[2];
 	};
 }
