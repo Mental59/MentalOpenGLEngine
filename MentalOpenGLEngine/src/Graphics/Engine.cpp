@@ -454,8 +454,9 @@ void Graphics::Engine::OnRender()
 
 	//Blurring bright fragments with two-pass Gaussian Blur 
 	mGaussianBlurShaderProgram.Bind();
+	mGaussianBlurShaderProgram.SetUniformVec2("uSampleDistance", glm::value_ptr(glm::vec2(2.0f, 2.0f)));
 	bool isHorizontal = true, isFirstIteration = true;
-	unsigned int numPasses = 10;
+	unsigned int numPasses = 5;
 	glDisable(GL_DEPTH_TEST);
 	for (unsigned int i = 0; i < numPasses * 2; i++)
 	{
@@ -478,7 +479,7 @@ void Graphics::Engine::OnRender()
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, mFrameBuffer.GetTextureColorId());
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, mPingPongColorBuffers[!isHorizontal]);
+	glBindTexture(GL_TEXTURE_2D, mPingPongColorBuffers[isHorizontal]);
 	glDisable(GL_DEPTH_TEST);
 	mScreenQuad.Draw();
 	glEnable(GL_DEPTH_TEST);
