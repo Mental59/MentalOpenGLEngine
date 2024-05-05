@@ -227,8 +227,8 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	//MARS_MODEL.Load("resources/objects/planet/planet.obj");
 	SPHERE_MODEL.Load("resources/objects/sphere/sphere.obj");
 
-	CUBE_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/wood.png", false, true), Core::Diffuse });
-	//CUBE_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/container2_specular.png"), Core::Specular });
+	CUBE_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/container2.png", false, true), Core::Diffuse });
+	CUBE_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/container2_specular.png"), Core::Specular });
 	CUBE_MODEL.Load("resources/objects/cube/cube.obj");
 
 	BRICKWALL_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/bricks2.jpg", false, true), Core::Diffuse });
@@ -487,63 +487,43 @@ void Graphics::Engine::DrawScene(ShaderProgram& shader)
 {
 	shader.Bind();
 
-	// room cube
-	glm::mat4 model = glm::mat4(1.0f);
-	//model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-	model = glm::translate(model, glm::vec3(0.0f, 0.0f, 25.0f));
-	model = glm::scale(model, glm::vec3(2.5f, 2.5f, 27.5f));
-	glDisable(GL_CULL_FACE); // note that we disable culling here since we render 'inside' the cube instead of the usual 'outside' which throws off the normal culling methods.
-	shader.SetUniform1f("uNormalsMultiplier", -1.0f); // A small little hack to invert normals when drawing cube from the inside so lighting still works.
+	glm::mat4 model(1.0f);
+	model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0));
+	model = glm::scale(model, glm::vec3(12.5f, 0.5f, 12.5f));
+	mBaseShaderProgram.SetUniform1f("uTexTiling", 4.0f);
+	BRICKWALL_MODEL.Draw(shader, model);
+	mBaseShaderProgram.SetUniform1f("uTexTiling", 1.0f);
+
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(0.0f, 1.5f, 0.0));
+	model = glm::scale(model, glm::vec3(0.5f));
 	CUBE_MODEL.Draw(shader, model);
-	shader.SetUniform1f("uNormalsMultiplier", 1.0f); // and of course disable it
-	glEnable(GL_CULL_FACE);
 
-	//// cubes
-	//model = glm::mat4(1.0f);
-	//model = glm::translate(model, glm::vec3(4.0f, -3.5f, 0.0));
-	//model = glm::scale(model, glm::vec3(0.5f));
-	//CUBE_MODEL.Draw(shader, model);
-	//model = glm::mat4(1.0f);
-	//model = glm::translate(model, glm::vec3(2.0f, 3.0f, 1.0));
-	//model = glm::scale(model, glm::vec3(0.75f));
-	//CUBE_MODEL.Draw(shader, model);
-	//model = glm::mat4(1.0f);
-	//model = glm::translate(model, glm::vec3(-3.0f, -1.0f, 0.0));
-	//model = glm::scale(model, glm::vec3(0.5f));
-	//CUBE_MODEL.Draw(shader, model);
-	//model = glm::mat4(1.0f);
-	//model = glm::translate(model, glm::vec3(-1.5f, 1.0f, 1.5));
-	//model = glm::scale(model, glm::vec3(0.5f));
-	//CUBE_MODEL.Draw(shader, model);
-	//model = glm::mat4(1.0f);
-	//model = glm::translate(model, glm::vec3(-1.5f, 2.0f, -3.0));
-	//model = glm::rotate(model, glm::radians(60.0f), glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
-	//model = glm::scale(model, glm::vec3(0.75f));
-	//CUBE_MODEL.Draw(shader, model);
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(2.0f, 0.0f, 1.0));
+	model = glm::scale(model, glm::vec3(0.5f));
+	CUBE_MODEL.Draw(shader, model);
 
-	//model = glm::mat4(1.0f);
-	//model = glm::translate(model, glm::vec3(0.0f, 8.0f, 0.0f));
-	//CUBE_MODEL.Draw(shader, model);
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(-1.0f, -1.0f, 2.0));
+	model = glm::rotate(model, glm::radians(60.0f), glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
+	CUBE_MODEL.Draw(shader, model);
 
-	//model = glm::mat4(1.0f);
-	//model = glm::translate(model, glm::vec3(0.0f, 6.0f, 0.0f));
-	//model = glm::scale(model, glm::vec3(10.0f, 0.05f, 10.0f));
-	//CUBE_MODEL.Draw(shader, model);
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(0.0f, 2.7f, 4.0));
+	model = glm::rotate(model, glm::radians(23.0f), glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
+	model = glm::scale(model, glm::vec3(1.25));
+	CUBE_MODEL.Draw(shader, model);
 
-	//model = glm::mat4(1.0f);
-	//model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
-	//model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	//model = glm::scale(model, glm::vec3(1.0f, 1.0f, 0.2f));
-	//BRICKWALL_MODEL.Draw(shader, model);
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(-2.0f, 1.0f, -3.0));
+	model = glm::rotate(model, glm::radians(124.0f), glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
+	CUBE_MODEL.Draw(shader, model);
 
-	//model = glm::mat4(1.0f);
-	//model = glm::scale(model, glm::vec3(0.1f));
-	//NANOSUIT_MODEL.Draw(shader, model);
-
-	//model = glm::mat4(1.0f);
-	//model = glm::translate(model, glm::vec3(0.0f, 10.0f, 0.0f));
-	//model = glm::scale(model, glm::vec3(0.01f));
-	//SPONZA_MODEL.Draw(shader, model);
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(-3.0f, 0.0f, 0.0));
+	model = glm::scale(model, glm::vec3(0.5f));
+	CUBE_MODEL.Draw(shader, model);
 }
 
 void Graphics::Engine::SetupScene(
@@ -558,17 +538,17 @@ void Graphics::Engine::SetupScene(
 	static glm::vec3 specularColor = glm::vec3(1.0f, 1.0f, 1.0f) * lightColor;
 
 	static glm::vec3 lightPositions[4]{
-		glm::vec3(0.0f,  0.0f, 49.5f),
-		glm::vec3(-1.4f, -1.9f, 9.0f),
-		glm::vec3(0.0f, -1.8f, 4.0f),
-		glm::vec3(0.8f, -1.7f, 6.0f)
+		glm::vec3(0.0f,  0.5f, 1.5f),
+		glm::vec3(-4.0f, 0.5f, -3.0f),
+		glm::vec3(3.0f, 0.5f, 1.0f),
+		glm::vec3(-0.8f, 2.4f, -1.0f)
 	};
 
 	static glm::vec3 lightColors[4]{
-		glm::vec3(200.0f, 200.0f, 200.0f),
-		glm::vec3(0.1f, 0.0f, 0.0f),
-		glm::vec3(0.0f, 0.0f, 0.2f),
-		glm::vec3(0.0f, 0.1f, 0.0f)
+		glm::vec3(5.0f, 5.0f, 5.0f),
+		glm::vec3(10.0f, 0.0f, 0.0f),
+		glm::vec3(0.0f, 0.0f, 15.0f),
+		glm::vec3(0.0f, 5.0f, 0.0f)
 	};
 
 	static float shininess = 256.0f;
@@ -586,7 +566,7 @@ void Graphics::Engine::SetupScene(
 	mBaseShaderProgram.SetUniformVec3("uDirLight.ambient", glm::value_ptr(ambientColor));
 	mBaseShaderProgram.SetUniformVec3("uDirLight.diffuse", glm::value_ptr(diffuseColor));
 	mBaseShaderProgram.SetUniformVec3("uDirLight.specular", glm::value_ptr(specularColor));
-	mBaseShaderProgram.SetUniform1f("uTexTiling", 1.0f);
+	//mBaseShaderProgram.SetUniform1f("uTexTiling", 1.0f);
 	//mBaseShaderProgram.SetUniformVec2("uTexDisplacement", glm::value_ptr(glm::vec2(0.0f, 0.0f)));
 
 	mBaseShaderProgram.SetUniform1i("uNumPointLights", 4);
@@ -594,15 +574,15 @@ void Graphics::Engine::SetupScene(
 	{
 		glm::vec3 ambientColor = glm::vec3(0.0f) * lightColors[i];
 		glm::vec3 diffuseColor = glm::vec3(1.0f) * lightColors[i];
-		glm::vec3 specularColor = glm::vec3(0.25f) * lightColors[i];
+		glm::vec3 specularColor = glm::vec3(0.5f) * lightColors[i];
 
 		mBaseShaderProgram.SetUniformVec3(std::format("uPointLights[{}].position", i), glm::value_ptr(lightPositions[i]));
 		mBaseShaderProgram.SetUniformVec3(std::format("uPointLights[{}].ambient", i), glm::value_ptr(ambientColor));
 		mBaseShaderProgram.SetUniformVec3(std::format("uPointLights[{}].diffuse", i), glm::value_ptr(diffuseColor));
 		mBaseShaderProgram.SetUniformVec3(std::format("uPointLights[{}].specular", i), glm::value_ptr(specularColor));
-		mBaseShaderProgram.SetUniform1f(std::format("uPointLights[{}].constant", i), 0.0f);
-		mBaseShaderProgram.SetUniform1f(std::format("uPointLights[{}].linear", i), 0.0f);
-		mBaseShaderProgram.SetUniform1f(std::format("uPointLights[{}].quadratic", i), 1.0f);
+		mBaseShaderProgram.SetUniform1f(std::format("uPointLights[{}].constant", i), 1.0f);
+		mBaseShaderProgram.SetUniform1f(std::format("uPointLights[{}].linear", i), 0.7f);
+		mBaseShaderProgram.SetUniform1f(std::format("uPointLights[{}].quadratic", i), 1.8f);
 		mBaseShaderProgram.SetUniform1f(std::format("uPointLights[{}].farPlane", i), 100.0f);
 	}
 
@@ -653,7 +633,7 @@ void Graphics::Engine::SetupScene(
 		mLightSourceShaderProgram.SetUniformVec3("uLightColor", glm::value_ptr(lightColors[i]));
 		glm::mat4 lightSourceMat = glm::mat4(1.0f);
 		lightSourceMat = glm::translate(lightSourceMat, lightPositions[i]);
-		lightSourceMat = glm::scale(lightSourceMat, glm::vec3(0.1f));
+		lightSourceMat = glm::scale(lightSourceMat, glm::vec3(0.3f));
 		SPHERE_MODEL.Draw(mLightSourceShaderProgram, lightSourceMat);
 	}
 
