@@ -409,9 +409,9 @@ void Graphics::Engine::OnRender()
 	//ShadowPass();
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glViewport(0, 0, mWindowWidth, mWindowHeight);
 
 	//Drawing scene
-	glViewport(0, 0, mWindowWidth, mWindowHeight);
 	mGFrameBuffer.Bind();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	SetupScene(mCamera.GetViewMatrix(), mCamera.GetProjectionMatrix(mAspectRatio));
@@ -440,7 +440,7 @@ void Graphics::Engine::OnRender()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	mFramebufferScreenShaderProgram.Bind();
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, mGFrameBuffer.GetPositionTextureId());
+	glBindTexture(GL_TEXTURE_2D, mGFrameBuffer.GetAlbedoSpecularTextureId());
 	glDisable(GL_DEPTH_TEST);
 	mScreenQuad.Draw();
 	glEnable(GL_DEPTH_TEST);
