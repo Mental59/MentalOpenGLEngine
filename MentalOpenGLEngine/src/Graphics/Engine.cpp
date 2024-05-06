@@ -625,7 +625,7 @@ void Graphics::Engine::SetupScene(
 	{
 		glm::vec3 ambientColor = glm::vec3(0.025f) * lightColors[i];
 		glm::vec3 diffuseColor = glm::vec3(1.0f) * lightColors[i];
-		glm::vec3 specularColor = glm::vec3(0.75f) * lightColors[i];
+		glm::vec3 specularColor = glm::vec3(20.0f) * lightColors[i];
 
 		mBaseShaderProgram.SetUniformVec3(std::format("uPointLights[{}].position", i), glm::value_ptr(lightPositions[i]));
 		mBaseShaderProgram.SetUniformVec3(std::format("uPointLights[{}].ambient", i), glm::value_ptr(ambientColor));
