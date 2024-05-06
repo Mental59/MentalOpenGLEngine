@@ -157,6 +157,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Graphics\GFrameBuffer.cpp" />
     <ClCompile Include="src\Graphics\DepthMap.cpp" />
     <ClCompile Include="src\Graphics\CubeMap.cpp" />
     <ClCompile Include="src\Graphics\Primitives\ScreenQuad.cpp" />
@@ -172,6 +173,7 @@
     <ClCompile Include="src\Main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Graphics\GFrameBuffer.h" />
     <ClInclude Include="src\Graphics\DepthMap.h" />
     <ClInclude Include="src\Graphics\CubeMap.h" />
     <ClInclude Include="src\Graphics\Primitives\ScreenQuad.h" />

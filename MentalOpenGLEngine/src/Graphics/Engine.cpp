@@ -160,6 +160,9 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	Shader gaussianBlurVertShader("src/Shaders/gaussianBlur.vert", Shader::Vertex);
 	Shader gaussianBlurFragShader("src/Shaders/gaussianBlur.frag", Shader::Fragment);
 
+	Shader gBufferVertShader("src/Shaders/gBuffer.vert", Shader::Vertex);
+	Shader gBufferFragShader("src/Shaders/gBuffer.frag", Shader::Fragment);
+
 	mBaseShaderProgram.Build({ baseVertexShader, baseFragmentShader });
 	//mBaseInstancedShaderProgram.Build({ baseInstancedVertexShader, baseFragmentShader });
 	mOutlineShaderProgram.Build({ baseVertexShader, outlineFragmentShader });
@@ -171,11 +174,11 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	mDirectionalShadowMappingShaderProgram.Build({ dirShadowMappingFragmentShader, dirShadowMappingVertexShader });
 	mPointShadowMappingShaderProgram.Build({ pointShadowMappingVertShader, pointShadowMappingFragShader, pointShadowMappingGeomShader });
 	mGaussianBlurShaderProgram.Build({ gaussianBlurVertShader, gaussianBlurFragShader });
+	mGBufferShaderProgram.Build({ gBufferVertShader, gBufferFragShader });
 
 	// Setting texture units
 	mFramebufferScreenShaderProgram.Bind();
 	mFramebufferScreenShaderProgram.SetUniform1i("uScreenTexture", 0);
-	mFramebufferScreenShaderProgram.SetUniform1i("uBloomTexture", 1);
 	mFramebufferScreenShaderProgram.Unbind();
 	mSkyboxShaderProgram.Bind();
 	mSkyboxShaderProgram.SetUniform1i("uSkybox", 0);
@@ -198,6 +201,7 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	mOutlineShaderProgram.SetUniformBlockBinding("Matrices", uniformMatricesBlockBinding);
 	mEnvironmentMappingShaderProgram.SetUniformBlockBinding("Matrices", uniformMatricesBlockBinding);
 	mLightSourceShaderProgram.SetUniformBlockBinding("Matrices", uniformMatricesBlockBinding);
+	mGBufferShaderProgram.SetUniformBlockBinding("Matrices", uniformMatricesBlockBinding);
 
 	size_t bufferSize = 2 * sizeof(glm::mat4);
 	glGenBuffers(1, &mUBOMatrices);
@@ -228,7 +232,8 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	mDefaultTexture = { defaultDiffuseTextureId, Core::Diffuse };
 
 	int samples = 8;
-	mFrameBuffer.Create(mWindowWidth, mWindowHeight, samples);
+	//mFrameBuffer.Create(mWindowWidth, mWindowHeight, samples);
+	mGFrameBuffer.Create(mWindowWidth, mWindowHeight);
 	//mRearViewFrameBuffer.Create(mWindowWidth, mWindowHeight);
 	mScreenQuad.Create();
 
@@ -289,6 +294,7 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBlendEquation(GL_FUNC_ADD);
+	glDisable(GL_BLEND);
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
@@ -326,45 +332,6 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	//}
 
 	//ASTEROID_MODEL.SetupInstancedDrawing(ASTEROID_TRANSFORMS, ASTEROIDS_NUM, 3);
-
-	//Calculating tangent and bitangent vectors manually for a plane
-	//positions
-	glm::vec3 pos1(-1.0f, 1.0f, 0.0f);
-	glm::vec3 pos2(-1.0f, -1.0f, 0.0f);
-	glm::vec3 pos3(1.0f, -1.0f, 0.0f);
-	glm::vec3 pos4(1.0f, 1.0f, 0.0f);
-	// uv coordinates
-	glm::vec2 uv1(0.0f, 1.0f);
-	glm::vec2 uv2(0.0f, 0.0f);
-	glm::vec2 uv3(1.0f, 0.0f);
-	glm::vec2 uv4(1.0f, 1.0f);
-
-	glm::vec3 normal(0.0f, 0.0f, 1.0f);
-
-	glm::vec3 edge1 = pos2 - pos1;
-	glm::vec3 edge2 = pos3 - pos1;
-	glm::vec2 deltaUV1 = uv2 - uv1;
-	glm::vec2 deltaUV2 = uv3 - uv1;
-
-	glm::vec3 tangent1, bitangent1;
-	float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
-
-	tangent1.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
-	tangent1.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
-	tangent1.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
-	tangent1 = glm::normalize(tangent1);
-
-	bitangent1.x = f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
-	bitangent1.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
-	bitangent1.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
-	bitangent1 = glm::normalize(bitangent1);
-
-	std::cout << std::format(
-		"tangent1=({}, {}, {}); bitangent1=({}, {}, {}); normal=({}, {}, {})\n",
-		tangent1.x, tangent1.y, tangent1.z,
-		bitangent1.x, bitangent1.y, bitangent1.z,
-		normal.x, normal.y, normal.z
-	);
 
 	return true;
 }
@@ -439,19 +406,16 @@ void Graphics::Engine::OnInput()
 void Graphics::Engine::OnRender()
 {
 	//Render to depth map
-	ShadowPass();
+	//ShadowPass();
+
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 	//Drawing scene
 	glViewport(0, 0, mWindowWidth, mWindowHeight);
-	mFrameBuffer.Bind();
-	glStencilMask(0xFF);
-	glClearColor(0.1, 0.1, 0.1, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-	glStencilMask(0x00);
+	mGFrameBuffer.Bind();
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	SetupScene(mCamera.GetViewMatrix(), mCamera.GetProjectionMatrix(mAspectRatio));
-	DrawScene(mBaseShaderProgram);
-	mFrameBuffer.Blit();
-	mFrameBuffer.Unbind();
+	DrawScene(mGBufferShaderProgram);
 
 	////Blurring bright fragments with two-pass Gaussian Blur 
 	//mGaussianBlurShaderProgram.Bind();
@@ -470,17 +434,13 @@ void Graphics::Engine::OnRender()
 	//	isFirstIteration = false;
 	//}
 	//glEnable(GL_DEPTH_TEST);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	//Post processing
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	mFramebufferScreenShaderProgram.Bind();
-	mFramebufferScreenShaderProgram.SetUniformMat4("uModelMat", glm::value_ptr(glm::mat4(1.0f)));
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, mFrameBuffer.GetTextureColorId());
-	//glActiveTexture(GL_TEXTURE1);
-	//glBindTexture(GL_TEXTURE_2D, mPingPongColorBuffers[isHorizontal]);
+	glBindTexture(GL_TEXTURE_2D, mGFrameBuffer.GetPositionTextureId());
 	glDisable(GL_DEPTH_TEST);
 	mScreenQuad.Draw();
 	glEnable(GL_DEPTH_TEST);
@@ -573,9 +533,9 @@ void Graphics::Engine::DrawScene(ShaderProgram& shader)
 
 	glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -3.0f, 0.0));
 	model = glm::scale(model, glm::vec3(12.5f, 0.5f, 12.5f));
-	mBaseShaderProgram.SetUniform1f("uTexTiling", 4.0f);
+	shader.SetUniform1f("uTexTiling", 4.0f);
 	FLOOR_MODEL.Draw(shader, model);
-	mBaseShaderProgram.SetUniform1f("uTexTiling", 1.0f);
+	shader.SetUniform1f("uTexTiling", 1.0f);
 
 	for (const glm::vec3& backpackPos : backpackPositions)
 	{
@@ -590,7 +550,6 @@ void Graphics::Engine::SetupScene(
 	const glm::mat4& projection
 )
 {
-	//static glm::vec3 lightColor(0.0f, 0.5f, 0.7f);
 	static glm::vec3 lightColor(0.9, 0.68, 0.24);
 	static glm::vec3 ambientColor = glm::vec3(0.1f, 0.1f, 0.1f) * lightColor;
 	static glm::vec3 diffuseColor = glm::vec3(0.5f, 0.5f, 0.5f) * lightColor;
@@ -600,7 +559,7 @@ void Graphics::Engine::SetupScene(
 		glm::vec3(0.0f,  0.5f, 1.5f),
 		glm::vec3(-4.0f, 0.5f, -3.0f),
 		glm::vec3(3.0f, 0.5f, 1.0f),
-		glm::vec3(-0.8f, 2.4f, -1.0f)
+		glm::vec3(-1.2f, 0.4f, -1.0f)
 	};
 
 	static glm::vec3 lightColors[4]{
@@ -621,12 +580,10 @@ void Graphics::Engine::SetupScene(
 	mBaseShaderProgram.SetUniformVec3("uViewPos", glm::value_ptr(mCamera.GetWorldPosition()));
 	mBaseShaderProgram.SetUniform1f("uMaterial.shininess", shininess);
 	mBaseShaderProgram.SetUniformVec3("uMaterial.specular", glm::value_ptr(glm::vec3(0.1f)));
-	mBaseShaderProgram.SetUniformVec3("uDirLight.direction", glm::value_ptr(LIGHT_DIRECTION));
-	mBaseShaderProgram.SetUniformVec3("uDirLight.ambient", glm::value_ptr(ambientColor));
-	mBaseShaderProgram.SetUniformVec3("uDirLight.diffuse", glm::value_ptr(diffuseColor));
-	mBaseShaderProgram.SetUniformVec3("uDirLight.specular", glm::value_ptr(specularColor));
-	//mBaseShaderProgram.SetUniform1f("uTexTiling", 1.0f);
-	//mBaseShaderProgram.SetUniformVec2("uTexDisplacement", glm::value_ptr(glm::vec2(0.0f, 0.0f)));
+	//mBaseShaderProgram.SetUniformVec3("uDirLight.direction", glm::value_ptr(LIGHT_DIRECTION));
+	//mBaseShaderProgram.SetUniformVec3("uDirLight.ambient", glm::value_ptr(ambientColor));
+	//mBaseShaderProgram.SetUniformVec3("uDirLight.diffuse", glm::value_ptr(diffuseColor));
+	//mBaseShaderProgram.SetUniformVec3("uDirLight.specular", glm::value_ptr(specularColor));
 
 	mBaseShaderProgram.SetUniform1i("uNumPointLights", 4);
 	for (int i = 0; i < 4; i++)
@@ -645,56 +602,26 @@ void Graphics::Engine::SetupScene(
 		mBaseShaderProgram.SetUniform1f(std::format("uPointLights[{}].farPlane", i), 100.0f);
 	}
 
-	mBaseShaderProgram.SetUniformMat4("uLightSpaceMatrix", glm::value_ptr(DIR_LIGHT_SPACE_MAT));
-	//mBaseShaderProgram.SetUniform1f("uHeightScale", 0.1f);
-	glActiveTexture(GL_TEXTURE0 + 16);
-	glBindTexture(GL_TEXTURE_2D, mDirectionalDepthMap.GetTextureColorId());
-	glActiveTexture(GL_TEXTURE0 + 17);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, mPointDepthMap.GetTextureColorId());
+	//glActiveTexture(GL_TEXTURE0 + 16);
+	//glBindTexture(GL_TEXTURE_2D, mDirectionalDepthMap.GetTextureColorId());
+	//glActiveTexture(GL_TEXTURE0 + 17);
+	//glBindTexture(GL_TEXTURE_CUBE_MAP, mPointDepthMap.GetTextureColorId());
 
-	//mBaseInstancedShaderProgram.Bind();
-	//mBaseInstancedShaderProgram.SetUniformVec3("uViewPos", glm::value_ptr(mCamera.GetWorldPosition()));
-	//mBaseInstancedShaderProgram.SetUniform1f("uMaterial.shininess", shininess);
-	//mBaseInstancedShaderProgram.SetUniformVec3("uDirLight.direction", glm::value_ptr(LIGHT_DIRECTION));
-	//mBaseInstancedShaderProgram.SetUniformVec3("uDirLight.ambient", glm::value_ptr(ambientColor));
-	//mBaseInstancedShaderProgram.SetUniformVec3("uDirLight.diffuse", glm::value_ptr(diffuseColor));
-	//mBaseInstancedShaderProgram.SetUniformVec3("uDirLight.specular", glm::value_ptr(specularColor));
+	mGBufferShaderProgram.Bind();
+	mGBufferShaderProgram.SetUniformVec3("uViewPos", glm::value_ptr(mCamera.GetWorldPosition()));
+	mGBufferShaderProgram.SetUniform1f("uMaterial.shininess", shininess);
+	mGBufferShaderProgram.SetUniformVec3("uMaterial.specular", glm::value_ptr(glm::vec3(0.1f)));
 
-	//mOutlineShaderProgram.Bind();
-	//mOutlineShaderProgram.SetUniformVec3("uOutlineColor", 1, 0, 1);
-
-	mNormalsVisualizationShaderProgram.Bind();
-	mNormalsVisualizationShaderProgram.SetUniformMat4("uView", glm::value_ptr(view));
-	mNormalsVisualizationShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(projection));
-
-	//mEnvironmentMappingShaderProgram.Bind();
-	//mEnvironmentMappingShaderProgram.SetUniformVec3("uViewPos", glm::value_ptr(mCamera.GetWorldPosition()));
-	//mCubemap.BindTexture(0);
-
-	//mBaseShaderProgram.Bind();
-	//glm::mat4 marsModelMat(1.0f);
-	//marsModelMat = glm::translate(marsModelMat, pointLightPos);
-	//marsModelMat = glm::rotate(marsModelMat, glm::radians((float)glfwGetTime()) * 5.0f, glm::vec3(0.0f, 0.5f, 1.0f));
-	//marsModelMat = glm::scale(marsModelMat, glm::vec3(0.2f));
-	//MARS_MODEL.Draw(mBaseShaderProgram, marsModelMat);
-
-	//mBaseInstancedShaderProgram.Bind();
-	//ASTEROID_MODEL.DrawInstanced(mBaseInstancedShaderProgram, ASTEROIDS_NUM);
-
-	//glm::mat4 lightSourceMat(1.0f);
-	//lightSourceMat = glm::translate(lightSourceMat, DIR_LIGHT_POS);
-	//lightSourceMat = glm::scale(lightSourceMat, glm::vec3(0.4f));
-	//SPHERE_MODEL.Draw(mLightSourceShaderProgram, lightSourceMat);
-
-	mLightSourceShaderProgram.Bind();
-	for (int i = 0; i < 4; i++)
-	{
-		mLightSourceShaderProgram.SetUniformVec3("uLightColor", glm::value_ptr(lightColors[i]));
-		glm::mat4 lightSourceMat = glm::mat4(1.0f);
-		lightSourceMat = glm::translate(lightSourceMat, lightPositions[i]);
-		lightSourceMat = glm::scale(lightSourceMat, glm::vec3(0.3f));
-		SPHERE_MODEL.Draw(mLightSourceShaderProgram, lightSourceMat);
-	}
+	// draw light spheres
+	//mLightSourceShaderProgram.Bind();
+	//for (int i = 0; i < 4; i++)
+	//{
+	//	mLightSourceShaderProgram.SetUniformVec3("uLightColor", glm::value_ptr(lightColors[i]));
+	//	glm::mat4 lightSourceMat = glm::mat4(1.0f);
+	//	lightSourceMat = glm::translate(lightSourceMat, lightPositions[i]);
+	//	lightSourceMat = glm::scale(lightSourceMat, glm::vec3(0.15f));
+	//	SPHERE_MODEL.Draw(mLightSourceShaderProgram, lightSourceMat);
+	//}
 
 	//mSkyboxShaderProgram.Bind();
 	//mSkyboxShaderProgram.SetUniformMat4("uView", glm::value_ptr(glm::mat4(glm::mat3(view))));

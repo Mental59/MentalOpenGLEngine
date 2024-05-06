@@ -12,6 +12,7 @@
 #include "Primitives/ScreenQuad.h"
 #include "CubeMap.h"
 #include "DepthMap.h"
+#include "GFrameBuffer.h"
 
 struct GLFWwindow;
 
@@ -78,9 +79,12 @@ namespace Graphics
 		ShaderProgram mDirectionalShadowMappingShaderProgram;
 		ShaderProgram mPointShadowMappingShaderProgram;
 		ShaderProgram mGaussianBlurShaderProgram;
+		ShaderProgram mGBufferShaderProgram;
 
 		FrameBuffer mFrameBuffer;
 		FrameBuffer mRearViewFrameBuffer;
+		GFrameBuffer mGFrameBuffer;
+
 		ScreenQuad mScreenQuad;
 		CubeMap mCubemap;
 		DepthMap mDirectionalDepthMap;
