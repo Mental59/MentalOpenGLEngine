@@ -198,6 +198,8 @@
     <None Include="src\Shaders\framebufferScreen.frag" />
     <None Include="src\Shaders\framebufferScreen.vert" />
     <None Include="src\Shaders\gaussianBlur.vert" />
+    <None Include="src\Shaders\gBuffer.frag" />
+    <None Include="src\Shaders\gBuffer.vert" />
     <None Include="src\Shaders\multipleLights.frag" />
     <None Include="src\Shaders\directionalLight.frag" />
     <None Include="src\Shaders\lightSource.frag" />

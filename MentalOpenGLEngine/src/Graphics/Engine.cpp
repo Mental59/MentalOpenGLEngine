@@ -22,6 +22,7 @@ Model CUBE_MODEL;
 Model FLOOR_MODEL;
 Model NANOSUIT_MODEL;
 Model SPONZA_MODEL;
+Model BACKPACK_MODEL(true);
 
 glm::vec3 LIGHT_DIRECTION = glm::vec3(2.0f, -4.0f, 1.0f);
 glm::mat4 DIR_LIGHT_SPACE_MAT;
@@ -266,6 +267,7 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	FLOOR_MODEL.Load("resources/objects/cube/cube.obj");
 
 	NANOSUIT_MODEL.Load("resources/objects/nanosuit/nanosuit.obj");
+	BACKPACK_MODEL.Load("resources/objects/backpack/backpack.obj");
 
 	//SPONZA_MODEL.Load("resources/objects/sponza/sponza.obj");
 
@@ -448,27 +450,26 @@ void Graphics::Engine::OnRender()
 	glStencilMask(0x00);
 	SetupScene(mCamera.GetViewMatrix(), mCamera.GetProjectionMatrix(mAspectRatio));
 	DrawScene(mBaseShaderProgram);
-	//DrawScene(mNormalsVisualizationShaderProgram);
 	mFrameBuffer.Blit();
 	mFrameBuffer.Unbind();
 
-	//Blurring bright fragments with two-pass Gaussian Blur 
-	mGaussianBlurShaderProgram.Bind();
-	mGaussianBlurShaderProgram.SetUniformVec2("uSampleDistance", glm::value_ptr(glm::vec2(2.0f, 2.0f)));
-	bool isHorizontal = true, isFirstIteration = true;
-	unsigned int numPasses = 5;
-	glDisable(GL_DEPTH_TEST);
-	for (unsigned int i = 0; i < numPasses * 2; i++)
-	{
-		mGaussianBlurShaderProgram.SetUniform1i("uHorizontal", isHorizontal);
-		glBindFramebuffer(GL_FRAMEBUFFER, mPingPongFrameBuffers[isHorizontal]);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, isFirstIteration ? mFrameBuffer.GetBrightTextureColorId() : mPingPongColorBuffers[!isHorizontal]);
-		mScreenQuad.Draw();
-		isHorizontal = !isHorizontal;
-		isFirstIteration = false;
-	}
-	glEnable(GL_DEPTH_TEST);
+	////Blurring bright fragments with two-pass Gaussian Blur 
+	//mGaussianBlurShaderProgram.Bind();
+	//mGaussianBlurShaderProgram.SetUniformVec2("uSampleDistance", glm::value_ptr(glm::vec2(2.0f, 2.0f)));
+	//bool isHorizontal = true, isFirstIteration = true;
+	//unsigned int numPasses = 5;
+	//glDisable(GL_DEPTH_TEST);
+	//for (unsigned int i = 0; i < numPasses * 2; i++)
+	//{
+	//	mGaussianBlurShaderProgram.SetUniform1i("uHorizontal", isHorizontal);
+	//	glBindFramebuffer(GL_FRAMEBUFFER, mPingPongFrameBuffers[isHorizontal]);
+	//	glActiveTexture(GL_TEXTURE0);
+	//	glBindTexture(GL_TEXTURE_2D, isFirstIteration ? mFrameBuffer.GetBrightTextureColorId() : mPingPongColorBuffers[!isHorizontal]);
+	//	mScreenQuad.Draw();
+	//	isHorizontal = !isHorizontal;
+	//	isFirstIteration = false;
+	//}
+	//glEnable(GL_DEPTH_TEST);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	//Post processing
@@ -478,8 +479,8 @@ void Graphics::Engine::OnRender()
 	mFramebufferScreenShaderProgram.SetUniformMat4("uModelMat", glm::value_ptr(glm::mat4(1.0f)));
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, mFrameBuffer.GetTextureColorId());
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, mPingPongColorBuffers[isHorizontal]);
+	//glActiveTexture(GL_TEXTURE1);
+	//glBindTexture(GL_TEXTURE_2D, mPingPongColorBuffers[isHorizontal]);
 	glDisable(GL_DEPTH_TEST);
 	mScreenQuad.Draw();
 	glEnable(GL_DEPTH_TEST);
@@ -538,43 +539,50 @@ void Graphics::Engine::DrawScene(ShaderProgram& shader)
 {
 	shader.Bind();
 
-	glm::mat4 model(1.0f);
-	model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0));
+	static constinit glm::vec3 backpackPositions[]{
+		glm::vec3(-3.0, -0.5, -3.0),
+		glm::vec3(0.0, -0.5, -3.0),
+		glm::vec3(3.0, -0.5, -3.0),
+		glm::vec3(-6.0, -0.5, -3.0),
+		glm::vec3(6.0, -0.5, -3.0),
+
+		glm::vec3(-3.0, -0.5, 0.0),
+		glm::vec3(0.0, -0.5, 0.0),
+		glm::vec3(3.0, -0.5, 0.0),
+		glm::vec3(-6.0, -0.5, 0.0),
+		glm::vec3(6.0, -0.5, 0.0),
+
+		glm::vec3(-3.0, -0.5, 3.0),
+		glm::vec3(0.0, -0.5, 3.0),
+		glm::vec3(3.0, -0.5, 3.0),
+		glm::vec3(-6.0, -0.5, 3.0),
+		glm::vec3(6.0, -0.5, 3.0),
+
+		glm::vec3(-3.0, -0.5, -6.0),
+		glm::vec3(0.0, -0.5, -6.0),
+		glm::vec3(3.0, -0.5, -6.0),
+		glm::vec3(-6.0, -0.5, -6.0),
+		glm::vec3(6.0, -0.5, -6.0),
+
+		glm::vec3(-3.0, -0.5, 6.0),
+		glm::vec3(0.0, -0.5, 6.0),
+		glm::vec3(3.0, -0.5, 6.0),
+		glm::vec3(-6.0, -0.5, 6.0),
+		glm::vec3(6.0, -0.5, 6.0),
+	};
+
+	glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -3.0f, 0.0));
 	model = glm::scale(model, glm::vec3(12.5f, 0.5f, 12.5f));
 	mBaseShaderProgram.SetUniform1f("uTexTiling", 4.0f);
 	FLOOR_MODEL.Draw(shader, model);
 	mBaseShaderProgram.SetUniform1f("uTexTiling", 1.0f);
 
-	model = glm::mat4(1.0f);
-	model = glm::translate(model, glm::vec3(0.0f, 1.5f, 0.0));
-	model = glm::scale(model, glm::vec3(0.5f));
-	CUBE_MODEL.Draw(shader, model);
-
-	model = glm::mat4(1.0f);
-	model = glm::translate(model, glm::vec3(2.0f, 0.0f, 1.0));
-	model = glm::scale(model, glm::vec3(0.5f));
-	CUBE_MODEL.Draw(shader, model);
-
-	model = glm::mat4(1.0f);
-	model = glm::translate(model, glm::vec3(-1.0f, -1.0f, 2.0));
-	model = glm::rotate(model, glm::radians(60.0f), glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
-	CUBE_MODEL.Draw(shader, model);
-
-	model = glm::mat4(1.0f);
-	model = glm::translate(model, glm::vec3(0.0f, 2.7f, 4.0));
-	model = glm::rotate(model, glm::radians(23.0f), glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
-	model = glm::scale(model, glm::vec3(1.25));
-	CUBE_MODEL.Draw(shader, model);
-
-	model = glm::mat4(1.0f);
-	model = glm::translate(model, glm::vec3(-2.0f, 1.0f, -3.0));
-	model = glm::rotate(model, glm::radians(124.0f), glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
-	CUBE_MODEL.Draw(shader, model);
-
-	model = glm::mat4(1.0f);
-	model = glm::translate(model, glm::vec3(-3.0f, 0.0f, 0.0));
-	model = glm::scale(model, glm::vec3(0.5f));
-	CUBE_MODEL.Draw(shader, model);
+	for (const glm::vec3& backpackPos : backpackPositions)
+	{
+		model = glm::translate(glm::mat4(1.0f), backpackPos);
+		model = glm::scale(model, glm::vec3(0.5f));
+		BACKPACK_MODEL.Draw(shader, model);
+	}
 }
 
 void Graphics::Engine::SetupScene(
@@ -625,7 +633,7 @@ void Graphics::Engine::SetupScene(
 	{
 		glm::vec3 ambientColor = glm::vec3(0.025f) * lightColors[i];
 		glm::vec3 diffuseColor = glm::vec3(1.0f) * lightColors[i];
-		glm::vec3 specularColor = glm::vec3(20.0f) * lightColors[i];
+		glm::vec3 specularColor = glm::vec3(1.0f) * lightColors[i];
 
 		mBaseShaderProgram.SetUniformVec3(std::format("uPointLights[{}].position", i), glm::value_ptr(lightPositions[i]));
 		mBaseShaderProgram.SetUniformVec3(std::format("uPointLights[{}].ambient", i), glm::value_ptr(ambientColor));
