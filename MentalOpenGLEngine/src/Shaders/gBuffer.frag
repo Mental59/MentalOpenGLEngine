@@ -19,7 +19,6 @@ struct Material
 	sampler2D normalTexture1;
 	sampler2D heightTexture1;
 
-	float shininess;
 	vec3 specular;
 
 	bool useNormalTexture;

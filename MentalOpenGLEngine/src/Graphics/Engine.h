@@ -79,7 +79,9 @@ namespace Graphics
 		ShaderProgram mDirectionalShadowMappingShaderProgram;
 		ShaderProgram mPointShadowMappingShaderProgram;
 		ShaderProgram mGaussianBlurShaderProgram;
+
 		ShaderProgram mGBufferShaderProgram;
+		ShaderProgram mDeferredShaderProgram;
 
 		FrameBuffer mFrameBuffer;
 		FrameBuffer mRearViewFrameBuffer;

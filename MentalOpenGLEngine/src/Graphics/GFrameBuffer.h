@@ -9,6 +9,7 @@ public:
 	inline unsigned int GetAlbedoSpecularTextureId() const { return mAlbedoSpecularTextureId; }
 	inline unsigned int GetNormalTextureId() const { return mNormalTextureId; }
 	inline unsigned int GetPositionTextureId() const { return mPositionTextureId; }
+	inline unsigned int GetFrameBufferId() const { return mFramebufferId; }
 
 	void Bind();
 	void Unbind();

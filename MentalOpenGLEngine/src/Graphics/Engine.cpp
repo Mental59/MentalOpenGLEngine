@@ -24,10 +24,23 @@ Model NANOSUIT_MODEL;
 Model SPONZA_MODEL;
 Model BACKPACK_MODEL(true);
 
-glm::vec3 LIGHT_DIRECTION = glm::vec3(2.0f, -4.0f, 1.0f);
+glm::vec3 LIGHT_DIRECTION = glm::normalize(glm::vec3(1.0f, -0.5f, 1.0f));
 glm::mat4 DIR_LIGHT_SPACE_MAT;
 glm::vec3 DIR_LIGHT_POS;
-glm::vec3 POINT_LIGHT_POS(0.0f, 0.0f, 4.0f);
+
+glm::vec3 POINT_LIGHT_POSITIONS[4]{
+		glm::vec3(0.0f, 0.5f, 1.5f),
+		glm::vec3(-4.0f, 0.5f, -3.0f),
+		glm::vec3(3.0f, 0.5f, 1.0f),
+		glm::vec3(-1.2f, 0.4f, -1.0f)
+};
+
+glm::vec3 POINT_LIGHT_COLORS[4]{
+	glm::vec3(5.0f, 5.0f, 5.0f),
+	glm::vec3(10.0f, 0.0f, 0.0f),
+	glm::vec3(0.0f, 0.0f, 15.0f),
+	glm::vec3(0.0f, 5.0f, 0.0f)
+};
 
 //constexpr int ASTEROIDS_NUM = 100000;
 //glm::mat4 ASTEROID_TRANSFORMS[ASTEROIDS_NUM];
@@ -163,6 +176,9 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	Shader gBufferVertShader("src/Shaders/gBuffer.vert", Shader::Vertex);
 	Shader gBufferFragShader("src/Shaders/gBuffer.frag", Shader::Fragment);
 
+	Shader deferredVertShader("src/Shaders/deferred.vert", Shader::Vertex);
+	Shader deferredFragShader("src/Shaders/deferred.frag", Shader::Fragment);
+
 	mBaseShaderProgram.Build({ baseVertexShader, baseFragmentShader });
 	//mBaseInstancedShaderProgram.Build({ baseInstancedVertexShader, baseFragmentShader });
 	mOutlineShaderProgram.Build({ baseVertexShader, outlineFragmentShader });
@@ -175,6 +191,7 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	mPointShadowMappingShaderProgram.Build({ pointShadowMappingVertShader, pointShadowMappingFragShader, pointShadowMappingGeomShader });
 	mGaussianBlurShaderProgram.Build({ gaussianBlurVertShader, gaussianBlurFragShader });
 	mGBufferShaderProgram.Build({ gBufferVertShader, gBufferFragShader });
+	mDeferredShaderProgram.Build({ deferredVertShader,deferredFragShader });
 
 	// Setting texture units
 	mFramebufferScreenShaderProgram.Bind();
@@ -193,6 +210,13 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	mGaussianBlurShaderProgram.Bind();
 	mGaussianBlurShaderProgram.SetUniform1i("uImage", 0);
 	mGaussianBlurShaderProgram.Unbind();
+	mDeferredShaderProgram.Bind();
+	mDeferredShaderProgram.SetUniform1i("gPosition", 0);
+	mDeferredShaderProgram.SetUniform1i("gNormal", 1);
+	mDeferredShaderProgram.SetUniform1i("gAlbedoSpec", 2);
+	mDeferredShaderProgram.SetUniform1i("uDirLights[0].shadowMap", 3);
+	mDeferredShaderProgram.SetUniform1i("uNumPointLights[0].shadowCubeMap", 4);
+	mDeferredShaderProgram.Unbind();
 
 	//Setting uniform block bindings
 	unsigned int uniformMatricesBlockBinding = 0;
@@ -210,8 +234,8 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	glBindBufferRange(GL_UNIFORM_BUFFER, uniformMatricesBlockBinding, mUBOMatrices, 0, bufferSize);
 
-	mDirectionalDepthMap.Build(1024, 1024, DepthMap::Directional);
-	mPointDepthMap.Build(1024, 1024, DepthMap::Point);
+	mDirectionalDepthMap.Build(2048, 2048, DepthMap::Directional);
+	mPointDepthMap.Build(2048, 2048, DepthMap::Point);
 
 	//constexpr unsigned int uniformsNum = 6;
 	//const char* uniformNames[uniformsNum]{
@@ -266,9 +290,9 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	CUBE_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/container2_specular.png"), Core::Specular });
 	CUBE_MODEL.Load("resources/objects/cube/cube.obj");
 
-	FLOOR_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/wood.png", false, true), Core::Diffuse });
-	//FLOOR_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/bricks2_normal.jpg", false, false), Core::Normal });
-	//FLOOR_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/bricks2_disp.jpg", false, false), Core::Height });
+	FLOOR_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/bricks2.jpg", false, true), Core::Diffuse });
+	FLOOR_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/bricks2_normal.jpg", false, false), Core::Normal });
+	FLOOR_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/bricks2_disp.jpg", false, false), Core::Height });
 	FLOOR_MODEL.Load("resources/objects/cube/cube.obj");
 
 	NANOSUIT_MODEL.Load("resources/objects/nanosuit/nanosuit.obj");
@@ -406,7 +430,7 @@ void Graphics::Engine::OnInput()
 void Graphics::Engine::OnRender()
 {
 	//Render to depth map
-	//ShadowPass();
+	ShadowPass();
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glViewport(0, 0, mWindowWidth, mWindowHeight);
@@ -415,7 +439,9 @@ void Graphics::Engine::OnRender()
 	mGFrameBuffer.Bind();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	SetupScene(mCamera.GetViewMatrix(), mCamera.GetProjectionMatrix(mAspectRatio));
+	// geometry pass
 	DrawScene(mGBufferShaderProgram);
+
 
 	////Blurring bright fragments with two-pass Gaussian Blur 
 	//mGaussianBlurShaderProgram.Bind();
@@ -435,15 +461,41 @@ void Graphics::Engine::OnRender()
 	//}
 	//glEnable(GL_DEPTH_TEST);
 
-	//Post processing
+
+	//Deferred calculations
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	mFramebufferScreenShaderProgram.Bind();
+	mDeferredShaderProgram.Bind();
+
 	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, mGFrameBuffer.GetPositionTextureId());
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, mGFrameBuffer.GetNormalTextureId());
+	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, mGFrameBuffer.GetAlbedoSpecularTextureId());
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, mDirectionalDepthMap.GetTextureColorId());
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_2D, mPointDepthMap.GetTextureColorId());
+
 	glDisable(GL_DEPTH_TEST);
 	mScreenQuad.Draw();
 	glEnable(GL_DEPTH_TEST);
+
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, mGFrameBuffer.GetFrameBufferId());
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	glBlitFramebuffer(0, 0, mWindowWidth, mWindowHeight, 0, 0, mWindowWidth, mWindowHeight, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	mLightSourceShaderProgram.Bind();
+	for (int i = 0; i < 4; i++)
+	{
+		mLightSourceShaderProgram.SetUniformVec3("uLightColor", glm::value_ptr(POINT_LIGHT_COLORS[i]));
+		glm::mat4 lightSourceMat = glm::mat4(1.0f);
+		lightSourceMat = glm::translate(lightSourceMat, POINT_LIGHT_POSITIONS[i]);
+		lightSourceMat = glm::scale(lightSourceMat, glm::vec3(0.15f));
+		SPHERE_MODEL.Draw(mLightSourceShaderProgram, lightSourceMat);
+	}
 
 	glfwSwapBuffers(mWindow);
 }
@@ -453,7 +505,7 @@ void Graphics::Engine::ShadowPass()
 	float nearPlane = 0.1f, farPlane = 100.0f;
 
 	glm::mat4 dirLightProjection = glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, nearPlane, farPlane);
-	DIR_LIGHT_POS = -LIGHT_DIRECTION * 3.0f;
+	DIR_LIGHT_POS = -LIGHT_DIRECTION * 30.0f;
 	glm::mat4 dirLightView = glm::lookAt(
 		DIR_LIGHT_POS,
 		glm::vec3(0.0f, 0.0f, 0.0f),
@@ -464,12 +516,12 @@ void Graphics::Engine::ShadowPass()
 	float shadowAspect = static_cast<float>(mPointDepthMap.GetWidth()) / static_cast<float>(mPointDepthMap.GetHeight());
 	glm::mat4 pointLightProjection = glm::perspective(glm::radians(90.0f), shadowAspect, nearPlane, farPlane);
 	glm::mat4 pointShadowTransforms[6];
-	pointShadowTransforms[0] = pointLightProjection * glm::lookAt(POINT_LIGHT_POS, POINT_LIGHT_POS + glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)); // right
-	pointShadowTransforms[1] = pointLightProjection * glm::lookAt(POINT_LIGHT_POS, POINT_LIGHT_POS + glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)); // left
-	pointShadowTransforms[2] = pointLightProjection * glm::lookAt(POINT_LIGHT_POS, POINT_LIGHT_POS + glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)); // top
-	pointShadowTransforms[3] = pointLightProjection * glm::lookAt(POINT_LIGHT_POS, POINT_LIGHT_POS + glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)); // bottom
-	pointShadowTransforms[4] = pointLightProjection * glm::lookAt(POINT_LIGHT_POS, POINT_LIGHT_POS + glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)); // back
-	pointShadowTransforms[5] = pointLightProjection * glm::lookAt(POINT_LIGHT_POS, POINT_LIGHT_POS + glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f)); // forward
+	pointShadowTransforms[0] = pointLightProjection * glm::lookAt(POINT_LIGHT_POSITIONS[0], POINT_LIGHT_POSITIONS[0] + glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)); // right
+	pointShadowTransforms[1] = pointLightProjection * glm::lookAt(POINT_LIGHT_POSITIONS[0], POINT_LIGHT_POSITIONS[0] + glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)); // left
+	pointShadowTransforms[2] = pointLightProjection * glm::lookAt(POINT_LIGHT_POSITIONS[0], POINT_LIGHT_POSITIONS[0] + glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)); // top
+	pointShadowTransforms[3] = pointLightProjection * glm::lookAt(POINT_LIGHT_POSITIONS[0], POINT_LIGHT_POSITIONS[0] + glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)); // bottom
+	pointShadowTransforms[4] = pointLightProjection * glm::lookAt(POINT_LIGHT_POSITIONS[0], POINT_LIGHT_POSITIONS[0] + glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)); // back
+	pointShadowTransforms[5] = pointLightProjection * glm::lookAt(POINT_LIGHT_POSITIONS[0], POINT_LIGHT_POSITIONS[0] + glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f)); // forward
 
 	mDirectionalShadowMappingShaderProgram.Bind();
 	mDirectionalShadowMappingShaderProgram.SetUniformMat4("uLightSpaceMatrix", glm::value_ptr(DIR_LIGHT_SPACE_MAT));
@@ -481,7 +533,7 @@ void Graphics::Engine::ShadowPass()
 			std::format("uShadowMatrices[{}]", i), glm::value_ptr(pointShadowTransforms[i])
 		);
 	}
-	mPointShadowMappingShaderProgram.SetUniformVec3("uLightPos", glm::value_ptr(POINT_LIGHT_POS));
+	mPointShadowMappingShaderProgram.SetUniformVec3("uLightPos", glm::value_ptr(POINT_LIGHT_POSITIONS[0]));
 	mPointShadowMappingShaderProgram.SetUniform1f("uFarPlane", farPlane);
 
 	glViewport(0, 0, mDirectionalDepthMap.GetWidth(), mDirectionalDepthMap.GetHeight());
@@ -555,20 +607,6 @@ void Graphics::Engine::SetupScene(
 	static glm::vec3 diffuseColor = glm::vec3(0.5f, 0.5f, 0.5f) * lightColor;
 	static glm::vec3 specularColor = glm::vec3(1.0f, 1.0f, 1.0f) * lightColor;
 
-	static glm::vec3 lightPositions[4]{
-		glm::vec3(0.0f,  0.5f, 1.5f),
-		glm::vec3(-4.0f, 0.5f, -3.0f),
-		glm::vec3(3.0f, 0.5f, 1.0f),
-		glm::vec3(-1.2f, 0.4f, -1.0f)
-	};
-
-	static glm::vec3 lightColors[4]{
-		glm::vec3(5.0f, 5.0f, 5.0f),
-		glm::vec3(10.0f, 0.0f, 0.0f),
-		glm::vec3(0.0f, 0.0f, 15.0f),
-		glm::vec3(0.0f, 5.0f, 0.0f)
-	};
-
 	static float shininess = 256.0f;
 
 	glBindBuffer(GL_UNIFORM_BUFFER, mUBOMatrices);
@@ -576,52 +614,37 @@ void Graphics::Engine::SetupScene(
 	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projection));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-	mBaseShaderProgram.Bind();
-	mBaseShaderProgram.SetUniformVec3("uViewPos", glm::value_ptr(mCamera.GetWorldPosition()));
-	mBaseShaderProgram.SetUniform1f("uMaterial.shininess", shininess);
-	mBaseShaderProgram.SetUniformVec3("uMaterial.specular", glm::value_ptr(glm::vec3(0.1f)));
-	//mBaseShaderProgram.SetUniformVec3("uDirLight.direction", glm::value_ptr(LIGHT_DIRECTION));
-	//mBaseShaderProgram.SetUniformVec3("uDirLight.ambient", glm::value_ptr(ambientColor));
-	//mBaseShaderProgram.SetUniformVec3("uDirLight.diffuse", glm::value_ptr(diffuseColor));
-	//mBaseShaderProgram.SetUniformVec3("uDirLight.specular", glm::value_ptr(specularColor));
-
-	mBaseShaderProgram.SetUniform1i("uNumPointLights", 4);
-	for (int i = 0; i < 4; i++)
-	{
-		glm::vec3 ambientColor = glm::vec3(0.025f) * lightColors[i];
-		glm::vec3 diffuseColor = glm::vec3(1.0f) * lightColors[i];
-		glm::vec3 specularColor = glm::vec3(1.0f) * lightColors[i];
-
-		mBaseShaderProgram.SetUniformVec3(std::format("uPointLights[{}].position", i), glm::value_ptr(lightPositions[i]));
-		mBaseShaderProgram.SetUniformVec3(std::format("uPointLights[{}].ambient", i), glm::value_ptr(ambientColor));
-		mBaseShaderProgram.SetUniformVec3(std::format("uPointLights[{}].diffuse", i), glm::value_ptr(diffuseColor));
-		mBaseShaderProgram.SetUniformVec3(std::format("uPointLights[{}].specular", i), glm::value_ptr(specularColor));
-		mBaseShaderProgram.SetUniform1f(std::format("uPointLights[{}].constant", i), 1.0f);
-		mBaseShaderProgram.SetUniform1f(std::format("uPointLights[{}].linear", i), 0.7f);
-		mBaseShaderProgram.SetUniform1f(std::format("uPointLights[{}].quadratic", i), 1.8f);
-		mBaseShaderProgram.SetUniform1f(std::format("uPointLights[{}].farPlane", i), 100.0f);
-	}
-
-	//glActiveTexture(GL_TEXTURE0 + 16);
-	//glBindTexture(GL_TEXTURE_2D, mDirectionalDepthMap.GetTextureColorId());
-	//glActiveTexture(GL_TEXTURE0 + 17);
-	//glBindTexture(GL_TEXTURE_CUBE_MAP, mPointDepthMap.GetTextureColorId());
-
 	mGBufferShaderProgram.Bind();
 	mGBufferShaderProgram.SetUniformVec3("uViewPos", glm::value_ptr(mCamera.GetWorldPosition()));
-	mGBufferShaderProgram.SetUniform1f("uMaterial.shininess", shininess);
 	mGBufferShaderProgram.SetUniformVec3("uMaterial.specular", glm::value_ptr(glm::vec3(0.1f)));
 
-	// draw light spheres
-	//mLightSourceShaderProgram.Bind();
-	//for (int i = 0; i < 4; i++)
-	//{
-	//	mLightSourceShaderProgram.SetUniformVec3("uLightColor", glm::value_ptr(lightColors[i]));
-	//	glm::mat4 lightSourceMat = glm::mat4(1.0f);
-	//	lightSourceMat = glm::translate(lightSourceMat, lightPositions[i]);
-	//	lightSourceMat = glm::scale(lightSourceMat, glm::vec3(0.15f));
-	//	SPHERE_MODEL.Draw(mLightSourceShaderProgram, lightSourceMat);
-	//}
+	mDeferredShaderProgram.Bind();
+	mDeferredShaderProgram.SetUniformVec3("uViewPos", glm::value_ptr(mCamera.GetWorldPosition()));
+	mDeferredShaderProgram.SetUniform1f("uMaterial.shininess", shininess);
+
+	mDeferredShaderProgram.SetUniform1i("uNumDirLights", 1);
+	mDeferredShaderProgram.SetUniformMat4("uDirLights[0].lightSpaceMat", glm::value_ptr(DIR_LIGHT_SPACE_MAT));
+	mDeferredShaderProgram.SetUniformVec3("uDirLights[0].direction", glm::value_ptr(LIGHT_DIRECTION));
+	mDeferredShaderProgram.SetUniformVec3("uDirLights[0].ambient", glm::value_ptr(ambientColor));
+	mDeferredShaderProgram.SetUniformVec3("uDirLights[0].diffuse", glm::value_ptr(diffuseColor));
+	mDeferredShaderProgram.SetUniformVec3("uDirLights[0].specular", glm::value_ptr(specularColor));
+
+	mDeferredShaderProgram.SetUniform1i("uNumPointLights", 4);
+	for (int i = 0; i < 4; i++)
+	{
+		glm::vec3 ambientColor = glm::vec3(0.025f) * POINT_LIGHT_COLORS[i];
+		glm::vec3 diffuseColor = glm::vec3(1.0f) * POINT_LIGHT_COLORS[i];
+		glm::vec3 specularColor = glm::vec3(1.0f) * POINT_LIGHT_COLORS[i];
+
+		mDeferredShaderProgram.SetUniformVec3(std::format("uPointLights[{}].position", i), glm::value_ptr(POINT_LIGHT_POSITIONS[i]));
+		mDeferredShaderProgram.SetUniformVec3(std::format("uPointLights[{}].ambient", i), glm::value_ptr(ambientColor));
+		mDeferredShaderProgram.SetUniformVec3(std::format("uPointLights[{}].diffuse", i), glm::value_ptr(diffuseColor));
+		mDeferredShaderProgram.SetUniformVec3(std::format("uPointLights[{}].specular", i), glm::value_ptr(specularColor));
+		mDeferredShaderProgram.SetUniform1f(std::format("uPointLights[{}].constant", i), 1.0f);
+		mDeferredShaderProgram.SetUniform1f(std::format("uPointLights[{}].linear", i), 0.7f);
+		mDeferredShaderProgram.SetUniform1f(std::format("uPointLights[{}].quadratic", i), 1.8f);
+		mDeferredShaderProgram.SetUniform1f(std::format("uPointLights[{}].farPlane", i), 100.0f);
+	}
 
 	//mSkyboxShaderProgram.Bind();
 	//mSkyboxShaderProgram.SetUniformMat4("uView", glm::value_ptr(glm::mat4(glm::mat3(view))));
