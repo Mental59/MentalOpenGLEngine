@@ -482,6 +482,7 @@ void Graphics::Engine::OnRender()
 	mScreenQuad.Draw();
 	glEnable(GL_DEPTH_TEST);
 
+	// forward pass
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, mGFrameBuffer.GetFrameBufferId());
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	glBlitFramebuffer(0, 0, mWindowWidth, mWindowHeight, 0, 0, mWindowWidth, mWindowHeight, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
@@ -636,13 +637,20 @@ void Graphics::Engine::SetupScene(
 		glm::vec3 diffuseColor = glm::vec3(1.0f) * POINT_LIGHT_COLORS[i];
 		glm::vec3 specularColor = glm::vec3(1.0f) * POINT_LIGHT_COLORS[i];
 
+		float constant = 1.0f;
+		float linear = 0.7f;
+		float quadratic = 1.8f;
+		float lightMax = std::fmaxf(std::fmaxf(lightColor.r, lightColor.g), lightColor.b);
+		float radius = (-linear + std::sqrtf(linear * linear - 4 * quadratic * (constant - (256.0 / 5.0) * lightMax))) / (2 * quadratic);
+
 		mDeferredShaderProgram.SetUniformVec3(std::format("uPointLights[{}].position", i), glm::value_ptr(POINT_LIGHT_POSITIONS[i]));
 		mDeferredShaderProgram.SetUniformVec3(std::format("uPointLights[{}].ambient", i), glm::value_ptr(ambientColor));
 		mDeferredShaderProgram.SetUniformVec3(std::format("uPointLights[{}].diffuse", i), glm::value_ptr(diffuseColor));
 		mDeferredShaderProgram.SetUniformVec3(std::format("uPointLights[{}].specular", i), glm::value_ptr(specularColor));
-		mDeferredShaderProgram.SetUniform1f(std::format("uPointLights[{}].constant", i), 1.0f);
-		mDeferredShaderProgram.SetUniform1f(std::format("uPointLights[{}].linear", i), 0.7f);
-		mDeferredShaderProgram.SetUniform1f(std::format("uPointLights[{}].quadratic", i), 1.8f);
+		mDeferredShaderProgram.SetUniform1f(std::format("uPointLights[{}].constant", i), constant);
+		mDeferredShaderProgram.SetUniform1f(std::format("uPointLights[{}].linear", i), linear);
+		mDeferredShaderProgram.SetUniform1f(std::format("uPointLights[{}].quadratic", i), quadratic);
+		mDeferredShaderProgram.SetUniform1f(std::format("uPointLights[{}].radius", i), radius);
 		mDeferredShaderProgram.SetUniform1f(std::format("uPointLights[{}].farPlane", i), 100.0f);
 	}
 

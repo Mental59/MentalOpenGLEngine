@@ -28,6 +28,7 @@ struct PointLight
     float quadratic;
 
 	float farPlane;
+	float radius;
 
 	samplerCube shadowCubeMap;
 };
@@ -137,7 +138,11 @@ void main()
 
 	for (int i = 0; i < min(MAX_POINT_LIGHTS, uNumPointLights); i++)
 	{
-		color += CalculatePointLight(uPointLights[i], normal, viewDirection, albedo, vec3(specular), worldPos, shadow);
+//		float distanceToLight = length(uPointLights[i].position - worldPos);
+//		if (distanceToLight < uPointLights[i].radius)
+//		{
+			color += CalculatePointLight(uPointLights[i], normal, viewDirection, albedo, vec3(specular), worldPos, shadow);
+//		}
 	}
 
 	// gamma correction and exposure

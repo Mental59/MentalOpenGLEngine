@@ -6,7 +6,7 @@ int main()
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 
-	Graphics::Engine engine(1920, 1080, "OpenGLEngine");
+	Graphics::Engine engine(1280, 960, "OpenGLEngine");
 
 	bool vsync = false;
 	bool windowedFullscreen = true;
