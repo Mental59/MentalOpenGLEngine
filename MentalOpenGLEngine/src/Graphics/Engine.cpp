@@ -42,6 +42,38 @@ glm::vec3 POINT_LIGHT_COLORS[4]{
 	glm::vec3(0.0f, 5.0f, 0.0f)
 };
 
+static std::vector<glm::vec3> BACKPACK_POSITIONS{
+		glm::vec3(-3.0, -0.5, -3.0),
+		glm::vec3(0.0, -0.5, -3.0),
+		glm::vec3(3.0, -0.5, -3.0),
+		glm::vec3(-6.0, -0.5, -3.0),
+		glm::vec3(6.0, -0.5, -3.0),
+
+		glm::vec3(-3.0, -0.5, 0.0),
+		glm::vec3(0.0, -0.5, 0.0),
+		glm::vec3(3.0, -0.5, 0.0),
+		glm::vec3(-6.0, -0.5, 0.0),
+		glm::vec3(6.0, -0.5, 0.0),
+
+		glm::vec3(-3.0, -0.5, 3.0),
+		glm::vec3(0.0, -0.5, 3.0),
+		glm::vec3(3.0, -0.5, 3.0),
+		glm::vec3(-6.0, -0.5, 3.0),
+		glm::vec3(6.0, -0.5, 3.0),
+
+		glm::vec3(-3.0, -0.5, -6.0),
+		glm::vec3(0.0, -0.5, -6.0),
+		glm::vec3(3.0, -0.5, -6.0),
+		glm::vec3(-6.0, -0.5, -6.0),
+		glm::vec3(6.0, -0.5, -6.0),
+
+		glm::vec3(-3.0, -0.5, 6.0),
+		glm::vec3(0.0, -0.5, 6.0),
+		glm::vec3(3.0, -0.5, 6.0),
+		glm::vec3(-6.0, -0.5, 6.0),
+		glm::vec3(6.0, -0.5, 6.0),
+};
+
 //constexpr int ASTEROIDS_NUM = 100000;
 //glm::mat4 ASTEROID_TRANSFORMS[ASTEROIDS_NUM];
 
@@ -164,17 +196,22 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	Shader normalsVisualizationGeometryShader("src/Shaders/normalsVisualization.geom", Shader::Geometry);
 	Shader lightSourceVertexShader("src/Shaders/lightSource.vert", Shader::Vertex);
 	Shader lightSourceFragmentShader("src/Shaders/lightSource.frag", Shader::Fragment);
+
 	Shader dirShadowMappingVertexShader("src/Shaders/directionalShadowMapping.vert", Shader::Vertex);
 	Shader dirShadowMappingFragmentShader("src/Shaders/directionalShadowMapping.frag", Shader::Fragment);
+	Shader dirShadowMappingVertexInstancedShader("src/Shaders/directionalShadowMappingInstanced.vert", Shader::Vertex);
+
 	Shader pointShadowMappingVertShader("src/Shaders/pointShadowMapping.vert", Shader::Vertex);
 	Shader pointShadowMappingFragShader("src/Shaders/pointShadowMapping.frag", Shader::Fragment);
 	Shader pointShadowMappingGeomShader("src/Shaders/pointShadowMapping.geom", Shader::Geometry);
+	Shader pointShadowMappingVertInstancedShader("src/Shaders/pointShadowMappingInstanced.vert", Shader::Vertex);
 
 	Shader gaussianBlurVertShader("src/Shaders/gaussianBlur.vert", Shader::Vertex);
 	Shader gaussianBlurFragShader("src/Shaders/gaussianBlur.frag", Shader::Fragment);
 
 	Shader gBufferVertShader("src/Shaders/gBuffer.vert", Shader::Vertex);
 	Shader gBufferFragShader("src/Shaders/gBuffer.frag", Shader::Fragment);
+	Shader gBufferInstancedVertShader("src/Shaders/gBufferInstanced.vert", Shader::Vertex);
 
 	Shader deferredVertShader("src/Shaders/deferred.vert", Shader::Vertex);
 	Shader deferredFragShader("src/Shaders/deferred.frag", Shader::Fragment);
@@ -192,6 +229,9 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	mGaussianBlurShaderProgram.Build({ gaussianBlurVertShader, gaussianBlurFragShader });
 	mGBufferShaderProgram.Build({ gBufferVertShader, gBufferFragShader });
 	mDeferredShaderProgram.Build({ deferredVertShader,deferredFragShader });
+	mGBufferInstancedShaderProgram.Build({ gBufferInstancedVertShader, gBufferFragShader });
+	mDirectionalShadowMappingInstancedShaderProgram.Build({ dirShadowMappingFragmentShader, dirShadowMappingVertexInstancedShader });
+	mPointShadowMappingInstancedShaderProgram.Build({ pointShadowMappingVertInstancedShader, pointShadowMappingFragShader, pointShadowMappingGeomShader });
 
 	// Setting texture units
 	mFramebufferScreenShaderProgram.Bind();
@@ -226,6 +266,7 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	mEnvironmentMappingShaderProgram.SetUniformBlockBinding("Matrices", uniformMatricesBlockBinding);
 	mLightSourceShaderProgram.SetUniformBlockBinding("Matrices", uniformMatricesBlockBinding);
 	mGBufferShaderProgram.SetUniformBlockBinding("Matrices", uniformMatricesBlockBinding);
+	mGBufferInstancedShaderProgram.SetUniformBlockBinding("Matrices", uniformMatricesBlockBinding);
 
 	size_t bufferSize = 2 * sizeof(glm::mat4);
 	glGenBuffers(1, &mUBOMatrices);
@@ -296,7 +337,18 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	FLOOR_MODEL.Load("resources/objects/cube/cube.obj");
 
 	NANOSUIT_MODEL.Load("resources/objects/nanosuit/nanosuit.obj");
+
+	glm::mat4* instanceModelMatrices = new glm::mat4[BACKPACK_POSITIONS.size()];
+	for (unsigned int i = 0; i < BACKPACK_POSITIONS.size(); i++)
+	{
+		glm::mat4 model = glm::translate(glm::mat4(1.0f), BACKPACK_POSITIONS[i]);
+		model = glm::scale(model, glm::vec3(0.5f));
+		instanceModelMatrices[i] = model;
+	}
+
 	BACKPACK_MODEL.Load("resources/objects/backpack/backpack.obj");
+	BACKPACK_MODEL.SetupInstancedDrawing(instanceModelMatrices, BACKPACK_POSITIONS.size(), 4);
+	delete[] instanceModelMatrices;
 
 	//SPONZA_MODEL.Load("resources/objects/sponza/sponza.obj");
 
@@ -440,7 +492,7 @@ void Graphics::Engine::OnRender()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	SetupScene(mCamera.GetViewMatrix(), mCamera.GetProjectionMatrix(mAspectRatio));
 	// geometry pass
-	DrawScene(mGBufferShaderProgram);
+	DrawScene(mGBufferShaderProgram, mGBufferInstancedShaderProgram);
 
 
 	////Blurring bright fragments with two-pass Gaussian Blur 
@@ -526,63 +578,46 @@ void Graphics::Engine::ShadowPass()
 
 	mDirectionalShadowMappingShaderProgram.Bind();
 	mDirectionalShadowMappingShaderProgram.SetUniformMat4("uLightSpaceMatrix", glm::value_ptr(DIR_LIGHT_SPACE_MAT));
+	mDirectionalShadowMappingInstancedShaderProgram.Bind();
+	mDirectionalShadowMappingInstancedShaderProgram.SetUniformMat4("uLightSpaceMatrix", glm::value_ptr(DIR_LIGHT_SPACE_MAT));
 
-	mPointShadowMappingShaderProgram.Bind();
-	for (unsigned int i = 0; i < 6; i++)
-	{
-		mPointShadowMappingShaderProgram.SetUniformMat4(
-			std::format("uShadowMatrices[{}]", i), glm::value_ptr(pointShadowTransforms[i])
-		);
-	}
-	mPointShadowMappingShaderProgram.SetUniformVec3("uLightPos", glm::value_ptr(POINT_LIGHT_POSITIONS[0]));
-	mPointShadowMappingShaderProgram.SetUniform1f("uFarPlane", farPlane);
+	//mPointShadowMappingShaderProgram.Bind();
+	//for (unsigned int i = 0; i < 6; i++)
+	//{
+	//	mPointShadowMappingShaderProgram.SetUniformMat4(
+	//		std::format("uShadowMatrices[{}]", i), glm::value_ptr(pointShadowTransforms[i])
+	//	);
+	//}
+	//mPointShadowMappingShaderProgram.SetUniformVec3("uLightPos", glm::value_ptr(POINT_LIGHT_POSITIONS[0]));
+	//mPointShadowMappingShaderProgram.SetUniform1f("uFarPlane", farPlane);
+
+	//mPointShadowMappingInstancedShaderProgram.Bind();
+	//for (unsigned int i = 0; i < 6; i++)
+	//{
+	//	mPointShadowMappingInstancedShaderProgram.SetUniformMat4(
+	//		std::format("uShadowMatrices[{}]", i), glm::value_ptr(pointShadowTransforms[i])
+	//	);
+	//}
+	//mPointShadowMappingInstancedShaderProgram.SetUniformVec3("uLightPos", glm::value_ptr(POINT_LIGHT_POSITIONS[0]));
+	//mPointShadowMappingInstancedShaderProgram.SetUniform1f("uFarPlane", farPlane);
 
 	glViewport(0, 0, mDirectionalDepthMap.GetWidth(), mDirectionalDepthMap.GetHeight());
 	mDirectionalDepthMap.Bind();
 	glClear(GL_DEPTH_BUFFER_BIT);
-	DrawScene(mDirectionalShadowMappingShaderProgram);
+	DrawScene(mDirectionalShadowMappingShaderProgram, mDirectionalShadowMappingInstancedShaderProgram);
 
-	glViewport(0, 0, mPointDepthMap.GetWidth(), mPointDepthMap.GetHeight());
-	mPointDepthMap.Bind();
-	glClear(GL_DEPTH_BUFFER_BIT);
-	DrawScene(mPointShadowMappingShaderProgram);
+	//glViewport(0, 0, mPointDepthMap.GetWidth(), mPointDepthMap.GetHeight());
+	//mPointDepthMap.Bind();
+	//glClear(GL_DEPTH_BUFFER_BIT);
+	//DrawScene(mPointShadowMappingShaderProgram, mPointShadowMappingInstancedShaderProgram);
 }
 
-void Graphics::Engine::DrawScene(ShaderProgram& shader)
+void Graphics::Engine::DrawScene(
+	ShaderProgram& shader,
+	ShaderProgram& shaderInstanced
+)
 {
 	shader.Bind();
-
-	static constinit glm::vec3 backpackPositions[]{
-		glm::vec3(-3.0, -0.5, -3.0),
-		glm::vec3(0.0, -0.5, -3.0),
-		glm::vec3(3.0, -0.5, -3.0),
-		glm::vec3(-6.0, -0.5, -3.0),
-		glm::vec3(6.0, -0.5, -3.0),
-
-		glm::vec3(-3.0, -0.5, 0.0),
-		glm::vec3(0.0, -0.5, 0.0),
-		glm::vec3(3.0, -0.5, 0.0),
-		glm::vec3(-6.0, -0.5, 0.0),
-		glm::vec3(6.0, -0.5, 0.0),
-
-		glm::vec3(-3.0, -0.5, 3.0),
-		glm::vec3(0.0, -0.5, 3.0),
-		glm::vec3(3.0, -0.5, 3.0),
-		glm::vec3(-6.0, -0.5, 3.0),
-		glm::vec3(6.0, -0.5, 3.0),
-
-		glm::vec3(-3.0, -0.5, -6.0),
-		glm::vec3(0.0, -0.5, -6.0),
-		glm::vec3(3.0, -0.5, -6.0),
-		glm::vec3(-6.0, -0.5, -6.0),
-		glm::vec3(6.0, -0.5, -6.0),
-
-		glm::vec3(-3.0, -0.5, 6.0),
-		glm::vec3(0.0, -0.5, 6.0),
-		glm::vec3(3.0, -0.5, 6.0),
-		glm::vec3(-6.0, -0.5, 6.0),
-		glm::vec3(6.0, -0.5, 6.0),
-	};
 
 	glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -3.0f, 0.0));
 	model = glm::scale(model, glm::vec3(12.5f, 0.5f, 12.5f));
@@ -590,12 +625,8 @@ void Graphics::Engine::DrawScene(ShaderProgram& shader)
 	FLOOR_MODEL.Draw(shader, model);
 	shader.SetUniform1f("uTexTiling", 1.0f);
 
-	for (const glm::vec3& backpackPos : backpackPositions)
-	{
-		model = glm::translate(glm::mat4(1.0f), backpackPos);
-		model = glm::scale(model, glm::vec3(0.5f));
-		BACKPACK_MODEL.Draw(shader, model);
-	}
+	shaderInstanced.Bind();
+	BACKPACK_MODEL.DrawInstanced(shaderInstanced, BACKPACK_POSITIONS.size());
 }
 
 void Graphics::Engine::SetupScene(

@@ -194,6 +194,7 @@
     <None Include="src\Shaders\baseInstanced.vert" />
     <None Include="src\Shaders\deferred.frag" />
     <None Include="src\Shaders\deferred.vert" />
+    <None Include="src\Shaders\directionalShadowMappingInstanced.vert" />
     <None Include="src\Shaders\gaussianBlur.frag" />
     <None Include="src\Shaders\cubemap.frag" />
     <None Include="src\Shaders\cubemap.vert" />
@@ -204,6 +205,7 @@
     <None Include="src\Shaders\gaussianBlur.vert" />
     <None Include="src\Shaders\gBuffer.frag" />
     <None Include="src\Shaders\gBuffer.vert" />
+    <None Include="src\Shaders\gBufferInstanced.vert" />
     <None Include="src\Shaders\multipleLights.frag" />
     <None Include="src\Shaders\directionalLight.frag" />
     <None Include="src\Shaders\lightSource.frag" />
@@ -220,6 +222,7 @@
     <None Include="src\Shaders\pointShadowMapping.frag" />
     <None Include="src\Shaders\pointShadowMapping.geom" />
     <None Include="src\Shaders\pointShadowMapping.vert" />
+    <None Include="src\Shaders\pointShadowMappingInstanced.vert" />
     <None Include="src\Shaders\spotLight.frag" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

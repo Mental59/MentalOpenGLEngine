@@ -137,5 +137,8 @@
     <None Include="src\Shaders\gBuffer.frag" />
     <None Include="src\Shaders\deferred.frag" />
     <None Include="src\Shaders\deferred.vert" />
+    <None Include="src\Shaders\gBufferInstanced.vert" />
+    <None Include="src\Shaders\directionalShadowMappingInstanced.vert" />
+    <None Include="src\Shaders\pointShadowMappingInstanced.vert" />
   </ItemGroup>
 </Project>

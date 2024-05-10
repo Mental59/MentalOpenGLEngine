@@ -42,7 +42,7 @@ namespace Graphics
 		virtual void OnMouseScroll(float xOffset, float yOffset);
 
 	private:
-		void DrawScene(ShaderProgram& shader);
+		void DrawScene(ShaderProgram& shader, ShaderProgram& shaderInstanced);
 		void SetupScene(const glm::mat4& view, const glm::mat4& projection);
 		void ShadowPass();
 		void ImportModels(
@@ -77,10 +77,13 @@ namespace Graphics
 		ShaderProgram mNormalsVisualizationShaderProgram;
 		ShaderProgram mLightSourceShaderProgram;
 		ShaderProgram mDirectionalShadowMappingShaderProgram;
+		ShaderProgram mDirectionalShadowMappingInstancedShaderProgram;
 		ShaderProgram mPointShadowMappingShaderProgram;
+		ShaderProgram mPointShadowMappingInstancedShaderProgram;
 		ShaderProgram mGaussianBlurShaderProgram;
 
 		ShaderProgram mGBufferShaderProgram;
+		ShaderProgram mGBufferInstancedShaderProgram;
 		ShaderProgram mDeferredShaderProgram;
 
 		FrameBuffer mFrameBuffer;
