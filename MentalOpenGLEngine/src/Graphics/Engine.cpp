@@ -627,6 +627,14 @@ void Graphics::Engine::DrawScene(
 
 	shaderInstanced.Bind();
 	BACKPACK_MODEL.DrawInstanced(shaderInstanced, BACKPACK_POSITIONS.size());
+
+	//for (int i = 0; i < BACKPACK_POSITIONS.size(); i++)
+	//{
+	//	glm::mat4 model = glm::translate(glm::mat4(1.0f), BACKPACK_POSITIONS[i]);
+	//	model = glm::scale(model, glm::vec3(0.5f));
+	//	BACKPACK_MODEL.Draw(shader, model);
+	//}
+
 }
 
 void Graphics::Engine::SetupScene(
