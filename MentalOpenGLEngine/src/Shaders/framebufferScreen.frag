@@ -5,20 +5,20 @@ out vec4 FragColor;
 in vec2 vTexCoords;
 
 uniform sampler2D uScreenTexture;
-//uniform sampler2D uBloomTexture;
+uniform sampler2D uBloomTexture;
+
+uniform float uGamma = 2.2;
+uniform float uExposure = 1.0;
 
 void main()
 {   
-    const float gamma = 2.2;
-    const float exposure = 1.0;
-
     vec3 screenTextureColor = texture(uScreenTexture, vTexCoords).rgb;
-//    vec3 bloomTextureColor = texture(uBloomTexture, vTexCoords).rgb;
+    vec3 bloomTextureColor = texture(uBloomTexture, vTexCoords).rgb;
 
-//    screenTextureColor += bloomTextureColor; // additive blending
+    screenTextureColor += bloomTextureColor; // additive blending
     
-    vec3 mapped = vec3(1.0) - exp(-screenTextureColor * exposure);
-    mapped = pow(mapped, vec3(1.0 / gamma));
+    vec3 mapped = vec3(1.0) - exp(-screenTextureColor * uExposure);
+    mapped = pow(mapped, vec3(1.0 / uGamma));
     
     FragColor = vec4(mapped, 1.0);
 }

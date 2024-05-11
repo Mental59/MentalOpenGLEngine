@@ -71,7 +71,7 @@ namespace Graphics
 		ShaderProgram mBaseShaderProgram;
 		ShaderProgram mBaseInstancedShaderProgram;
 		ShaderProgram mOutlineShaderProgram;
-		ShaderProgram mFramebufferScreenShaderProgram;
+		ShaderProgram mPostProcessingShaderProgram;
 		ShaderProgram mSkyboxShaderProgram;
 		ShaderProgram mEnvironmentMappingShaderProgram;
 		ShaderProgram mNormalsVisualizationShaderProgram;
@@ -86,8 +86,7 @@ namespace Graphics
 		ShaderProgram mGBufferInstancedShaderProgram;
 		ShaderProgram mDeferredShaderProgram;
 
-		FrameBuffer mFrameBuffer;
-		FrameBuffer mRearViewFrameBuffer;
+		FrameBuffer mDeferredFrameBuffer;
 		GFrameBuffer mGFrameBuffer;
 
 		ScreenQuad mScreenQuad;

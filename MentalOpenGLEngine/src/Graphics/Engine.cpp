@@ -37,7 +37,7 @@ glm::vec3 POINT_LIGHT_POSITIONS[NUM_POINT_LIGHTS]{
 };
 
 glm::vec3 POINT_LIGHT_COLORS[NUM_POINT_LIGHTS]{
-	glm::vec3(5.0f, 5.0f, 5.0f),
+	glm::vec3(0.11f, 0.72f, 0.87f) * 5.0f,
 	//glm::vec3(10.0f, 0.0f, 0.0f),
 	//glm::vec3(0.0f, 0.0f, 15.0f),
 	//glm::vec3(0.0f, 5.0f, 0.0f)
@@ -222,7 +222,7 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	mOutlineShaderProgram.Build({ baseVertexShader, outlineFragmentShader });
 	mEnvironmentMappingShaderProgram.Build({ baseVertexShader, environmentMappingFragmentShader });
 	mSkyboxShaderProgram.Build({ cubemapVertexShader, cubemapFragmentShader });
-	mFramebufferScreenShaderProgram.Build({ framebufferVertexShader, framebufferFragmentShader });
+	mPostProcessingShaderProgram.Build({ framebufferVertexShader, framebufferFragmentShader });
 	mNormalsVisualizationShaderProgram.Build({ normalsVisualizationVertexShader, normalsVisualizationFragmentShader, normalsVisualizationGeometryShader });
 	mLightSourceShaderProgram.Build({ lightSourceFragmentShader, lightSourceVertexShader });
 	mDirectionalShadowMappingShaderProgram.Build({ dirShadowMappingFragmentShader, dirShadowMappingVertexShader });
@@ -235,9 +235,10 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	mPointShadowMappingInstancedShaderProgram.Build({ pointShadowMappingVertInstancedShader, pointShadowMappingFragShader, pointShadowMappingGeomShader });
 
 	// Setting texture units
-	mFramebufferScreenShaderProgram.Bind();
-	mFramebufferScreenShaderProgram.SetUniform1i("uScreenTexture", 0);
-	mFramebufferScreenShaderProgram.Unbind();
+	mPostProcessingShaderProgram.Bind();
+	mPostProcessingShaderProgram.SetUniform1i("uScreenTexture", 0);
+	mPostProcessingShaderProgram.SetUniform1i("uBloomTexture", 1);
+	mPostProcessingShaderProgram.Unbind();
 	mSkyboxShaderProgram.Bind();
 	mSkyboxShaderProgram.SetUniform1i("uSkybox", 0);
 	mSkyboxShaderProgram.Unbind();
@@ -297,10 +298,8 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	mLoadedTextures["resources/textures/default.png"] = defaultDiffuseTextureId;
 	mDefaultTexture = { defaultDiffuseTextureId, Core::Diffuse };
 
-	int samples = 8;
-	//mFrameBuffer.Create(mWindowWidth, mWindowHeight, samples);
+	mDeferredFrameBuffer.Create(mWindowWidth, mWindowHeight);
 	mGFrameBuffer.Create(mWindowWidth, mWindowHeight);
-	//mRearViewFrameBuffer.Create(mWindowWidth, mWindowHeight);
 	mScreenQuad.Create();
 
 	// Pingpong fbos for blurring
@@ -337,7 +336,7 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	//FLOOR_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/bricks2_disp.jpg", false, false), Core::Height });
 	FLOOR_MODEL.Load("resources/objects/cube/cube.obj");
 
-	NANOSUIT_MODEL.Load("resources/objects/nanosuit/nanosuit.obj");
+	//NANOSUIT_MODEL.Load("resources/objects/nanosuit/nanosuit.obj");
 
 	glm::mat4* instanceModelMatrices = new glm::mat4[BACKPACK_POSITIONS.size()];
 	for (unsigned int i = 0; i < BACKPACK_POSITIONS.size(); i++)
@@ -467,7 +466,7 @@ void Graphics::Engine::OnRender()
 	DrawScene(mGBufferShaderProgram, &mGBufferInstancedShaderProgram);
 
 	//Deferred calculations
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	mDeferredFrameBuffer.Bind();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	mDeferredShaderProgram.Bind();
 
@@ -488,10 +487,10 @@ void Graphics::Engine::OnRender()
 
 	// forward pass
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, mGFrameBuffer.GetFrameBufferId());
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mDeferredFrameBuffer.GetFrameBufferId());
 	glBlitFramebuffer(0, 0, mWindowWidth, mWindowHeight, 0, 0, mWindowWidth, mWindowHeight, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	mDeferredFrameBuffer.Bind();
 	mLightSourceShaderProgram.Bind();
 	for (int i = 0; i < NUM_POINT_LIGHTS; i++)
 	{
@@ -501,6 +500,39 @@ void Graphics::Engine::OnRender()
 		lightSourceMat = glm::scale(lightSourceMat, glm::vec3(0.15f));
 		SPHERE_MODEL.Draw(mLightSourceShaderProgram, lightSourceMat);
 	}
+
+	//Blurring bright fragments with two-pass Gaussian Blur
+	mGaussianBlurShaderProgram.Bind();
+	mGaussianBlurShaderProgram.SetUniformVec2("uSampleDistance", glm::value_ptr(glm::vec2(2.0f, 2.0f)));
+	bool isHorizontal = true, isFirstIteration = true;
+	unsigned int numPasses = 5;
+	glDisable(GL_DEPTH_TEST);
+	for (unsigned int i = 0; i < numPasses * 2; i++)
+	{
+		mGaussianBlurShaderProgram.SetUniform1i("uHorizontal", isHorizontal);
+		glBindFramebuffer(GL_FRAMEBUFFER, mPingPongFrameBuffers[isHorizontal]);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, isFirstIteration ? mDeferredFrameBuffer.GetBrightTextureColorId() : mPingPongColorBuffers[!isHorizontal]);
+		mScreenQuad.Draw();
+		isHorizontal = !isHorizontal;
+		isFirstIteration = false;
+	}
+	glEnable(GL_DEPTH_TEST);
+
+	//post processing
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	mPostProcessingShaderProgram.Bind();
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, mDeferredFrameBuffer.GetTextureColorId());
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, mPingPongColorBuffers[!isHorizontal]);
+
+	glDisable(GL_DEPTH_TEST);
+	mScreenQuad.Draw();
+	glEnable(GL_DEPTH_TEST);
 
 	glfwSwapBuffers(mWindow);
 }

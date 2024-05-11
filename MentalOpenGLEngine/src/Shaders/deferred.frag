@@ -112,10 +112,9 @@ uniform DirectionalLight uDirLights[MAX_DIR_LIGHTS];
 uniform PointLight uPointLights[MAX_POINT_LIGHTS];
 uniform int uNumPointLights = 0;
 uniform int uNumDirLights = 0;
-uniform float uGamma = 2.2;
-uniform float uExposure = 1.0;
 
-out vec4 FragColor;
+layout (location = 0) out vec4 FragColor;
+layout (location = 1) out vec4 BrightColor;
 
 void main()
 {
@@ -145,12 +144,17 @@ void main()
 			color += CalculatePointLight(uPointLights[i], normal, viewDirection, albedo, vec3(specular), worldPos, shadow);
 //		}
 	}
-
-	// gamma correction and exposure
-	vec3 mapped = vec3(1.0) - exp(-color * uExposure);
-	mapped = pow(mapped, vec3(1.0 / uGamma));
 	
-	FragColor = vec4(mapped, 1.0);
+	FragColor = vec4(color, 1.0);
+	float brightness = dot(FragColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+    if (brightness > 1.0)
+	{
+		BrightColor = vec4(FragColor.rgb, 1.0);
+	}  
+    else
+	{
+		BrightColor = vec4(0.0, 0.0, 0.0, 1.0);
+	}
 
 	//dir light shadow map
 //	FragColor = vec4(texture(uDirLights[0].shadowMap, vTexCoords).rrr, 1.0);
