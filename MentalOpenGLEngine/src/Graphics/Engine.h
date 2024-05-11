@@ -42,7 +42,7 @@ namespace Graphics
 		virtual void OnMouseScroll(float xOffset, float yOffset);
 
 	private:
-		void DrawScene(ShaderProgram& shader, ShaderProgram& shaderInstanced);
+		void DrawScene(ShaderProgram& shader, ShaderProgram* const shaderInstanced);
 		void SetupScene(const glm::mat4& view, const glm::mat4& projection);
 		void ShadowPass();
 		void ImportModels(

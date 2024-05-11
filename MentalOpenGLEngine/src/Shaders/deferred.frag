@@ -141,6 +141,7 @@ void main()
 //		float distanceToLight = length(uPointLights[i].position - worldPos);
 //		if (distanceToLight < uPointLights[i].radius)
 //		{
+			shadow = CalculatePointShadow(uPointLights[i], worldPos, uViewPos);
 			color += CalculatePointLight(uPointLights[i], normal, viewDirection, albedo, vec3(specular), worldPos, shadow);
 //		}
 	}
@@ -153,6 +154,11 @@ void main()
 
 	//dir light shadow map
 //	FragColor = vec4(texture(uDirLights[0].shadowMap, vTexCoords).rrr, 1.0);
+	
+	// point light shadow cube map
+//	vec3 fragToLight = worldPos - uPointLights[0].position;
+//	float closestDepth = texture(uPointLights[0].shadowCubeMap, fragToLight).r;
+//	FragColor = vec4(vec3(closestDepth), 1.0);
 }
 
 float CalculateDirShadow(DirectionalLight light, const vec3 normal, const vec4 posInLightSpace)
@@ -210,7 +216,7 @@ float CalculatePointShadow(PointLight light, const vec3 fragPos, const vec3 view
 		bool isInShadow = currentDepth - bias > closestDepth;
 		shadow += float(isInShadow);
 	}
-	shadow /= float(numSamples); 
+	shadow /= float(numSamples);
 
     return shadow;
 }

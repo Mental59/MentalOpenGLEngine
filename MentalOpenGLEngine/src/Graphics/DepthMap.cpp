@@ -1,5 +1,6 @@
 #include "DepthMap.h"
 #include <glad/glad.h>
+#include <iostream>
 
 void DepthMap::Build(unsigned int width, unsigned int height, DepthMapType type)
 {
@@ -41,6 +42,11 @@ void DepthMap::Build(unsigned int width, unsigned int height, DepthMapType type)
 	}
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		std::cout << "ERROR: Depth map Framebuffer is not complete" << std::endl;
+	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);

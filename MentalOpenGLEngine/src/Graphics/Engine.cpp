@@ -28,49 +28,50 @@ glm::vec3 LIGHT_DIRECTION = glm::normalize(glm::vec3(1.0f, -0.5f, 1.0f));
 glm::mat4 DIR_LIGHT_SPACE_MAT;
 glm::vec3 DIR_LIGHT_POS;
 
-glm::vec3 POINT_LIGHT_POSITIONS[4]{
-		glm::vec3(0.0f, 0.5f, 1.5f),
-		glm::vec3(-4.0f, 0.5f, -3.0f),
-		glm::vec3(3.0f, 0.5f, 1.0f),
-		glm::vec3(-1.2f, 0.4f, -1.0f)
+constexpr int NUM_POINT_LIGHTS = 1;
+glm::vec3 POINT_LIGHT_POSITIONS[NUM_POINT_LIGHTS]{
+		glm::vec3(0.0f, 1.5f, 1.5f),
+		//glm::vec3(-4.0f, 0.5f, -3.0f),
+		//glm::vec3(3.0f, 0.5f, 1.0f),
+		//glm::vec3(-1.2f, 0.4f, -1.0f)
 };
 
-glm::vec3 POINT_LIGHT_COLORS[4]{
+glm::vec3 POINT_LIGHT_COLORS[NUM_POINT_LIGHTS]{
 	glm::vec3(5.0f, 5.0f, 5.0f),
-	glm::vec3(10.0f, 0.0f, 0.0f),
-	glm::vec3(0.0f, 0.0f, 15.0f),
-	glm::vec3(0.0f, 5.0f, 0.0f)
+	//glm::vec3(10.0f, 0.0f, 0.0f),
+	//glm::vec3(0.0f, 0.0f, 15.0f),
+	//glm::vec3(0.0f, 5.0f, 0.0f)
 };
 
 static std::vector<glm::vec3> BACKPACK_POSITIONS{
 		glm::vec3(-3.0, -0.5, -3.0),
-		glm::vec3(0.0, -0.5, -3.0),
-		glm::vec3(3.0, -0.5, -3.0),
-		glm::vec3(-6.0, -0.5, -3.0),
-		glm::vec3(6.0, -0.5, -3.0),
+		//glm::vec3(0.0, -0.5, -3.0),
+		//glm::vec3(3.0, -0.5, -3.0),
+		//glm::vec3(-6.0, -0.5, -3.0),
+		//glm::vec3(6.0, -0.5, -3.0),
 
-		glm::vec3(-3.0, -0.5, 0.0),
+		//glm::vec3(-3.0, -0.5, 0.0),
 		glm::vec3(0.0, -0.5, 0.0),
-		glm::vec3(3.0, -0.5, 0.0),
-		glm::vec3(-6.0, -0.5, 0.0),
-		glm::vec3(6.0, -0.5, 0.0),
+		//glm::vec3(3.0, -0.5, 0.0),
+		//glm::vec3(-6.0, -0.5, 0.0),
+		//glm::vec3(6.0, -0.5, 0.0),
 
-		glm::vec3(-3.0, -0.5, 3.0),
-		glm::vec3(0.0, -0.5, 3.0),
+		//glm::vec3(-3.0, -0.5, 3.0),
+		//glm::vec3(0.0, -0.5, 3.0),
 		glm::vec3(3.0, -0.5, 3.0),
-		glm::vec3(-6.0, -0.5, 3.0),
-		glm::vec3(6.0, -0.5, 3.0),
+		//glm::vec3(-6.0, -0.5, 3.0),
+		//glm::vec3(6.0, -0.5, 3.0),
 
-		glm::vec3(-3.0, -0.5, -6.0),
-		glm::vec3(0.0, -0.5, -6.0),
-		glm::vec3(3.0, -0.5, -6.0),
+		//glm::vec3(-3.0, -0.5, -6.0),
+		//glm::vec3(0.0, -0.5, -6.0),
+		//glm::vec3(3.0, -0.5, -6.0),
 		glm::vec3(-6.0, -0.5, -6.0),
-		glm::vec3(6.0, -0.5, -6.0),
+		//glm::vec3(6.0, -0.5, -6.0),
 
-		glm::vec3(-3.0, -0.5, 6.0),
-		glm::vec3(0.0, -0.5, 6.0),
-		glm::vec3(3.0, -0.5, 6.0),
-		glm::vec3(-6.0, -0.5, 6.0),
+		//glm::vec3(-3.0, -0.5, 6.0),
+		//glm::vec3(0.0, -0.5, 6.0),
+		//glm::vec3(3.0, -0.5, 6.0),
+		//glm::vec3(-6.0, -0.5, 6.0),
 		glm::vec3(6.0, -0.5, 6.0),
 };
 
@@ -255,7 +256,7 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	mDeferredShaderProgram.SetUniform1i("gNormal", 1);
 	mDeferredShaderProgram.SetUniform1i("gAlbedoSpec", 2);
 	mDeferredShaderProgram.SetUniform1i("uDirLights[0].shadowMap", 3);
-	mDeferredShaderProgram.SetUniform1i("uNumPointLights[0].shadowCubeMap", 4);
+	mDeferredShaderProgram.SetUniform1i("uPointLights[0].shadowCubeMap", 4);
 	mDeferredShaderProgram.Unbind();
 
 	//Setting uniform block bindings
@@ -275,8 +276,8 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	glBindBufferRange(GL_UNIFORM_BUFFER, uniformMatricesBlockBinding, mUBOMatrices, 0, bufferSize);
 
-	mDirectionalDepthMap.Build(2048, 2048, DepthMap::Directional);
-	mPointDepthMap.Build(2048, 2048, DepthMap::Point);
+	mDirectionalDepthMap.Build(1024, 1024, DepthMap::Directional);
+	mPointDepthMap.Build(1024, 1024, DepthMap::Point);
 
 	//constexpr unsigned int uniformsNum = 6;
 	//const char* uniformNames[uniformsNum]{
@@ -331,9 +332,9 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	CUBE_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/container2_specular.png"), Core::Specular });
 	CUBE_MODEL.Load("resources/objects/cube/cube.obj");
 
-	FLOOR_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/bricks2.jpg", false, true), Core::Diffuse });
-	FLOOR_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/bricks2_normal.jpg", false, false), Core::Normal });
-	FLOOR_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/bricks2_disp.jpg", false, false), Core::Height });
+	FLOOR_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/wood.png", false, true), Core::Diffuse });
+	//FLOOR_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/bricks2_normal.jpg", false, false), Core::Normal });
+	//FLOOR_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/bricks2_disp.jpg", false, false), Core::Height });
 	FLOOR_MODEL.Load("resources/objects/cube/cube.obj");
 
 	NANOSUIT_MODEL.Load("resources/objects/nanosuit/nanosuit.obj");
@@ -376,38 +377,9 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW);
 
-	glEnable(GL_MULTISAMPLE);
+	//glEnable(GL_MULTISAMPLE);
 	//glEnable(GL_FRAMEBUFFER_SRGB);
-
-	//srand(glfwGetTime());
-	//float radius = 100.0;
-	//float offset = 25.0f;
-	//for (int i = 0; i < ASTEROIDS_NUM; i++)
-	//{
-	//	glm::mat4 model = glm::mat4(1.0f);
-
-	//	// 1. translation: displace along circle with 'radius' in range [-offset, offset]
-	//	float angle = (float)i / (float)ASTEROIDS_NUM * 360.0f;
-	//	float displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
-	//	float x = sin(angle) * radius + displacement;
-	//	displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
-	//	float y = displacement * 0.4f; // keep height of field smaller compared to width of x and z
-	//	displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
-	//	float z = cos(angle) * radius + displacement;
-	//	model = glm::translate(model, glm::vec3(x, y, z));
-
-	//	// 2. scale: scale between 0.05 and 0.25f
-	//	float scale = (rand() % 20) / 100.0f + 0.05;
-	//	model = glm::scale(model, glm::vec3(scale));
-
-	//	// 3. rotation: add random rotation around a (semi)randomly picked rotation axis vector
-	//	float rotAngle = (rand() % 360);
-	//	model = glm::rotate(model, rotAngle, glm::vec3(0.4f, 0.6f, 0.8f));
-
-	//	ASTEROID_TRANSFORMS[i] = model;
-	//}
-
-	//ASTEROID_MODEL.SetupInstancedDrawing(ASTEROID_TRANSFORMS, ASTEROIDS_NUM, 3);
+	glDisable(GL_MULTISAMPLE);
 
 	return true;
 }
@@ -426,8 +398,8 @@ void Graphics::Engine::Run()
 
 void Graphics::Engine::Update()
 {
-	//POINT_LIGHT_POS.x = sin(Time::LastFrame) * 4.0f;
-	//POINT_LIGHT_POS.z = cos(Time::LastFrame) * 4.0f;
+	POINT_LIGHT_POSITIONS[0].x = sin(Time::LastFrame) * 4.0f;
+	POINT_LIGHT_POSITIONS[0].z = cos(Time::LastFrame) * 4.0f;
 }
 
 void Graphics::Engine::UpdateTimer()
@@ -481,38 +453,18 @@ void Graphics::Engine::OnInput()
 
 void Graphics::Engine::OnRender()
 {
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
 	//Render to depth map
 	ShadowPass();
 
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glViewport(0, 0, mWindowWidth, mWindowHeight);
 
-	//Drawing scene
+	// Geometry pass
 	mGFrameBuffer.Bind();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	SetupScene(mCamera.GetViewMatrix(), mCamera.GetProjectionMatrix(mAspectRatio));
-	// geometry pass
-	DrawScene(mGBufferShaderProgram, mGBufferInstancedShaderProgram);
-
-
-	////Blurring bright fragments with two-pass Gaussian Blur 
-	//mGaussianBlurShaderProgram.Bind();
-	//mGaussianBlurShaderProgram.SetUniformVec2("uSampleDistance", glm::value_ptr(glm::vec2(2.0f, 2.0f)));
-	//bool isHorizontal = true, isFirstIteration = true;
-	//unsigned int numPasses = 5;
-	//glDisable(GL_DEPTH_TEST);
-	//for (unsigned int i = 0; i < numPasses * 2; i++)
-	//{
-	//	mGaussianBlurShaderProgram.SetUniform1i("uHorizontal", isHorizontal);
-	//	glBindFramebuffer(GL_FRAMEBUFFER, mPingPongFrameBuffers[isHorizontal]);
-	//	glActiveTexture(GL_TEXTURE0);
-	//	glBindTexture(GL_TEXTURE_2D, isFirstIteration ? mFrameBuffer.GetBrightTextureColorId() : mPingPongColorBuffers[!isHorizontal]);
-	//	mScreenQuad.Draw();
-	//	isHorizontal = !isHorizontal;
-	//	isFirstIteration = false;
-	//}
-	//glEnable(GL_DEPTH_TEST);
-
+	DrawScene(mGBufferShaderProgram, &mGBufferInstancedShaderProgram);
 
 	//Deferred calculations
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -528,7 +480,7 @@ void Graphics::Engine::OnRender()
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, mDirectionalDepthMap.GetTextureColorId());
 	glActiveTexture(GL_TEXTURE4);
-	glBindTexture(GL_TEXTURE_2D, mPointDepthMap.GetTextureColorId());
+	glBindTexture(GL_TEXTURE_CUBE_MAP, mPointDepthMap.GetTextureColorId());
 
 	glDisable(GL_DEPTH_TEST);
 	mScreenQuad.Draw();
@@ -541,7 +493,7 @@ void Graphics::Engine::OnRender()
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	mLightSourceShaderProgram.Bind();
-	for (int i = 0; i < 4; i++)
+	for (int i = 0; i < NUM_POINT_LIGHTS; i++)
 	{
 		mLightSourceShaderProgram.SetUniformVec3("uLightColor", glm::value_ptr(POINT_LIGHT_COLORS[i]));
 		glm::mat4 lightSourceMat = glm::mat4(1.0f);
@@ -581,40 +533,40 @@ void Graphics::Engine::ShadowPass()
 	mDirectionalShadowMappingInstancedShaderProgram.Bind();
 	mDirectionalShadowMappingInstancedShaderProgram.SetUniformMat4("uLightSpaceMatrix", glm::value_ptr(DIR_LIGHT_SPACE_MAT));
 
-	//mPointShadowMappingShaderProgram.Bind();
-	//for (unsigned int i = 0; i < 6; i++)
-	//{
-	//	mPointShadowMappingShaderProgram.SetUniformMat4(
-	//		std::format("uShadowMatrices[{}]", i), glm::value_ptr(pointShadowTransforms[i])
-	//	);
-	//}
-	//mPointShadowMappingShaderProgram.SetUniformVec3("uLightPos", glm::value_ptr(POINT_LIGHT_POSITIONS[0]));
-	//mPointShadowMappingShaderProgram.SetUniform1f("uFarPlane", farPlane);
+	mPointShadowMappingShaderProgram.Bind();
+	for (unsigned int i = 0; i < 6; i++)
+	{
+		mPointShadowMappingShaderProgram.SetUniformMat4(
+			std::format("uShadowMatrices[{}]", i), glm::value_ptr(pointShadowTransforms[i])
+		);
+	}
+	mPointShadowMappingShaderProgram.SetUniformVec3("uLightPos", glm::value_ptr(POINT_LIGHT_POSITIONS[0]));
+	mPointShadowMappingShaderProgram.SetUniform1f("uFarPlane", farPlane);
 
-	//mPointShadowMappingInstancedShaderProgram.Bind();
-	//for (unsigned int i = 0; i < 6; i++)
-	//{
-	//	mPointShadowMappingInstancedShaderProgram.SetUniformMat4(
-	//		std::format("uShadowMatrices[{}]", i), glm::value_ptr(pointShadowTransforms[i])
-	//	);
-	//}
-	//mPointShadowMappingInstancedShaderProgram.SetUniformVec3("uLightPos", glm::value_ptr(POINT_LIGHT_POSITIONS[0]));
-	//mPointShadowMappingInstancedShaderProgram.SetUniform1f("uFarPlane", farPlane);
+	mPointShadowMappingInstancedShaderProgram.Bind();
+	for (unsigned int i = 0; i < 6; i++)
+	{
+		mPointShadowMappingInstancedShaderProgram.SetUniformMat4(
+			std::format("uShadowMatrices[{}]", i), glm::value_ptr(pointShadowTransforms[i])
+		);
+	}
+	mPointShadowMappingInstancedShaderProgram.SetUniformVec3("uLightPos", glm::value_ptr(POINT_LIGHT_POSITIONS[0]));
+	mPointShadowMappingInstancedShaderProgram.SetUniform1f("uFarPlane", farPlane);
 
-	glViewport(0, 0, mDirectionalDepthMap.GetWidth(), mDirectionalDepthMap.GetHeight());
-	mDirectionalDepthMap.Bind();
-	glClear(GL_DEPTH_BUFFER_BIT);
-	DrawScene(mDirectionalShadowMappingShaderProgram, mDirectionalShadowMappingInstancedShaderProgram);
-
-	//glViewport(0, 0, mPointDepthMap.GetWidth(), mPointDepthMap.GetHeight());
-	//mPointDepthMap.Bind();
+	//glViewport(0, 0, mDirectionalDepthMap.GetWidth(), mDirectionalDepthMap.GetHeight());
+	//mDirectionalDepthMap.Bind();
 	//glClear(GL_DEPTH_BUFFER_BIT);
-	//DrawScene(mPointShadowMappingShaderProgram, mPointShadowMappingInstancedShaderProgram);
+	//DrawScene(mDirectionalShadowMappingShaderProgram, &mDirectionalShadowMappingInstancedShaderProgram);
+
+	glViewport(0, 0, mPointDepthMap.GetWidth(), mPointDepthMap.GetHeight());
+	mPointDepthMap.Bind();
+	glClear(GL_DEPTH_BUFFER_BIT);
+	DrawScene(mPointShadowMappingShaderProgram, &mPointShadowMappingInstancedShaderProgram);
 }
 
 void Graphics::Engine::DrawScene(
 	ShaderProgram& shader,
-	ShaderProgram& shaderInstanced
+	ShaderProgram* const shaderInstanced
 )
 {
 	shader.Bind();
@@ -625,16 +577,20 @@ void Graphics::Engine::DrawScene(
 	FLOOR_MODEL.Draw(shader, model);
 	shader.SetUniform1f("uTexTiling", 1.0f);
 
-	shaderInstanced.Bind();
-	BACKPACK_MODEL.DrawInstanced(shaderInstanced, BACKPACK_POSITIONS.size());
-
-	//for (int i = 0; i < BACKPACK_POSITIONS.size(); i++)
-	//{
-	//	glm::mat4 model = glm::translate(glm::mat4(1.0f), BACKPACK_POSITIONS[i]);
-	//	model = glm::scale(model, glm::vec3(0.5f));
-	//	BACKPACK_MODEL.Draw(shader, model);
-	//}
-
+	if (shaderInstanced)
+	{
+		shaderInstanced->Bind();
+		BACKPACK_MODEL.DrawInstanced(*shaderInstanced, BACKPACK_POSITIONS.size());
+	}
+	else
+	{
+		for (int i = 0; i < BACKPACK_POSITIONS.size(); i++)
+		{
+			glm::mat4 model = glm::translate(glm::mat4(1.0f), BACKPACK_POSITIONS[i]);
+			model = glm::scale(model, glm::vec3(0.5f));
+			BACKPACK_MODEL.Draw(shader, model);
+		}
+	}
 }
 
 void Graphics::Engine::SetupScene(
@@ -662,23 +618,23 @@ void Graphics::Engine::SetupScene(
 	mDeferredShaderProgram.SetUniformVec3("uViewPos", glm::value_ptr(mCamera.GetWorldPosition()));
 	mDeferredShaderProgram.SetUniform1f("uMaterial.shininess", shininess);
 
-	mDeferredShaderProgram.SetUniform1i("uNumDirLights", 1);
+	mDeferredShaderProgram.SetUniform1i("uNumDirLights", 0);
 	mDeferredShaderProgram.SetUniformMat4("uDirLights[0].lightSpaceMat", glm::value_ptr(DIR_LIGHT_SPACE_MAT));
 	mDeferredShaderProgram.SetUniformVec3("uDirLights[0].direction", glm::value_ptr(LIGHT_DIRECTION));
 	mDeferredShaderProgram.SetUniformVec3("uDirLights[0].ambient", glm::value_ptr(ambientColor));
 	mDeferredShaderProgram.SetUniformVec3("uDirLights[0].diffuse", glm::value_ptr(diffuseColor));
 	mDeferredShaderProgram.SetUniformVec3("uDirLights[0].specular", glm::value_ptr(specularColor));
 
-	mDeferredShaderProgram.SetUniform1i("uNumPointLights", 4);
-	for (int i = 0; i < 4; i++)
+	mDeferredShaderProgram.SetUniform1i("uNumPointLights", NUM_POINT_LIGHTS);
+	for (int i = 0; i < NUM_POINT_LIGHTS; i++)
 	{
 		glm::vec3 ambientColor = glm::vec3(0.025f) * POINT_LIGHT_COLORS[i];
 		glm::vec3 diffuseColor = glm::vec3(1.0f) * POINT_LIGHT_COLORS[i];
 		glm::vec3 specularColor = glm::vec3(1.0f) * POINT_LIGHT_COLORS[i];
 
 		float constant = 1.0f;
-		float linear = 0.7f;
-		float quadratic = 1.8f;
+		float linear = 0.09f;
+		float quadratic = 0.032f;
 		float lightMax = std::fmaxf(std::fmaxf(lightColor.r, lightColor.g), lightColor.b);
 		float radius = (-linear + std::sqrtf(linear * linear - 4 * quadratic * (constant - (256.0 / 5.0) * lightMax))) / (2 * quadratic);
 
