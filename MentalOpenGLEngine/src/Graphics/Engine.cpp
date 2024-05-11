@@ -503,7 +503,7 @@ void Graphics::Engine::OnRender()
 
 	//Blurring bright fragments with two-pass Gaussian Blur
 	mGaussianBlurShaderProgram.Bind();
-	mGaussianBlurShaderProgram.SetUniformVec2("uSampleDistance", glm::value_ptr(glm::vec2(2.0f, 2.0f)));
+	mGaussianBlurShaderProgram.SetUniformVec2("uSampleDistance", glm::value_ptr(glm::vec2(1.0f, 1.0f)));
 	bool isHorizontal = true, isFirstIteration = true;
 	unsigned int numPasses = 5;
 	glDisable(GL_DEPTH_TEST);
@@ -662,7 +662,7 @@ void Graphics::Engine::SetupScene(
 	{
 		glm::vec3 ambientColor = glm::vec3(0.025f) * POINT_LIGHT_COLORS[i];
 		glm::vec3 diffuseColor = glm::vec3(1.0f) * POINT_LIGHT_COLORS[i];
-		glm::vec3 specularColor = glm::vec3(1.0f) * POINT_LIGHT_COLORS[i];
+		glm::vec3 specularColor = glm::vec3(4.0f) * POINT_LIGHT_COLORS[i];
 
 		float constant = 1.0f;
 		float linear = 0.09f;

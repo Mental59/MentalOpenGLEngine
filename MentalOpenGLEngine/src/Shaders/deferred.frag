@@ -209,7 +209,7 @@ float CalculatePointShadow(PointLight light, const vec3 fragPos, const vec3 view
 	vec3 fragToLight = fragPos - light.position;
 	float currentDepth = length(fragToLight);
 	float shadow = 0.0;
-	float bias   = 0.05;
+	float bias   = 0.2;
 	float viewDistance = length(viewPos - fragPos);
 	float diskRadius = (1.0 + (viewDistance / light.farPlane)) / 50.0;
 
