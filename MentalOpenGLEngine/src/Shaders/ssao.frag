@@ -25,8 +25,8 @@ layout (location = 0) out float Occlusion;
 
 void main()
 {
-	vec3 fragPos = texture(gPosition, vTexCoords).rgb;
-	vec3 normal = normalize(texture(gNormal, vTexCoords).rgb);
+	vec3 fragPos = vec3(uView * vec4(texture(gPosition, vTexCoords).rgb, 1.0));
+	vec3 normal = mat3(uView) * normalize(texture(gNormal, vTexCoords).rgb);
 	vec3 noise = normalize(texture(uNoiseTexture, vTexCoords * uNoiseScale).rgb);
 
 	// create TBN change-of-basis matrix: from tangent-space to view-space
@@ -48,7 +48,8 @@ void main()
 		offset.xyz = offset.xyz * 0.5 + 0.5; // transform to range 0.0 - 1.0 
 
 		// get sample depth
-		float sampleDepth = texture(gPosition, offset.xy).z; // get depth value of kernel sample
+		vec3 sampleFragPos = vec3(uView * vec4(texture(gPosition, offset.xy).rgb, 1.0));
+		float sampleDepth = sampleFragPos.z; // get depth value of kernel sample
 
 		// range check & accumulate
 		float rangeCheck = smoothstep(0.0, 1.0, uRadius / abs(fragPos.z - sampleDepth));

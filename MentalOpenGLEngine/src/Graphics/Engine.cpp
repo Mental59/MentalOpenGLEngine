@@ -365,7 +365,7 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	{
 		glm::mat4 model = glm::translate(glm::mat4(1.0f), BACKPACK_POSITIONS[i]);
 		model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-		//model = glm::scale(model, glm::vec3(0.5f));
+		//model = glm::scale(model, glm::vec3(1.0f, 2.0f, 1.0f));
 		instanceModelMatrices[i] = model;
 	}
 
@@ -535,9 +535,9 @@ void Graphics::Engine::OnRender()
 	glClear(GL_COLOR_BUFFER_BIT);
 	mSSAOShaderProgram.Bind();
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, mGFrameBuffer.GetPositionInViewSpaceTextureId());
+	glBindTexture(GL_TEXTURE_2D, mGFrameBuffer.GetPositionTextureId());
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, mGFrameBuffer.GetNormalInViewSpaceTextureId());
+	glBindTexture(GL_TEXTURE_2D, mGFrameBuffer.GetNormalTextureId());
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, mNoiseTexture);
 

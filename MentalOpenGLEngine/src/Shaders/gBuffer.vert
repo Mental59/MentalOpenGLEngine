@@ -8,11 +8,9 @@ layout (location = 3) in vec3 aTangent;
 out VS_OUT {
     vec2 texCoords;
 	vec3 normal;
-	vec3 normalInViewSpace;
 	vec3 worldPos;
 	vec3 posInViewSpace;
 	mat3 tangentToWorld;
-	mat3 tangentToView;
 	float normalsMultiplier;
 
 	vec3 tangentPos;
@@ -38,17 +36,13 @@ void main()
 	vec3 normal = aNormal * uNormalsMultiplier;
 
 	vs_out.worldPos = vec3(uModel * vec4(aPos, 1.0));
-	vs_out.posInViewSpace = vec3(uView * uModel * vec4(aPos, 1.0));
 
 	mat3 worldNormalMatrix = transpose(inverse(mat3(uModel)));
-	mat3 viewNormalMatrix = transpose(inverse(mat3(uView * uModel)));
 	vs_out.normal = normalize(worldNormalMatrix * normal);
-	vs_out.normalInViewSpace = normalize(viewNormalMatrix * normal);
 
 	vs_out.texCoords = aTexCoords * uTexTiling + uTexDisplacement;
 
 	vs_out.tangentToWorld = TBNMat(aNormal, worldNormalMatrix);
-	vs_out.tangentToView = TBNMat(aNormal, viewNormalMatrix);
 
 	vs_out.normalsMultiplier = uNormalsMultiplier;
 

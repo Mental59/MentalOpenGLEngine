@@ -8,9 +8,7 @@ public:
 
 	inline unsigned int GetAlbedoSpecularTextureId() const { return mAlbedoSpecularTextureId; }
 	inline unsigned int GetNormalTextureId() const { return mNormalTextureId; }
-	inline unsigned int GetNormalInViewSpaceTextureId() const { return mNormalInViewSpaceTextureId; }
 	inline unsigned int GetPositionTextureId() const { return mPositionTextureId; }
-	inline unsigned int GetPositionInViewSpaceTextureId() const { return mPositionInViewSpaceTextureId; }
 	inline unsigned int GetFrameBufferId() const { return mFramebufferId; }
 
 	void Bind();
@@ -22,9 +20,7 @@ private:
 	unsigned int mFramebufferId;
 	unsigned int mAlbedoSpecularTextureId;
 	unsigned int mNormalTextureId;
-	unsigned int mNormalInViewSpaceTextureId;
 	unsigned int mPositionTextureId;
-	unsigned int mPositionInViewSpaceTextureId;
 	unsigned int mRenderBufferId;
 };
 
