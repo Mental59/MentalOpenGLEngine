@@ -171,6 +171,7 @@
     <ClCompile Include="src\Graphics\ShaderProgram.cpp" />
     <ClCompile Include="src\Graphics\Time.cpp" />
     <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\Graphics\SSAOFrameBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Graphics\GFrameBuffer.h" />
@@ -188,6 +189,7 @@
     <ClInclude Include="src\Graphics\ShaderProgram.h" />
     <ClInclude Include="src\Graphics\Time.h" />
     <ClInclude Include="src\Graphics\Utils.h" />
+    <ClInclude Include="src\Graphics\SSAOFrameBuffer.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\Shaders\base.frag" />
@@ -224,6 +226,9 @@
     <None Include="src\Shaders\pointShadowMapping.vert" />
     <None Include="src\Shaders\pointShadowMappingInstanced.vert" />
     <None Include="src\Shaders\spotLight.frag" />
+    <None Include="src\Shaders\ssao.frag" />
+    <None Include="src\Shaders\ssao.vert" />
+    <None Include="src\Shaders\ssaoBlur.frag" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

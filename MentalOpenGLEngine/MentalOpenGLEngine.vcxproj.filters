@@ -57,6 +57,9 @@
     <ClCompile Include="src\Graphics\GFrameBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Graphics\SSAOFrameBuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Graphics\Engine.h">
@@ -104,6 +107,9 @@
     <ClInclude Include="src\Graphics\GFrameBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Graphics\SSAOFrameBuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\Shaders\base.vert" />
@@ -140,5 +146,8 @@
     <None Include="src\Shaders\gBufferInstanced.vert" />
     <None Include="src\Shaders\directionalShadowMappingInstanced.vert" />
     <None Include="src\Shaders\pointShadowMappingInstanced.vert" />
+    <None Include="src\Shaders\ssao.vert" />
+    <None Include="src\Shaders\ssao.frag" />
+    <None Include="src\Shaders\ssaoBlur.frag" />
   </ItemGroup>
 </Project>

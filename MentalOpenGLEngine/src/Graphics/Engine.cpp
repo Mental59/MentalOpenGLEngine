@@ -7,6 +7,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <random>
 #include <map>
 #include "Shader.h"
 #include "Camera.h"
@@ -15,68 +16,71 @@
 
 Graphics::Engine* Graphics::Engine::mInstance(nullptr);
 
-Model ASTEROID_MODEL;
-Model MARS_MODEL;
-Model SPHERE_MODEL;
-Model CUBE_MODEL;
-Model FLOOR_MODEL;
-Model NANOSUIT_MODEL;
-Model SPONZA_MODEL;
-Model BACKPACK_MODEL(true);
+static Model ASTEROID_MODEL;
+static Model MARS_MODEL;
+static Model SPHERE_MODEL;
+static Model CUBE_MODEL;
+static Model FLOOR_MODEL;
+static Model NANOSUIT_MODEL;
+static Model SPONZA_MODEL;
+static Model BACKPACK_MODEL(true);
 
-glm::vec3 LIGHT_DIRECTION = glm::normalize(glm::vec3(1.0f, -0.5f, 1.0f));
-glm::mat4 DIR_LIGHT_SPACE_MAT;
-glm::vec3 DIR_LIGHT_POS;
+static glm::vec3 LIGHT_DIRECTION = glm::normalize(glm::vec3(1.0f, -0.5f, 1.0f));
+static glm::mat4 DIR_LIGHT_SPACE_MAT;
+static glm::vec3 DIR_LIGHT_POS;
 
-constexpr int NUM_POINT_LIGHTS = 1;
-glm::vec3 POINT_LIGHT_POSITIONS[NUM_POINT_LIGHTS]{
-		glm::vec3(0.0f, 1.5f, 1.5f),
+static constexpr int NUM_POINT_LIGHTS = 1;
+static glm::vec3 POINT_LIGHT_POSITIONS[NUM_POINT_LIGHTS]{
+		glm::vec3(0.0f, -9.0f, 1.5f),
 		//glm::vec3(-4.0f, 0.5f, -3.0f),
 		//glm::vec3(3.0f, 0.5f, 1.0f),
 		//glm::vec3(-1.2f, 0.4f, -1.0f)
 };
 
-glm::vec3 POINT_LIGHT_COLORS[NUM_POINT_LIGHTS]{
-	glm::vec3(1.0f) * 5.0f,
+static glm::vec3 POINT_LIGHT_COLORS[NUM_POINT_LIGHTS]{
+	glm::vec3(0.2f, 0.2f, 0.7f) * 5.0f,
 	//glm::vec3(10.0f, 0.0f, 0.0f),
 	//glm::vec3(0.0f, 0.0f, 15.0f),
 	//glm::vec3(0.0f, 5.0f, 0.0f)
 };
 
 static std::vector<glm::vec3> BACKPACK_POSITIONS{
-		glm::vec3(-3.0, -2.0, -3.0),
+		glm::vec3(-5.0, -11.5, -5.0),
 		//glm::vec3(0.0, -0.5, -3.0),
 		//glm::vec3(3.0, -0.5, -3.0),
 		//glm::vec3(-6.0, -0.5, -3.0),
 		//glm::vec3(6.0, -0.5, -3.0),
 
 		//glm::vec3(-3.0, -0.5, 0.0),
-		glm::vec3(0.0, -2.0, 0.0),
+		glm::vec3(0.0, -11.5, 0.0),
 		//glm::vec3(3.0, -0.5, 0.0),
 		//glm::vec3(-6.0, -0.5, 0.0),
 		//glm::vec3(6.0, -0.5, 0.0),
 
 		//glm::vec3(-3.0, -0.5, 3.0),
 		//glm::vec3(0.0, -0.5, 3.0),
-		glm::vec3(3.0, -2.0, 3.0),
+		glm::vec3(5.0, -11.5, 5.0),
 		//glm::vec3(-6.0, -0.5, 3.0),
 		//glm::vec3(6.0, -0.5, 3.0),
 
 		//glm::vec3(-3.0, -0.5, -6.0),
 		//glm::vec3(0.0, -0.5, -6.0),
 		//glm::vec3(3.0, -0.5, -6.0),
-		glm::vec3(-6.0, -2.0, -6.0),
+		glm::vec3(-10.0, -11.5, -10.0),
 		//glm::vec3(6.0, -0.5, -6.0),
 
 		//glm::vec3(-3.0, -0.5, 6.0),
 		//glm::vec3(0.0, -0.5, 6.0),
 		//glm::vec3(3.0, -0.5, 6.0),
 		//glm::vec3(-6.0, -0.5, 6.0),
-		glm::vec3(6.0, -2.0, 6.0),
+		glm::vec3(10.0, -11.5, 10.0),
 };
 
-//constexpr int ASTEROIDS_NUM = 100000;
-//glm::mat4 ASTEROID_TRANSFORMS[ASTEROIDS_NUM];
+static constexpr int NUM_SSAO_KERNEL_SAMPLES = 64;
+static constexpr int SSAO_NOISE_TEXTURE_SIZE = 4;
+static constexpr int NUM_SSAO_NOISE_SAMPLES = SSAO_NOISE_TEXTURE_SIZE * SSAO_NOISE_TEXTURE_SIZE;
+static glm::vec3 SSAO_KERNEL[NUM_SSAO_KERNEL_SAMPLES];
+static glm::vec3 SSAO_NOISE[NUM_SSAO_NOISE_SAMPLES];
 
 Graphics::Engine::Engine(const int windowWidth, const int windowHeight, const char* title) :
 	mWindowWidth(windowWidth),
@@ -85,7 +89,7 @@ Graphics::Engine::Engine(const int windowWidth, const int windowHeight, const ch
 	mTitle(title),
 	mWindow(nullptr),
 	mBaseShaderProgram(),
-	mCamera(glm::vec3(0.0f, 0.0f, 0.0f), 5.0f, 0.1f),
+	mCamera(glm::vec3(0.0f, -10.0f, 0.0f), 5.0f, 0.1f),
 	mLastMouseXPos(0.0f), mLastMouseYPos(0.0f), mIsFirstMouseMove(true),
 	mDefaultTexture{},
 	mUBOMatrices(0u)
@@ -104,6 +108,7 @@ Graphics::Engine::~Engine()
 
 	glDeleteFramebuffers(2, mPingPongFrameBuffers);
 	glDeleteTextures(2, mPingPongColorBuffers);
+	glDeleteTextures(1, &mNoiseTexture);
 
 	glfwTerminate();
 }
@@ -121,6 +126,11 @@ static void OnCursorPoseCallback(GLFWwindow* window, double xpos, double ypos)
 static void OnMouseScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	Graphics::Engine::GetInstance()->OnMouseScroll(static_cast<float>(xoffset), static_cast<float>(yoffset));
+}
+
+static float Lerp(float a, float b, float t)
+{
+	return a + t * (b - a);
 }
 
 bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
@@ -217,6 +227,10 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	Shader deferredVertShader("src/Shaders/deferred.vert", Shader::Vertex);
 	Shader deferredFragShader("src/Shaders/deferred.frag", Shader::Fragment);
 
+	Shader ssaoVertShader("src/Shaders/ssao.vert", Shader::Vertex);
+	Shader ssaoFragShader("src/Shaders/ssao.frag", Shader::Fragment);
+	Shader ssaoBlurFragShader("src/Shaders/ssaoBlur.frag", Shader::Fragment);
+
 	mBaseShaderProgram.Build({ baseVertexShader, baseFragmentShader });
 	//mBaseInstancedShaderProgram.Build({ baseInstancedVertexShader, baseFragmentShader });
 	mOutlineShaderProgram.Build({ baseVertexShader, outlineFragmentShader });
@@ -233,6 +247,8 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	mGBufferInstancedShaderProgram.Build({ gBufferInstancedVertShader, gBufferFragShader });
 	mDirectionalShadowMappingInstancedShaderProgram.Build({ dirShadowMappingFragmentShader, dirShadowMappingVertexInstancedShader });
 	mPointShadowMappingInstancedShaderProgram.Build({ pointShadowMappingVertInstancedShader, pointShadowMappingFragShader, pointShadowMappingGeomShader });
+	mSSAOShaderProgram.Build({ ssaoVertShader, ssaoFragShader });
+	mSSAOBlurShaderProgram.Build({ ssaoVertShader, ssaoBlurFragShader });
 
 	// Setting texture units
 	mPostProcessingShaderProgram.Bind();
@@ -258,7 +274,13 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	mDeferredShaderProgram.SetUniform1i("gAlbedoSpec", 2);
 	mDeferredShaderProgram.SetUniform1i("uDirLights[0].shadowMap", 3);
 	mDeferredShaderProgram.SetUniform1i("uPointLights[0].shadowCubeMap", 4);
+	mDeferredShaderProgram.SetUniform1i("uSSAOTexture", 5);
 	mDeferredShaderProgram.Unbind();
+	mSSAOShaderProgram.Bind();
+	mSSAOShaderProgram.SetUniform1i("gPosition", 0);
+	mSSAOShaderProgram.SetUniform1i("gNormal", 1);
+	mSSAOShaderProgram.SetUniform1i("uNoiseTexture", 2);
+	mSSAOShaderProgram.Unbind();
 
 	//Setting uniform block bindings
 	unsigned int uniformMatricesBlockBinding = 0;
@@ -277,8 +299,8 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	glBindBufferRange(GL_UNIFORM_BUFFER, uniformMatricesBlockBinding, mUBOMatrices, 0, bufferSize);
 
-	mDirectionalDepthMap.Build(1024, 1024, DepthMap::Directional);
-	mPointDepthMap.Build(1024, 1024, DepthMap::Point);
+	mDirectionalDepthMap.Build(2048, 2048, DepthMap::Directional);
+	mPointDepthMap.Build(2048, 2048, DepthMap::Point);
 
 	//constexpr unsigned int uniformsNum = 6;
 	//const char* uniformNames[uniformsNum]{
@@ -298,8 +320,10 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	mLoadedTextures["resources/textures/default.png"] = defaultDiffuseTextureId;
 	mDefaultTexture = { defaultDiffuseTextureId, Core::Diffuse };
 
-	mDeferredFrameBuffer.Create(mWindowWidth, mWindowHeight);
+	mDeferredLightingFrameBuffer.Create(mWindowWidth, mWindowHeight);
 	mGFrameBuffer.Create(mWindowWidth, mWindowHeight);
+	mSSAOFrameBuffer.Create(mWindowWidth, mWindowHeight);
+	mSSAOBlurFrameBuffer.Create(mWindowWidth, mWindowHeight);
 	mScreenQuad.Create();
 
 	// Pingpong fbos for blurring
@@ -320,11 +344,6 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 			std::cout << "Ping Pong Framebuffer is not complete!" << std::endl;
 	}
 
-	//unsigned int rockTextureId = GLLoadTextureFromFile("resources/objects/rock/rock.png");
-	//mLoadedTextures["resources/objects/rock/rock.png"] = rockTextureId;
-	//ASTEROID_MODEL.SetDefaultTexture({ rockTextureId, Core::Diffuse });
-	//ASTEROID_MODEL.Load("resources/objects/rock/rock.obj");
-	//MARS_MODEL.Load("resources/objects/planet/planet.obj");
 	SPHERE_MODEL.Load("resources/objects/sphere/sphere.obj");
 
 	CUBE_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/container2.png", false, true), Core::Diffuse });
@@ -336,14 +355,13 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	//FLOOR_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/bricks2_disp.jpg", false, false), Core::Height });
 	FLOOR_MODEL.Load("resources/objects/cube/cube.obj");
 
-	//NANOSUIT_MODEL.Load("resources/objects/nanosuit/nanosuit.obj");
-
+	//instance model matrices for backpack model
 	glm::mat4* instanceModelMatrices = new glm::mat4[BACKPACK_POSITIONS.size()];
 	for (unsigned int i = 0; i < BACKPACK_POSITIONS.size(); i++)
 	{
 		glm::mat4 model = glm::translate(glm::mat4(1.0f), BACKPACK_POSITIONS[i]);
 		model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-		model = glm::scale(model, glm::vec3(0.5f));
+		//model = glm::scale(model, glm::vec3(0.5f));
 		instanceModelMatrices[i] = model;
 	}
 
@@ -351,7 +369,47 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	BACKPACK_MODEL.SetupInstancedDrawing(instanceModelMatrices, BACKPACK_POSITIONS.size(), 4);
 	delete[] instanceModelMatrices;
 
-	//SPONZA_MODEL.Load("resources/objects/sponza/sponza.obj");
+	//ssao kernel
+	std::uniform_real_distribution<float> randomFloats(0.0, 1.0); // random floats between [0.0, 1.0]
+	std::default_random_engine generator;
+	for (int i = 0; i < NUM_SSAO_KERNEL_SAMPLES; i++)
+	{
+		glm::vec3 sample(
+			randomFloats(generator) * 2.0 - 1.0,
+			randomFloats(generator) * 2.0 - 1.0,
+			randomFloats(generator)
+		);
+		sample = glm::normalize(sample);
+		sample *= randomFloats(generator);
+
+		// scale samples s.t. they're more aligned to center of kernel
+		float scale = static_cast<float>(i) / static_cast<float>(NUM_SSAO_KERNEL_SAMPLES);
+		scale = Lerp(0.1f, 1.0f, scale * scale);
+
+		sample *= scale;
+
+		SSAO_KERNEL[i] = sample;
+	}
+	//ssao noise
+	for (int i = 0; i < NUM_SSAO_NOISE_SAMPLES; i++)
+	{
+		glm::vec3 noise(
+			randomFloats(generator) * 2.0 - 1.0,
+			randomFloats(generator) * 2.0 - 1.0,
+			0.0f
+		);
+
+		SSAO_NOISE[i] = noise;
+	}
+
+	glGenTextures(1, &mNoiseTexture);
+	glBindTexture(GL_TEXTURE_2D, mNoiseTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, SSAO_NOISE_TEXTURE_SIZE, SSAO_NOISE_TEXTURE_SIZE, 0, GL_RGB, GL_FLOAT, SSAO_NOISE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 	//const char* faces[6]{
 	//	"resources/skyboxes/SpaceLightblue/right.png",
@@ -463,11 +521,39 @@ void Graphics::Engine::OnRender()
 	// Geometry pass
 	mGFrameBuffer.Bind();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	SetupScene(mCamera.GetViewMatrix(), mCamera.GetProjectionMatrix(mAspectRatio));
+	glm::mat4 viewMatrix = mCamera.GetViewMatrix();
+	glm::mat4 projectionMatrix = mCamera.GetProjectionMatrix(mAspectRatio);
+	SetupScene(viewMatrix, projectionMatrix);
 	DrawScene(mGBufferShaderProgram, &mGBufferInstancedShaderProgram);
 
-	//Deferred calculations
-	mDeferredFrameBuffer.Bind();
+	// SSAO
+	mSSAOFrameBuffer.Bind();
+	glClear(GL_COLOR_BUFFER_BIT);
+	mSSAOShaderProgram.Bind();
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, mGFrameBuffer.GetPositionTextureId());
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, mGFrameBuffer.GetNormalTextureId());
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, mNoiseTexture);
+
+	glm::vec2 noiseScale(
+		static_cast<float>(mWindowWidth) / static_cast<float>(SSAO_NOISE_TEXTURE_SIZE),
+		static_cast<float>(mWindowHeight) / static_cast<float>(SSAO_NOISE_TEXTURE_SIZE)
+	);
+	mSSAOShaderProgram.SetUniformVec2("uNoiseScale", glm::value_ptr(noiseScale));
+	mSSAOShaderProgram.SetUniform1i("uNumSamples", NUM_SSAO_KERNEL_SAMPLES);
+	for (int i = 0; i < NUM_SSAO_KERNEL_SAMPLES; i++)
+	{
+		mSSAOShaderProgram.SetUniformVec3(std::format("uSamples[{}]", i), glm::value_ptr(SSAO_KERNEL[i]));
+	}
+
+	glDisable(GL_DEPTH_TEST);
+	mScreenQuad.Draw();
+	glEnable(GL_DEPTH_TEST);
+
+	// Lighting pass
+	mDeferredLightingFrameBuffer.Bind();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	mDeferredShaderProgram.Bind();
 
@@ -481,17 +567,19 @@ void Graphics::Engine::OnRender()
 	glBindTexture(GL_TEXTURE_2D, mDirectionalDepthMap.GetTextureColorId());
 	glActiveTexture(GL_TEXTURE4);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, mPointDepthMap.GetTextureColorId());
+	glActiveTexture(GL_TEXTURE5);
+	glBindTexture(GL_TEXTURE_2D, mSSAOFrameBuffer.GetTextureColorId());
 
 	glDisable(GL_DEPTH_TEST);
 	mScreenQuad.Draw();
 	glEnable(GL_DEPTH_TEST);
 
-	// forward pass
+	// Forward pass
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, mGFrameBuffer.GetFrameBufferId());
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mDeferredFrameBuffer.GetFrameBufferId());
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mDeferredLightingFrameBuffer.GetFrameBufferId());
 	glBlitFramebuffer(0, 0, mWindowWidth, mWindowHeight, 0, 0, mWindowWidth, mWindowHeight, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 
-	mDeferredFrameBuffer.Bind();
+	mDeferredLightingFrameBuffer.Bind();
 	mLightSourceShaderProgram.Bind();
 	for (int i = 0; i < NUM_POINT_LIGHTS; i++)
 	{
@@ -502,7 +590,7 @@ void Graphics::Engine::OnRender()
 		SPHERE_MODEL.Draw(mLightSourceShaderProgram, lightSourceMat);
 	}
 
-	//Blurring bright fragments with two-pass Gaussian Blur
+	// Blurring bright fragments with two-pass Gaussian Blur
 	mGaussianBlurShaderProgram.Bind();
 	mGaussianBlurShaderProgram.SetUniformVec2("uSampleDistance", glm::value_ptr(glm::vec2(1.0f, 1.0f)));
 	bool isHorizontal = true, isFirstIteration = true;
@@ -513,21 +601,21 @@ void Graphics::Engine::OnRender()
 		mGaussianBlurShaderProgram.SetUniform1i("uHorizontal", isHorizontal);
 		glBindFramebuffer(GL_FRAMEBUFFER, mPingPongFrameBuffers[isHorizontal]);
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, isFirstIteration ? mDeferredFrameBuffer.GetBrightTextureColorId() : mPingPongColorBuffers[!isHorizontal]);
+		glBindTexture(GL_TEXTURE_2D, isFirstIteration ? mDeferredLightingFrameBuffer.GetBrightTextureColorId() : mPingPongColorBuffers[!isHorizontal]);
 		mScreenQuad.Draw();
 		isHorizontal = !isHorizontal;
 		isFirstIteration = false;
 	}
 	glEnable(GL_DEPTH_TEST);
 
-	//post processing
+	// Post-processing
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	mPostProcessingShaderProgram.Bind();
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, mDeferredFrameBuffer.GetTextureColorId());
+	glBindTexture(GL_TEXTURE_2D, mDeferredLightingFrameBuffer.GetTextureColorId());
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, mPingPongColorBuffers[!isHorizontal]);
 
@@ -604,11 +692,15 @@ void Graphics::Engine::DrawScene(
 {
 	shader.Bind();
 
-	glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -3.0f, 0.0));
-	model = glm::scale(model, glm::vec3(12.5f, 0.5f, 12.5f));
+	glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0));
+	model = glm::scale(model, glm::vec3(12.5f, 12.5f, 12.5f));
+	shader.SetUniform1f("uNormalsMultiplier", -1.0f);
 	shader.SetUniform1f("uTexTiling", 4.0f);
+	glDisable(GL_CULL_FACE);
 	FLOOR_MODEL.Draw(shader, model);
+	glEnable(GL_CULL_FACE);
 	shader.SetUniform1f("uTexTiling", 1.0f);
+	shader.SetUniform1f("uNormalsMultiplier", 1.0f);
 
 	if (shaderInstanced)
 	{

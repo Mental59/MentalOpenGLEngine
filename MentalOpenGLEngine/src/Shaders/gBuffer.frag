@@ -9,7 +9,6 @@ in VS_OUT {
 
 	vec3 tangentPos;
 	vec3 tangentViewPos;
-	vec3 worldViewPos;
 } fs_in;
 
 struct Material
@@ -44,12 +43,14 @@ void main()
 	vec3 normal = normalize(fs_in.normal);
 	if (uMaterial.useNormalTexture)
 	{
-		normal = normalize(texture(uMaterial.normalTexture1, texCoords).rgb * fs_in.normalsMultiplier);
-		normal = normal * 2.0 - 1.0; // transform to range [-1, 1]
-		normal = normalize(fs_in.tangentToWorld * normal);
+		normal = texture(uMaterial.normalTexture1, texCoords).rgb;
+		normal = normalize(normal * 2.0 - 1.0); // transform to range [-1, 1]
+		normal = fs_in.tangentToWorld * normal;
+		normal *= fs_in.normalsMultiplier;
 	}
 
 	vec3 albedo = texture(uMaterial.diffuseTexture1, texCoords).rgb;
+	albedo = vec3(0.95);
 
 	float specular = uMaterial.specular.r;
 	if (uMaterial.useSpecularTexture)

@@ -13,6 +13,7 @@
 #include "CubeMap.h"
 #include "DepthMap.h"
 #include "GFrameBuffer.h"
+#include "SSAOFrameBuffer.h"
 
 struct GLFWwindow;
 
@@ -81,13 +82,17 @@ namespace Graphics
 		ShaderProgram mPointShadowMappingShaderProgram;
 		ShaderProgram mPointShadowMappingInstancedShaderProgram;
 		ShaderProgram mGaussianBlurShaderProgram;
+		ShaderProgram mSSAOShaderProgram;
+		ShaderProgram mSSAOBlurShaderProgram;
 
 		ShaderProgram mGBufferShaderProgram;
 		ShaderProgram mGBufferInstancedShaderProgram;
 		ShaderProgram mDeferredShaderProgram;
 
-		FrameBuffer mDeferredFrameBuffer;
+		FrameBuffer mDeferredLightingFrameBuffer;
 		GFrameBuffer mGFrameBuffer;
+		SSAOFrameBuffer mSSAOFrameBuffer;
+		SSAOFrameBuffer mSSAOBlurFrameBuffer;
 
 		ScreenQuad mScreenQuad;
 		CubeMap mCubemap;
@@ -106,5 +111,6 @@ namespace Graphics
 
 		unsigned int mPingPongFrameBuffers[2];
 		unsigned int mPingPongColorBuffers[2];
+		unsigned int mNoiseTexture;
 	};
 }

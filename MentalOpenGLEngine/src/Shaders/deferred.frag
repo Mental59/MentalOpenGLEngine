@@ -104,6 +104,7 @@ in vec2 vTexCoords;
 uniform sampler2D gPosition;
 uniform sampler2D gNormal;
 uniform sampler2D gAlbedoSpec;
+uniform sampler2D uSSAOTexture;
 
 uniform Material uMaterial;
 uniform vec3 uViewPos;
