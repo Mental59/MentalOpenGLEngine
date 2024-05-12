@@ -37,42 +37,42 @@ glm::vec3 POINT_LIGHT_POSITIONS[NUM_POINT_LIGHTS]{
 };
 
 glm::vec3 POINT_LIGHT_COLORS[NUM_POINT_LIGHTS]{
-	glm::vec3(0.11f, 0.72f, 0.87f) * 5.0f,
+	glm::vec3(1.0f) * 5.0f,
 	//glm::vec3(10.0f, 0.0f, 0.0f),
 	//glm::vec3(0.0f, 0.0f, 15.0f),
 	//glm::vec3(0.0f, 5.0f, 0.0f)
 };
 
 static std::vector<glm::vec3> BACKPACK_POSITIONS{
-		glm::vec3(-3.0, -0.5, -3.0),
+		glm::vec3(-3.0, -2.0, -3.0),
 		//glm::vec3(0.0, -0.5, -3.0),
 		//glm::vec3(3.0, -0.5, -3.0),
 		//glm::vec3(-6.0, -0.5, -3.0),
 		//glm::vec3(6.0, -0.5, -3.0),
 
 		//glm::vec3(-3.0, -0.5, 0.0),
-		glm::vec3(0.0, -0.5, 0.0),
+		glm::vec3(0.0, -2.0, 0.0),
 		//glm::vec3(3.0, -0.5, 0.0),
 		//glm::vec3(-6.0, -0.5, 0.0),
 		//glm::vec3(6.0, -0.5, 0.0),
 
 		//glm::vec3(-3.0, -0.5, 3.0),
 		//glm::vec3(0.0, -0.5, 3.0),
-		glm::vec3(3.0, -0.5, 3.0),
+		glm::vec3(3.0, -2.0, 3.0),
 		//glm::vec3(-6.0, -0.5, 3.0),
 		//glm::vec3(6.0, -0.5, 3.0),
 
 		//glm::vec3(-3.0, -0.5, -6.0),
 		//glm::vec3(0.0, -0.5, -6.0),
 		//glm::vec3(3.0, -0.5, -6.0),
-		glm::vec3(-6.0, -0.5, -6.0),
+		glm::vec3(-6.0, -2.0, -6.0),
 		//glm::vec3(6.0, -0.5, -6.0),
 
 		//glm::vec3(-3.0, -0.5, 6.0),
 		//glm::vec3(0.0, -0.5, 6.0),
 		//glm::vec3(3.0, -0.5, 6.0),
 		//glm::vec3(-6.0, -0.5, 6.0),
-		glm::vec3(6.0, -0.5, 6.0),
+		glm::vec3(6.0, -2.0, 6.0),
 };
 
 //constexpr int ASTEROIDS_NUM = 100000;
@@ -342,6 +342,7 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	for (unsigned int i = 0; i < BACKPACK_POSITIONS.size(); i++)
 	{
 		glm::mat4 model = glm::translate(glm::mat4(1.0f), BACKPACK_POSITIONS[i]);
+		model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 		model = glm::scale(model, glm::vec3(0.5f));
 		instanceModelMatrices[i] = model;
 	}
@@ -397,8 +398,8 @@ void Graphics::Engine::Run()
 
 void Graphics::Engine::Update()
 {
-	POINT_LIGHT_POSITIONS[0].x = sin(Time::LastFrame) * 4.0f;
-	POINT_LIGHT_POSITIONS[0].z = cos(Time::LastFrame) * 4.0f;
+	//POINT_LIGHT_POSITIONS[0].x = sin(Time::LastFrame) * 4.0f;
+	//POINT_LIGHT_POSITIONS[0].z = cos(Time::LastFrame) * 4.0f;
 }
 
 void Graphics::Engine::UpdateTimer()
@@ -661,8 +662,8 @@ void Graphics::Engine::SetupScene(
 	for (int i = 0; i < NUM_POINT_LIGHTS; i++)
 	{
 		glm::vec3 ambientColor = glm::vec3(0.025f) * POINT_LIGHT_COLORS[i];
-		glm::vec3 diffuseColor = glm::vec3(1.0f) * POINT_LIGHT_COLORS[i];
-		glm::vec3 specularColor = glm::vec3(4.0f) * POINT_LIGHT_COLORS[i];
+		glm::vec3 diffuseColor = glm::vec3(0.5f) * POINT_LIGHT_COLORS[i];
+		glm::vec3 specularColor = glm::vec3(1.0f) * POINT_LIGHT_COLORS[i];
 
 		float constant = 1.0f;
 		float linear = 0.09f;

@@ -123,6 +123,7 @@ void main()
 	vec4 albedoSpecular = texture(gAlbedoSpec, vTexCoords);
 	vec3 albedo = albedoSpecular.rgb;
 	float specular = albedoSpecular.a;
+//	albedo = vec3(0.95);
 
 	vec3 viewDirection = normalize(uViewPos - worldPos);
 
