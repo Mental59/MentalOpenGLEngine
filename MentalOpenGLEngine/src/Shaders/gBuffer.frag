@@ -3,8 +3,11 @@
 in VS_OUT {
     vec2 texCoords;
 	vec3 normal;
+	vec3 normalInViewSpace;
 	vec3 worldPos;
+	vec3 posInViewSpace;
 	mat3 tangentToWorld;
+	mat3 tangentToView;
 	float normalsMultiplier;
 
 	vec3 tangentPos;
@@ -28,6 +31,8 @@ struct Material
 layout (location = 0) out vec3 gPosition;
 layout (location = 1) out vec3 gNormal;
 layout (location = 2) out vec4 gAlbedoSpecular;
+layout (location = 3) out vec3 gPositionInViewSpace;
+layout (location = 4) out vec3 gNormalInViewSpace;
 
 uniform Material uMaterial;
 uniform float uHeightScale = 0.1;
@@ -49,6 +54,15 @@ void main()
 		normal *= fs_in.normalsMultiplier;
 	}
 
+	vec3 normalInViewSpace = normalize(fs_in.normalInViewSpace);
+	if (uMaterial.useNormalTexture)
+	{
+		normalInViewSpace = texture(uMaterial.normalTexture1, texCoords).rgb;
+		normalInViewSpace = normalize(normalInViewSpace * 2.0 - 1.0); // transform to range [-1, 1]
+		normalInViewSpace = fs_in.tangentToView * normalInViewSpace;
+		normalInViewSpace *= fs_in.normalsMultiplier;
+	}
+
 	vec3 albedo = texture(uMaterial.diffuseTexture1, texCoords).rgb;
 	albedo = vec3(0.95);
 
@@ -59,7 +73,9 @@ void main()
 	}
 
 	gPosition = fs_in.worldPos;
+	gPositionInViewSpace = fs_in.posInViewSpace;
 	gNormal = normal;
+	gNormalInViewSpace = normalInViewSpace;
 	gAlbedoSpecular = vec4(albedo, specular);
 }
 

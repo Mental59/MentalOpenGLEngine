@@ -54,7 +54,8 @@ vec3 CalculateDirectionalLight(
 	const vec3 viewDirection,
 	const vec3 materialDiffuse,
 	const vec3 materialSpecular,
-	const float shadow
+	const float shadow,
+	const float ambientOcclusion
 );
 vec3 CalculatePointLight(
 	PointLight light,
@@ -63,7 +64,8 @@ vec3 CalculatePointLight(
 	const vec3 materialDiffuse,
 	const vec3 materialSpecular,
 	const vec3 fragPos,
-	const float shadow
+	const float shadow,
+	const float ambientOcclusion
 );
 vec3 CalculateSpotLight(
 	SpotLight light,
@@ -71,11 +73,13 @@ vec3 CalculateSpotLight(
 	const vec3 viewDirection,
 	const vec3 materialDiffuse,
 	const vec3 materialSpecular,
-	const vec3 fragPos
+	const vec3 fragPos,
+	const float ambientOcclusion
 );
 vec3 CalculateAmbient(
 	const vec3 lightAmbient,
-	const vec3 materialDiffuse
+	const vec3 materialDiffuse,
+	const float ambientOcclusion
 );
 vec3 CalculateDiffuse(
 	const vec3 lightDiffuse,
@@ -124,6 +128,7 @@ void main()
 	vec4 albedoSpecular = texture(gAlbedoSpec, vTexCoords);
 	vec3 albedo = albedoSpecular.rgb;
 	float specular = albedoSpecular.a;
+	float ambientOcclusion = texture(uSSAOTexture, vTexCoords).r;
 //	albedo = vec3(0.95);
 
 	vec3 viewDirection = normalize(uViewPos - worldPos);
@@ -134,7 +139,7 @@ void main()
 	{
 		vec4 posInLightSpace = uDirLights[i].lightSpaceMat * vec4(worldPos, 1.0);
 		shadow = CalculateDirShadow(uDirLights[i], normal, posInLightSpace);
-		color += CalculateDirectionalLight(uDirLights[i], normal, viewDirection, albedo, vec3(specular), shadow);
+		color += CalculateDirectionalLight(uDirLights[i], normal, viewDirection, albedo, vec3(specular), shadow, ambientOcclusion);
 	}
 
 	for (int i = 0; i < min(MAX_POINT_LIGHTS, uNumPointLights); i++)
@@ -142,8 +147,8 @@ void main()
 //		float distanceToLight = length(uPointLights[i].position - worldPos);
 //		if (distanceToLight < uPointLights[i].radius)
 //		{
-			shadow = CalculatePointShadow(uPointLights[i], worldPos, uViewPos);
-			color += CalculatePointLight(uPointLights[i], normal, viewDirection, albedo, vec3(specular), worldPos, shadow);
+		shadow = CalculatePointShadow(uPointLights[i], worldPos, uViewPos);
+		color += CalculatePointLight(uPointLights[i], normal, viewDirection, albedo, vec3(specular), worldPos, shadow, ambientOcclusion);
 //		}
 	}
 	
@@ -157,6 +162,9 @@ void main()
 	{
 		BrightColor = vec4(0.0, 0.0, 0.0, 1.0);
 	}
+
+	// SSAO texture
+//	FragColor = vec4(texture(uSSAOTexture, vTexCoords).rrr, 1.0);
 
 	//dir light shadow map
 //	FragColor = vec4(texture(uDirLights[0].shadowMap, vTexCoords).rrr, 1.0);
@@ -233,12 +241,13 @@ vec3 CalculateDirectionalLight(
 	const vec3 viewDirection,
 	const vec3 materialDiffuse,
 	const vec3 materialSpecular,
-	const float shadow
+	const float shadow,
+	const float ambientOcclusion
 )
 {
 	vec3 lightDirection = normalize(-light.direction);
 
-	vec3 ambient = CalculateAmbient(light.ambient, materialDiffuse);
+	vec3 ambient = CalculateAmbient(light.ambient, materialDiffuse, ambientOcclusion);
 	vec3 diffuse = CalculateDiffuse(light.diffuse, normal, lightDirection, materialDiffuse);
 	vec3 specular = CalculateSpecular(light.specular, normal, lightDirection, viewDirection, materialSpecular);
 
@@ -252,7 +261,8 @@ vec3 CalculatePointLight(
 	const vec3 materialDiffuse,
 	const vec3 materialSpecular,
 	const vec3 fragPos,
-	const float shadow
+	const float shadow,
+	const float ambientOcclusion
 )
 {
 	vec3 lightDirection = normalize(light.position - fragPos);
@@ -260,7 +270,7 @@ vec3 CalculatePointLight(
 	float distanceToLight = length(light.position - fragPos);
 	float attenuation = 1.0 / (light.constant + light.linear * distanceToLight + light.quadratic * distanceToLight * distanceToLight);
 
-	vec3 ambient = CalculateAmbient(light.ambient, materialDiffuse);
+	vec3 ambient = CalculateAmbient(light.ambient, materialDiffuse, ambientOcclusion);
 	vec3 diffuse = CalculateDiffuse(light.diffuse, normal, lightDirection, materialDiffuse);
 	vec3 specular = CalculateSpecular(light.specular, normal, lightDirection, viewDirection, materialSpecular);
 
@@ -273,7 +283,8 @@ vec3 CalculateSpotLight(
 	const vec3 viewDirection,
 	const vec3 materialDiffuse,
 	const vec3 materialSpecular,
-	const vec3 fragPos
+	const vec3 fragPos,
+	const float ambientOcclusion
 )
 {
 	vec3 lightDirection = normalize(-light.direction);
@@ -286,7 +297,7 @@ vec3 CalculateSpotLight(
 	float epsilon = light.cutOffCosine - light.outerCutOffCosine;
 	float lightIntensity = clamp((theta - light.outerCutOffCosine) / epsilon, 0.0, 1.0);
 
-	vec3 ambient = CalculateAmbient(light.ambient, materialDiffuse);
+	vec3 ambient = CalculateAmbient(light.ambient, materialDiffuse, ambientOcclusion);
 	vec3 diffuse = CalculateDiffuse(light.diffuse, normal, lightDirection, materialDiffuse);
 	vec3 specular = CalculateSpecular(light.specular, normal, lightDirection, viewDirection, materialSpecular);
 
@@ -295,10 +306,11 @@ vec3 CalculateSpotLight(
 
 vec3 CalculateAmbient(
 	const vec3 lightAmbient,
-	const vec3 materialDiffuse
+	const vec3 materialDiffuse,
+	const float ambientOcclusion
 )
 {
-	vec3 ambient = lightAmbient * materialDiffuse;
+	vec3 ambient = lightAmbient * materialDiffuse * ambientOcclusion;
 	return ambient;
 }
 

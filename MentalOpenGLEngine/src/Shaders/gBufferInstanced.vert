@@ -9,8 +9,11 @@ layout (location = 4) in mat4 aInstanceModelMatrix;
 out VS_OUT {
     vec2 texCoords;
 	vec3 normal;
+	vec3 normalInViewSpace;
 	vec3 worldPos;
+	vec3 posInViewSpace;
 	mat3 tangentToWorld;
+	mat3 tangentToView;
 	float normalsMultiplier;
 
 	vec3 tangentPos;
@@ -35,13 +38,17 @@ void main()
 	vec3 normal = aNormal * uNormalsMultiplier;
 
 	vs_out.worldPos = vec3(aInstanceModelMatrix * vec4(aPos, 1.0));
+	vs_out.posInViewSpace = vec3(uView * aInstanceModelMatrix * vec4(aPos, 1.0));
 
-	mat3 normalMatrix = transpose(inverse(mat3(aInstanceModelMatrix)));
-	vs_out.normal = normalize(normalMatrix * normal);
+	mat3 worldNormalMatrix = transpose(inverse(mat3(aInstanceModelMatrix)));
+	mat3 viewNormalMatrix = transpose(inverse(mat3(uView * aInstanceModelMatrix)));
+	vs_out.normal = normalize(worldNormalMatrix * normal);
+	vs_out.normalInViewSpace = normalize(viewNormalMatrix * normal);
 
 	vs_out.texCoords = aTexCoords * uTexTiling + uTexDisplacement;
 
-	vs_out.tangentToWorld = TBNMat(aNormal, normalMatrix);
+	vs_out.tangentToWorld = TBNMat(aNormal, worldNormalMatrix);
+	vs_out.tangentToView = TBNMat(aNormal, viewNormalMatrix);
 
 	vs_out.normalsMultiplier = uNormalsMultiplier;
 

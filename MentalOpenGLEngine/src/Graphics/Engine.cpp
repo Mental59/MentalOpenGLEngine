@@ -281,6 +281,9 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	mSSAOShaderProgram.SetUniform1i("gNormal", 1);
 	mSSAOShaderProgram.SetUniform1i("uNoiseTexture", 2);
 	mSSAOShaderProgram.Unbind();
+	mSSAOBlurShaderProgram.Bind();
+	mSSAOBlurShaderProgram.SetUniform1i("uSSAOTexture", 0);
+	mSSAOBlurShaderProgram.Unbind();
 
 	//Setting uniform block bindings
 	unsigned int uniformMatricesBlockBinding = 0;
@@ -291,6 +294,7 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	mLightSourceShaderProgram.SetUniformBlockBinding("Matrices", uniformMatricesBlockBinding);
 	mGBufferShaderProgram.SetUniformBlockBinding("Matrices", uniformMatricesBlockBinding);
 	mGBufferInstancedShaderProgram.SetUniformBlockBinding("Matrices", uniformMatricesBlockBinding);
+	mSSAOShaderProgram.SetUniformBlockBinding("Matrices", uniformMatricesBlockBinding);
 
 	size_t bufferSize = 2 * sizeof(glm::mat4);
 	glGenBuffers(1, &mUBOMatrices);
@@ -456,8 +460,8 @@ void Graphics::Engine::Run()
 
 void Graphics::Engine::Update()
 {
-	//POINT_LIGHT_POSITIONS[0].x = sin(Time::LastFrame) * 4.0f;
-	//POINT_LIGHT_POSITIONS[0].z = cos(Time::LastFrame) * 4.0f;
+	POINT_LIGHT_POSITIONS[0].x = sin(Time::LastFrame) * 4.0f;
+	POINT_LIGHT_POSITIONS[0].z = cos(Time::LastFrame) * 4.0f;
 }
 
 void Graphics::Engine::UpdateTimer()
@@ -531,9 +535,9 @@ void Graphics::Engine::OnRender()
 	glClear(GL_COLOR_BUFFER_BIT);
 	mSSAOShaderProgram.Bind();
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, mGFrameBuffer.GetPositionTextureId());
+	glBindTexture(GL_TEXTURE_2D, mGFrameBuffer.GetPositionInViewSpaceTextureId());
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, mGFrameBuffer.GetNormalTextureId());
+	glBindTexture(GL_TEXTURE_2D, mGFrameBuffer.GetNormalInViewSpaceTextureId());
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, mNoiseTexture);
 
@@ -543,10 +547,21 @@ void Graphics::Engine::OnRender()
 	);
 	mSSAOShaderProgram.SetUniformVec2("uNoiseScale", glm::value_ptr(noiseScale));
 	mSSAOShaderProgram.SetUniform1i("uNumSamples", NUM_SSAO_KERNEL_SAMPLES);
+	mSSAOShaderProgram.SetUniform1f("uPower", 5.0f);
 	for (int i = 0; i < NUM_SSAO_KERNEL_SAMPLES; i++)
 	{
 		mSSAOShaderProgram.SetUniformVec3(std::format("uSamples[{}]", i), glm::value_ptr(SSAO_KERNEL[i]));
 	}
+
+	glDisable(GL_DEPTH_TEST);
+	mScreenQuad.Draw();
+	glEnable(GL_DEPTH_TEST);
+
+	mSSAOBlurFrameBuffer.Bind();
+	glClear(GL_COLOR_BUFFER_BIT);
+	mSSAOBlurShaderProgram.Bind();
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, mSSAOFrameBuffer.GetTextureColorId());
 
 	glDisable(GL_DEPTH_TEST);
 	mScreenQuad.Draw();
@@ -568,7 +583,7 @@ void Graphics::Engine::OnRender()
 	glActiveTexture(GL_TEXTURE4);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, mPointDepthMap.GetTextureColorId());
 	glActiveTexture(GL_TEXTURE5);
-	glBindTexture(GL_TEXTURE_2D, mSSAOFrameBuffer.GetTextureColorId());
+	glBindTexture(GL_TEXTURE_2D, mSSAOBlurFrameBuffer.GetTextureColorId());
 
 	glDisable(GL_DEPTH_TEST);
 	mScreenQuad.Draw();
