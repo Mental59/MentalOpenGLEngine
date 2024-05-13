@@ -51,7 +51,7 @@ void main()
 	}
 
 	vec3 albedo = texture(uMaterial.diffuseTexture1, texCoords).rgb;
-	albedo = vec3(0.95);
+//	albedo = vec3(0.95);
 
 	float specular = uMaterial.specular.r;
 	if (uMaterial.useSpecularTexture)

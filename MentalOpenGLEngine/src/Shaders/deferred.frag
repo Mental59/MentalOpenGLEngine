@@ -129,7 +129,6 @@ void main()
 	vec3 albedo = albedoSpecular.rgb;
 	float specular = albedoSpecular.a;
 	float ambientOcclusion = texture(uSSAOTexture, vTexCoords).r;
-//	albedo = vec3(0.95);
 
 	vec3 viewDirection = normalize(uViewPos - worldPos);
 
