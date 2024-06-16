@@ -4,6 +4,36 @@
 #include <glad/glad.h>
 #include "External/stb_image.h"
 
+struct ImageFormat
+{
+	GLenum DataFormat = 0;
+	GLint InternalFormat = 0;
+};
+
+inline ImageFormat GetImageFormat(int numChannels, bool srgb)
+{
+	GLenum dataFormat = 0;
+	GLint internalFormat = 0;
+
+	if (numChannels == 1)
+	{
+		dataFormat = GL_RED;
+		internalFormat = GL_R8;
+	}
+	else if (numChannels == 3)
+	{
+		dataFormat = GL_RGB;
+		internalFormat = srgb ? GL_SRGB8 : GL_RGB8;
+	}
+	else if (numChannels == 4)
+	{
+		dataFormat = GL_RGBA;
+		internalFormat = srgb ? GL_SRGB8_ALPHA8 : GL_RGBA8;
+	}
+
+	return { dataFormat, internalFormat };
+}
+
 inline unsigned int GLLoadTextureFromFile(const char* texturePath, bool flipVertically = false, bool srgb = false)
 {
 	stbi_set_flip_vertically_on_load(flipVertically);
@@ -15,24 +45,7 @@ inline unsigned int GLLoadTextureFromFile(const char* texturePath, bool flipVert
 
 	if (data)
 	{
-		GLenum dataFormat = 0;
-		GLint internalFormat = 0;
-
-		if (numChannels == 1)
-		{
-			dataFormat = GL_RED;
-			internalFormat = GL_R8;
-		}
-		else if (numChannels == 3)
-		{
-			dataFormat = GL_RGB;
-			internalFormat = srgb ? GL_SRGB8 : GL_RGB8;
-		}
-		else if (numChannels == 4)
-		{
-			dataFormat = GL_RGBA;
-			internalFormat = srgb ? GL_SRGB8_ALPHA8 : GL_RGBA8;
-		}
+		ImageFormat imageFormat = GetImageFormat(numChannels, srgb);
 
 		glGenTextures(1, &textureID);
 		glBindTexture(GL_TEXTURE_2D, textureID);
@@ -42,7 +55,7 @@ inline unsigned int GLLoadTextureFromFile(const char* texturePath, bool flipVert
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, dataFormat, GL_UNSIGNED_BYTE, data);
+		glTexImage2D(GL_TEXTURE_2D, 0, imageFormat.InternalFormat, width, height, 0, imageFormat.DataFormat, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
 
 		glBindTexture(GL_TEXTURE_2D, 0);
@@ -58,7 +71,7 @@ inline unsigned int GLLoadTextureFromFile(const char* texturePath, bool flipVert
 	return textureID;
 }
 
-inline unsigned int GLLoadCubemap(const char* faces[6])
+inline unsigned int GLLoadCubemap(const char* faces[6], bool srgb = false)
 {
 	unsigned int textureId = 0;
 
@@ -72,21 +85,8 @@ inline unsigned int GLLoadCubemap(const char* faces[6])
 
 		if (data)
 		{
-			GLenum format = GL_RGB;
-			if (numChannels == 1)
-			{
-				format = GL_RED;
-			}
-			else if (numChannels == 3)
-			{
-				format = GL_RGB;
-			}
-			else if (numChannels == 4)
-			{
-				format = GL_RGBA;
-			}
-
-			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+			ImageFormat imageFormat = GetImageFormat(numChannels, srgb);
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, imageFormat.InternalFormat, width, height, 0, imageFormat.DataFormat, GL_UNSIGNED_BYTE, data);
 		}
 		else
 		{

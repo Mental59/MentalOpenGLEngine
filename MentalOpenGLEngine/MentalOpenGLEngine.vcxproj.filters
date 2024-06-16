@@ -149,5 +149,6 @@
     <None Include="src\Shaders\ssao.vert" />
     <None Include="src\Shaders\ssao.frag" />
     <None Include="src\Shaders\ssaoBlur.frag" />
+    <None Include="src\Shaders\deferredPBR.frag" />
   </ItemGroup>
 </Project>

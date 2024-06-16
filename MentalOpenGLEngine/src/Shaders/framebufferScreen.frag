@@ -13,9 +13,9 @@ uniform float uExposure = 1.0;
 void main()
 {   
     vec3 screenTextureColor = texture(uScreenTexture, vTexCoords).rgb;
-    vec3 bloomTextureColor = texture(uBloomTexture, vTexCoords).rgb;
+//    vec3 bloomTextureColor = texture(uBloomTexture, vTexCoords).rgb;
 
-    screenTextureColor += bloomTextureColor; // additive blending
+//    screenTextureColor += bloomTextureColor; // additive blending
     
     vec3 mapped = vec3(1.0) - exp(-screenTextureColor * uExposure);
     mapped = pow(mapped, vec3(1.0 / uGamma));

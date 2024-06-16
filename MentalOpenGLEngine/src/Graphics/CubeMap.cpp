@@ -9,7 +9,7 @@ CubeMap::~CubeMap()
 
 void CubeMap::Load(const char* faces[6])
 {
-	mTextureId = GLLoadCubemap(faces);
+	mTextureId = GLLoadCubemap(faces, true);
 
 	GLfloat cubeVertices[] = {
 		//right side
