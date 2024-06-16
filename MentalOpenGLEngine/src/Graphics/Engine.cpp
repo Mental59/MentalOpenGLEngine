@@ -717,6 +717,10 @@ void Graphics::Engine::DrawScene(
 	shader.SetUniform1f("uTexTiling", 1.0f);
 	shader.SetUniform1f("uNormalsMultiplier", 1.0f);
 
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(0.0f, -11.5f, -5.0f));
+	SPHERE_MODEL.Draw(shader, model);
+
 	if (shaderInstanced)
 	{
 		shaderInstanced->Bind();
