@@ -8,12 +8,13 @@ GFrameBuffer::~GFrameBuffer()
 	glDeleteFramebuffers(1, &mFramebufferId);
 	glDeleteRenderbuffers(1, &mRenderBufferId);
 
-	unsigned int textureIds[5]{
+	unsigned int textureIds[4]{
 		mAlbedoSpecularTextureId,
 		mNormalTextureId,
-		mPositionTextureId
+		mPositionTextureId,
+		mMetallicRoughnessAOTextureId
 	};
-	glDeleteTextures(5, textureIds);
+	glDeleteTextures(4, textureIds);
 }
 
 void GFrameBuffer::Create(int width, int height)
@@ -51,17 +52,28 @@ void GFrameBuffer::Create(int width, int height)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, mAlbedoSpecularTextureId, 0);
 
+	glGenTextures(1, &mMetallicRoughnessAOTextureId);
+	glBindTexture(GL_TEXTURE_2D, mMetallicRoughnessAOTextureId);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, mMetallicRoughnessAOTextureId, 0);
+
 	glGenRenderbuffers(1, &mRenderBufferId);
 	glBindRenderbuffer(GL_RENDERBUFFER, mRenderBufferId);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, mRenderBufferId);
 
-	unsigned int attachments[3] = {
+	constexpr unsigned int numAttachments = 4;
+	unsigned int attachments[numAttachments] = {
 		GL_COLOR_ATTACHMENT0,
 		GL_COLOR_ATTACHMENT1,
-		GL_COLOR_ATTACHMENT2
+		GL_COLOR_ATTACHMENT2,
+		GL_COLOR_ATTACHMENT3,
 	};
-	glDrawBuffers(3, attachments);
+	glDrawBuffers(numAttachments, attachments);
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	{

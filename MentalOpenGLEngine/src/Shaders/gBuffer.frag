@@ -20,6 +20,9 @@ struct Material
 	sampler2D heightTexture1;
 
 	vec3 specular;
+	float metallic;
+	float roughness;
+	float ao;
 
 	bool useNormalTexture;
 	bool useSpecularTexture;
@@ -29,6 +32,7 @@ struct Material
 layout (location = 0) out vec3 gPosition;
 layout (location = 1) out vec3 gNormal;
 layout (location = 2) out vec4 gAlbedoSpecular;
+layout (location = 3) out vec3 gMetallicRoughnessAO;
 
 uniform Material uMaterial;
 uniform float uHeightScale = 0.1;
@@ -61,6 +65,7 @@ void main()
 	gPosition = fs_in.worldPos;
 	gNormal = normal;
 	gAlbedoSpecular = vec4(albedo, specular);
+	gMetallicRoughnessAO = vec3(uMaterial.metallic, uMaterial.roughness, uMaterial.ao);
 }
 
 vec2 ParallaxOcclusionMapping(const vec2 texCoords, const vec3 viewDirection, const float minLayers, const float maxLayers)

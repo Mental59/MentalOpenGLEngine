@@ -10,7 +10,7 @@ Camera::Camera(
 	mCameraPos(cameraPos),
 	mMovementSpeed(movementSpeed),
 	mMouseSensitivity(mouseSensitivity),
-	mYaw(-145.0f), mPitch(0.0f), mZoom(45.0f)
+	mYaw(-90.0f), mPitch(0.0f), mZoom(45.0f)
 {
 	UpdateCameraBasisVectors();
 }

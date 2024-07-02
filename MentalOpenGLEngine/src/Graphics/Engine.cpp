@@ -31,10 +31,10 @@ static glm::vec3 DIR_LIGHT_POS;
 
 static constexpr int NUM_POINT_LIGHTS = 4;
 static glm::vec3 POINT_LIGHT_POSITIONS[NUM_POINT_LIGHTS]{
-	glm::vec3(-10.0f,  10.0f, 10.0f),
-	glm::vec3(10.0f,  10.0f, 10.0f),
-	glm::vec3(-10.0f, -10.0f, 10.0f),
-	glm::vec3(10.0f, -10.0f, 10.0f),
+	glm::vec3(-10.0f,  10.0f, 5.0f),
+	glm::vec3(10.0f,  10.0f, 5.0f),
+	glm::vec3(-10.0f, -10.0f, 5.0f),
+	glm::vec3(10.0f, -10.0f, 5.0f),
 };
 
 static glm::vec3 POINT_LIGHT_COLORS[NUM_POINT_LIGHTS]{
@@ -89,7 +89,7 @@ Graphics::Engine::Engine(const int windowWidth, const int windowHeight, const ch
 	mTitle(title),
 	mWindow(nullptr),
 	mBaseShaderProgram(),
-	mCamera(glm::vec3(0.0f, -10.0f, 0.0f), 5.0f, 0.1f),
+	mCamera(glm::vec3(0.0f, 0.0f, 0.0f), 5.0f, 0.1f),
 	mLastMouseXPos(0.0f), mLastMouseYPos(0.0f), mIsFirstMouseMove(true),
 	mDefaultTexture{},
 	mUBOMatrices(0u)
@@ -276,6 +276,7 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	mDeferredShaderProgram.SetUniform1i("uPointLights[0].shadowCubeMap", 4);
 	mDeferredShaderProgram.SetUniform1i("uSSAOTexture", 5);
 	mDeferredShaderProgram.SetUniform1i("uSkybox", 6);
+	mDeferredShaderProgram.SetUniform1i("gMetallicRoughnessAO", 7);
 	mDeferredShaderProgram.Unbind();
 	mSSAOShaderProgram.Bind();
 	mSSAOShaderProgram.SetUniform1i("gPosition", 0);
@@ -349,8 +350,6 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 			std::cout << "Ping Pong Framebuffer is not complete!" << std::endl;
 	}
 
-	SPHERE_MODEL.Load("resources/objects/sphere/sphere.obj");
-
 	CUBE_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/container2.png", false, true), Core::Diffuse });
 	CUBE_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/container2_specular.png"), Core::Specular });
 	CUBE_MODEL.Load("resources/objects/cube/cube.obj");
@@ -361,18 +360,20 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	FLOOR_MODEL.Load("resources/objects/cube/cube.obj");
 
 	//instance model matrices for backpack model
-	glm::mat4* instanceModelMatrices = new glm::mat4[BACKPACK_POSITIONS.size()];
-	for (unsigned int i = 0; i < BACKPACK_POSITIONS.size(); i++)
-	{
-		glm::mat4 model = glm::translate(glm::mat4(1.0f), BACKPACK_POSITIONS[i]);
-		model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-		//model = glm::scale(model, glm::vec3(1.0f, 2.0f, 1.0f));
-		instanceModelMatrices[i] = model;
-	}
+	//glm::mat4* instanceModelMatrices = new glm::mat4[BACKPACK_POSITIONS.size()];
+	//for (unsigned int i = 0; i < BACKPACK_POSITIONS.size(); i++)
+	//{
+	//	glm::mat4 model = glm::translate(glm::mat4(1.0f), BACKPACK_POSITIONS[i]);
+	//	model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	//	//model = glm::scale(model, glm::vec3(1.0f, 2.0f, 1.0f));
+	//	instanceModelMatrices[i] = model;
+	//}
 
 	//BACKPACK_MODEL.Load("resources/objects/backpack/backpack.obj");
 	//BACKPACK_MODEL.SetupInstancedDrawing(instanceModelMatrices, BACKPACK_POSITIONS.size(), 4);
-	delete[] instanceModelMatrices;
+	//delete[] instanceModelMatrices;
+
+	SPHERE_MODEL.Load("resources/objects/sphere/sphere.obj");
 
 	//ssao kernel
 	std::uniform_real_distribution<float> randomFloats(0.0, 1.0); // random floats between [0.0, 1.0]
@@ -461,8 +462,11 @@ void Graphics::Engine::Run()
 
 void Graphics::Engine::Update()
 {
-	//POINT_LIGHT_POSITIONS[0].x = sin(Time::LastFrame) * 4.0f;
-	//POINT_LIGHT_POSITIONS[0].z = cos(Time::LastFrame) * 4.0f;
+	for (int i = 0; i < NUM_POINT_LIGHTS; i++)
+	{
+		//POINT_LIGHT_POSITIONS[i].x = sin(Time::LastFrame) * 4.0f;
+		//POINT_LIGHT_POSITIONS[i].z = cos(Time::LastFrame) * 4.0f;
+	}
 }
 
 void Graphics::Engine::UpdateTimer()
@@ -585,6 +589,8 @@ void Graphics::Engine::OnRender()
 	glBindTexture(GL_TEXTURE_2D, mSSAOBlurFrameBuffer.GetTextureColorId());
 	glActiveTexture(GL_TEXTURE6);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, mCubemap.GetTextureID());
+	glActiveTexture(GL_TEXTURE7);
+	glBindTexture(GL_TEXTURE_2D, mGFrameBuffer.GetMetallicRoughnessAOTextureId());
 
 	glDisable(GL_DEPTH_TEST);
 	mScreenQuad.Draw();
@@ -615,22 +621,22 @@ void Graphics::Engine::OnRender()
 	mCubemap.UnbindTexture();
 
 	// Blurring bright fragments with two-pass Gaussian Blur
-	mGaussianBlurShaderProgram.Bind();
-	mGaussianBlurShaderProgram.SetUniformVec2("uSampleDistance", glm::value_ptr(glm::vec2(1.0f, 1.0f)));
-	bool isHorizontal = true, isFirstIteration = true;
-	unsigned int numPasses = 5;
-	glDisable(GL_DEPTH_TEST);
-	for (unsigned int i = 0; i < numPasses * 2; i++)
-	{
-		mGaussianBlurShaderProgram.SetUniform1i("uHorizontal", isHorizontal);
-		glBindFramebuffer(GL_FRAMEBUFFER, mPingPongFrameBuffers[isHorizontal]);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, isFirstIteration ? mDeferredLightingFrameBuffer.GetBrightTextureColorId() : mPingPongColorBuffers[!isHorizontal]);
-		mScreenQuad.Draw();
-		isHorizontal = !isHorizontal;
-		isFirstIteration = false;
-	}
-	glEnable(GL_DEPTH_TEST);
+	//mGaussianBlurShaderProgram.Bind();
+	//mGaussianBlurShaderProgram.SetUniformVec2("uSampleDistance", glm::value_ptr(glm::vec2(1.0f, 1.0f)));
+	//bool isHorizontal = true, isFirstIteration = true;
+	//unsigned int numPasses = 5;
+	//glDisable(GL_DEPTH_TEST);
+	//for (unsigned int i = 0; i < numPasses * 2; i++)
+	//{
+	//	mGaussianBlurShaderProgram.SetUniform1i("uHorizontal", isHorizontal);
+	//	glBindFramebuffer(GL_FRAMEBUFFER, mPingPongFrameBuffers[isHorizontal]);
+	//	glActiveTexture(GL_TEXTURE0);
+	//	glBindTexture(GL_TEXTURE_2D, isFirstIteration ? mDeferredLightingFrameBuffer.GetBrightTextureColorId() : mPingPongColorBuffers[!isHorizontal]);
+	//	mScreenQuad.Draw();
+	//	isHorizontal = !isHorizontal;
+	//	isFirstIteration = false;
+	//}
+	//glEnable(GL_DEPTH_TEST);
 
 	// Post-processing
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -640,8 +646,8 @@ void Graphics::Engine::OnRender()
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, mDeferredLightingFrameBuffer.GetTextureColorId());
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, mPingPongColorBuffers[!isHorizontal]);
+	//glActiveTexture(GL_TEXTURE1);
+	//glBindTexture(GL_TEXTURE_2D, mPingPongColorBuffers[!isHorizontal]);
 
 	glDisable(GL_DEPTH_TEST);
 	mScreenQuad.Draw();
@@ -731,17 +737,18 @@ void Graphics::Engine::DrawScene(
 	//shader.SetUniform1f("uTexTiling", 1.0f);
 	//shader.SetUniform1f("uNormalsMultiplier", 1.0f);
 
+	constexpr float spacing = 2.5;
 	for (int i = 0; i < nRows; i++)
 	{
-		shader.SetUniform1f("uMaterial.metallic", (float)i / (float)nRows);
+		shader.SetUniform1f("uMaterial.metallic", (float)i / (float)nRows); // increases from top to the bottom
 		for (int j = 0; j < nColumns; j++)
 		{
-			shader.SetUniform1f("uMaterial.roughness", (float)j / (float)nColumns);
+			shader.SetUniform1f("uMaterial.roughness", (float)j / (float)nColumns); // increases from left to right
 
 			model = glm::mat4(1.0f);
 			glm::vec3 pos(
-				(j - (nColumns / 2)) * 2.5,
-				(i - (nRows / 2)) * 2.5,
+				(j - (nColumns / 2)) * spacing,
+				((nRows / 2) - i) * spacing,
 				0.0f
 			);
 			model = glm::translate(model, pos);
@@ -770,13 +777,6 @@ void Graphics::Engine::SetupScene(
 	const glm::mat4& projection
 )
 {
-	static glm::vec3 lightColor(0.9, 0.68, 0.24);
-	static glm::vec3 ambientColor = glm::vec3(0.1f, 0.1f, 0.1f) * lightColor;
-	static glm::vec3 diffuseColor = glm::vec3(0.5f, 0.5f, 0.5f) * lightColor;
-	static glm::vec3 specularColor = glm::vec3(1.0f, 1.0f, 1.0f) * lightColor;
-
-	static float shininess = 256.0f;
-
 	glBindBuffer(GL_UNIFORM_BUFFER, mUBOMatrices);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
 	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projection));
@@ -785,12 +785,10 @@ void Graphics::Engine::SetupScene(
 	mGBufferShaderProgram.Bind();
 	mGBufferShaderProgram.SetUniformVec3("uViewPos", glm::value_ptr(mCamera.GetWorldPosition()));
 	mGBufferShaderProgram.SetUniformVec3("uMaterial.specular", glm::value_ptr(glm::vec3(0.1f)));
+	mGBufferShaderProgram.SetUniform1f("uMaterial.ao", 1.0f);
 
 	mDeferredShaderProgram.Bind();
 	mDeferredShaderProgram.SetUniformVec3("uViewPos", glm::value_ptr(mCamera.GetWorldPosition()));
-	mDeferredShaderProgram.SetUniform1f("uMaterial.metallic", 1.0f);
-	mDeferredShaderProgram.SetUniform1f("uMaterial.roughness", 1.0f);
-	mDeferredShaderProgram.SetUniform1f("uMaterial.ao", 1.0f);
 
 	mDeferredShaderProgram.SetUniform1i("uNumPointLights", NUM_POINT_LIGHTS);
 	for (int i = 0; i < NUM_POINT_LIGHTS; i++)

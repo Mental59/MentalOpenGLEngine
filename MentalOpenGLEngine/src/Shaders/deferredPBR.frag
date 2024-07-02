@@ -1,12 +1,5 @@
 #version 330 core
 
-struct Material
-{
-	float metallic;
-	float roughness;
-	float ao;
-};
-
 struct PointLight
 {
 	vec3 position;
@@ -26,10 +19,11 @@ in vec2 vTexCoords;
 uniform sampler2D gPosition;
 uniform sampler2D gNormal;
 uniform sampler2D gAlbedoSpec;
+uniform sampler2D gMetallicRoughnessAO;
+
 uniform sampler2D uSSAOTexture;
 uniform samplerCube uSkybox;
 
-uniform Material uMaterial;
 uniform vec3 uViewPos;
 
 uniform PointLight uPointLights[MAX_POINT_LIGHTS];
@@ -48,15 +42,20 @@ void main()
 	vec3 worldPos = texture(gPosition, vTexCoords).rgb;
 	vec3 normal = texture(gNormal, vTexCoords).rgb;
 	vec4 albedoSpecular = texture(gAlbedoSpec, vTexCoords);
+	vec4 metallicRoughnessAO = texture(gMetallicRoughnessAO, vTexCoords);
 	float ambientOcclusion = texture(uSSAOTexture, vTexCoords).r;
 
 	vec3 albedo = albedoSpecular.rgb;
 	albedo = vec3(0.5, 0.0, 0.0);
 
+	float metallic = metallicRoughnessAO.r;
+	float roughness = metallicRoughnessAO.g;
+	float ao = metallicRoughnessAO.b;
+
 	vec3 viewDirection = normalize(uViewPos - worldPos);
 
 	vec3 F0 = vec3(0.04);
-	F0 = mix(F0, albedo, uMaterial.metallic);
+	F0 = mix(F0, albedo, metallic);
 
 	vec3 Lo = vec3(0.0);
 	for (int i = 0; i < min(MAX_POINT_LIGHTS, uNumPointLights); i++)
@@ -67,21 +66,21 @@ void main()
 		float attenuation = 1.0 / (dist * dist);
 		vec3 radiance = uPointLights[i].color * attenuation;
 
-		float NDF = DistributionGGX(normal, halfVector, uMaterial.roughness);
-		float G = GeometrySmith(normal, viewDirection, lightDirection, uMaterial.roughness);
+		float NDF = DistributionGGX(normal, halfVector, roughness);
+		float G = GeometrySmith(normal, viewDirection, lightDirection, roughness);
 		vec3 F = FresnelSchlick(clamp(dot(halfVector, viewDirection), 0.0, 1.0), F0);
 
 		vec3 specular = (NDF * G * F) / (4.0 * max(dot(normal, viewDirection), 0.0) * max(dot(normal, lightDirection), 0.0) + 0.0001);
 		
 		vec3 kS = F;
-		vec3 kD = (vec3(1.0) - kS) * (1.0 - uMaterial.metallic);
+		vec3 kD = (vec3(1.0) - kS) * (1.0 - metallic);
 
 		float NdotL = max(dot(normal, lightDirection), 0.0);
 
 		Lo += (kD * albedo / PI + specular) * radiance * NdotL;
 	}
 
-	vec3 ambient = vec3(0.03) * albedo * uMaterial.ao;
+	vec3 ambient = vec3(0.03) * albedo * ao;
 	vec3 color = ambient + Lo;
 
 	FragColor = vec4(color, 1.0);
@@ -99,7 +98,8 @@ void main()
 
 float DistributionGGX(const vec3 N, const vec3 H, const float roughness)
 {
-	float a2 = roughness * roughness;
+	float a = roughness * roughness;
+	float a2 = a * a;
     float NdotH = max(dot(N, H), 0.0);
     float denom = (NdotH * NdotH * (a2 - 1.0) + 1.0);
     return a2 / (PI * denom * denom);
