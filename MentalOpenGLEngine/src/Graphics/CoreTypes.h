@@ -5,13 +5,21 @@
 #include <string>
 #include <vector>
 
-#ifndef DIFFUSE_TEXTURE_NAME
-#define DIFFUSE_TEXTURE_NAME "uMaterial.diffuseTexture{}"
-#endif // !DIFFUSE_TEXTURE_NAME
+#ifndef ALBEDO_TEXTURE_NAME
+#define ALBEDO_TEXTURE_NAME "uMaterial.albedoTexture{}"
+#endif // !ALBEDO_TEXTURE_NAME
 
-#ifndef SPECULAR_TEXTURE_NAME
-#define SPECULAR_TEXTURE_NAME "uMaterial.specularTexture{}"
-#endif // !SPECULAR_TEXTURE_NAME
+#ifndef METALLIC_TEXTURE_NAME
+#define METALLIC_TEXTURE_NAME "uMaterial.metallicTexture{}"
+#endif // !METALLIC_TEXTURE_NAME
+
+#ifndef ROUGHNESS_TEXTURE_NAME
+#define ROUGHNESS_TEXTURE_NAME "uMaterial.roughnessTexture{}"
+#endif // !ROUGHNESS_TEXTURE_NAME
+
+#ifndef AMBIENT_OCCLUSION_TEXTURE_NAME
+#define AMBIENT_OCCLUSION_TEXTURE_NAME "uMaterial.ambientOcclusionTexture{}"
+#endif // !AMBIENT_OCCLUSION_TEXTURE_NAME
 
 #ifndef NORMAL_TEXTURE_NAME
 #define NORMAL_TEXTURE_NAME "uMaterial.normalTexture{}"
@@ -26,7 +34,13 @@ namespace Core
 {
 	enum TextureType
 	{
-		Diffuse = 0, Specular, Normal, Height, TextureTypeCount
+		Albedo = 0,
+		Metallic,
+		Roughness,
+		AmbientOcclusion,
+		Normal,
+		Height,
+		TextureTypeCount
 	};
 
 	struct BuildTextureOptions

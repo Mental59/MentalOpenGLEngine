@@ -46,7 +46,6 @@ void main()
 	float ambientOcclusion = texture(uSSAOTexture, vTexCoords).r;
 
 	vec3 albedo = albedoSpecular.rgb;
-	albedo = vec3(0.5, 0.0, 0.0);
 
 	float metallic = metallicRoughnessAO.r;
 	float roughness = metallicRoughnessAO.g;
@@ -60,22 +59,24 @@ void main()
 	vec3 Lo = vec3(0.0);
 	for (int i = 0; i < min(MAX_POINT_LIGHTS, uNumPointLights); i++)
 	{
-		vec3 lightDirection = normalize(uPointLights[i].position - worldPos);
-		vec3 halfVector = normalize(viewDirection + lightDirection);
 		float dist = length(uPointLights[i].position - worldPos);
 		float attenuation = 1.0 / (dist * dist);
 		vec3 radiance = uPointLights[i].color * attenuation;
+
+		vec3 lightDirection = normalize(uPointLights[i].position - worldPos);
+		vec3 halfVector = normalize(viewDirection + lightDirection);
 
 		float NDF = DistributionGGX(normal, halfVector, roughness);
 		float G = GeometrySmith(normal, viewDirection, lightDirection, roughness);
 		vec3 F = FresnelSchlick(clamp(dot(halfVector, viewDirection), 0.0, 1.0), F0);
 
-		vec3 specular = (NDF * G * F) / (4.0 * max(dot(normal, viewDirection), 0.0) * max(dot(normal, lightDirection), 0.0) + 0.0001);
+		float NdotL = max(dot(normal, lightDirection), 0.0);
+		float NdotV = max(dot(normal, viewDirection), 0.0);
+
+		vec3 specular = (NDF * G * F) / (4.0 * NdotV * NdotL + 0.0001);
 		
 		vec3 kS = F;
 		vec3 kD = (vec3(1.0) - kS) * (1.0 - metallic);
-
-		float NdotL = max(dot(normal, lightDirection), 0.0);
 
 		Lo += (kD * albedo / PI + specular) * radiance * NdotL;
 	}
@@ -107,7 +108,7 @@ float DistributionGGX(const vec3 N, const vec3 H, const float roughness)
 
 float GeometrySchlickGGX(float NdotV, float roughness)
 {
-    float r = (roughness + 1.0);
+	float r = (roughness + 1.0);
     float k = (r*r) / 8.0;
     return NdotV / (NdotV * (1.0 - k) + k);
 }
@@ -121,7 +122,7 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
 
 vec3 FresnelSchlick(float cosTheta, vec3 F0)
 {
-    return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+    return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
 float CalculatePointShadow(PointLight light, const vec3 fragPos, const vec3 viewPos)

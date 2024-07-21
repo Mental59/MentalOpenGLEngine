@@ -23,6 +23,7 @@ public:
 	inline const glm::vec3& GetForwardDirection() const { return mCameraForward; }
 	inline const glm::vec3& GetRightDirection() const { return mCameraRight; }
 	inline const glm::vec3& GetUpDirection() const { return mCameraUp; }
+	inline void SetYaw(const float yaw) { mYaw = yaw; UpdateCameraBasisVectors(); }
 
 	void Move(Movement movement);
 	void Rotate(float xOffset, float yOffset);

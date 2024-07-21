@@ -14,18 +14,15 @@ in VS_OUT {
 
 struct Material
 {
-	sampler2D diffuseTexture1;
-	sampler2D specularTexture1;
+	sampler2D albedoTexture1;
+	sampler2D metallicTexture1;
+	sampler2D roughnessTexture1;
+	sampler2D ambientOcclusionTexture1;
+
 	sampler2D normalTexture1;
 	sampler2D heightTexture1;
 
-	vec3 specular;
-	float metallic;
-	float roughness;
-	float ao;
-
 	bool useNormalTexture;
-	bool useSpecularTexture;
 	bool useHeightTexture;
 };
 
@@ -54,18 +51,18 @@ void main()
 		normal *= fs_in.normalsMultiplier;
 	}
 
-	vec3 albedo = texture(uMaterial.diffuseTexture1, texCoords).rgb;
+	vec3 albedo = texture(uMaterial.albedoTexture1, texCoords).rgb;
+	albedo = pow(albedo, vec3(2.2));
 
-	float specular = uMaterial.specular.r;
-	if (uMaterial.useSpecularTexture)
-	{
-		specular = texture(uMaterial.specularTexture1, texCoords).r;
-	}
+	float metallic = texture(uMaterial.metallicTexture1, texCoords).r;
+	float roughness = texture(uMaterial.roughnessTexture1, texCoords).r;
+
+	float ao = texture(uMaterial.ambientOcclusionTexture1, texCoords).r;
 
 	gPosition = fs_in.worldPos;
 	gNormal = normal;
-	gAlbedoSpecular = vec4(albedo, specular);
-	gMetallicRoughnessAO = vec3(uMaterial.metallic, uMaterial.roughness, uMaterial.ao);
+	gAlbedoSpecular = vec4(albedo, 0.0);
+	gMetallicRoughnessAO = vec3(metallic, roughness, ao);
 }
 
 vec2 ParallaxOcclusionMapping(const vec2 texCoords, const vec3 viewDirection, const float minLayers, const float maxLayers)

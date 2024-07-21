@@ -199,18 +199,28 @@ void Model::ProcessMesh(aiMesh* mesh, const aiScene* scene, std::shared_ptr<Mesh
 	if (mesh->mMaterialIndex >= 0)
 	{
 		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-		std::vector<Core::Texture> diffuseMaps = LoadMaterialTextures(material, aiTextureType_DIFFUSE, Core::Diffuse);
-		std::vector<Core::Texture> specularMaps = LoadMaterialTextures(material, aiTextureType_SPECULAR, Core::Specular);
+
+		std::vector<Core::Texture> albedoMaps = LoadMaterialTextures(material, aiTextureType_BASE_COLOR, Core::Albedo);
+		std::vector<Core::Texture> metallicMaps = LoadMaterialTextures(material, aiTextureType_METALNESS, Core::Metallic);
+		std::vector<Core::Texture> roughnessMaps = LoadMaterialTextures(material, aiTextureType_DIFFUSE_ROUGHNESS, Core::Roughness);
+		std::vector<Core::Texture> aoMaps = LoadMaterialTextures(material, aiTextureType_AMBIENT_OCCLUSION, Core::AmbientOcclusion);
+
 		std::vector<Core::Texture> normalMaps = LoadMaterialTextures(material, aiTextureType_HEIGHT, Core::Normal);
 		std::vector<Core::Texture> heightMaps = LoadMaterialTextures(material, aiTextureType_AMBIENT, Core::Height);
 
-		if (diffuseMaps.size() == 0) AddDefaultTexture(&diffuseMaps, Core::Diffuse);
-		if (specularMaps.size() == 0) AddDefaultTexture(&specularMaps, Core::Specular);
+		if (albedoMaps.size() == 0) AddDefaultTexture(&albedoMaps, Core::Albedo);
+		if (metallicMaps.size() == 0) AddDefaultTexture(&metallicMaps, Core::Metallic);
+		if (roughnessMaps.size() == 0) AddDefaultTexture(&roughnessMaps, Core::Roughness);
+		if (aoMaps.size() == 0) AddDefaultTexture(&aoMaps, Core::AmbientOcclusion);
+
 		if (normalMaps.size() == 0) AddDefaultTexture(&normalMaps, Core::Normal);
 		if (heightMaps.size() == 0) AddDefaultTexture(&heightMaps, Core::Height);
 
-		textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
-		textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+		textures.insert(textures.end(), albedoMaps.begin(), albedoMaps.end());
+		textures.insert(textures.end(), metallicMaps.begin(), metallicMaps.end());
+		textures.insert(textures.end(), roughnessMaps.begin(), roughnessMaps.end());
+		textures.insert(textures.end(), aoMaps.begin(), aoMaps.end());
+
 		textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
 		textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 	}
@@ -230,7 +240,7 @@ void Model::AddDefaultTexture(std::vector<Core::Texture>* textures, Core::Textur
 std::vector<Core::Texture> Model::LoadMaterialTextures(aiMaterial* material, aiTextureType textureType, Core::TextureType coreTextureType)
 {
 	std::vector<Core::Texture> textures;
-	bool srgb = coreTextureType == Core::Diffuse;
+	bool srgb = coreTextureType == Core::Albedo;
 
 	for (unsigned int i = 0; i < material->GetTextureCount(textureType); i++)
 	{

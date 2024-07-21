@@ -80,29 +80,34 @@ void Mesh::Setup(const std::vector<Core::Vertex>& vertices, const std::vector<un
 
 void Mesh::BindTextures(ShaderProgram& shader)
 {
-	auto diffuseTexture = mTextures.find(Core::Diffuse);
-	auto specularTexture = mTextures.find(Core::Specular);
+	auto albedoTexture = mTextures.find(Core::Albedo);
+	auto metallicTexture = mTextures.find(Core::Metallic);
+	auto roughnessTexture = mTextures.find(Core::Roughness);
+	auto ambientTexture = mTextures.find(Core::AmbientOcclusion);
+
 	auto normalTexture = mTextures.find(Core::Normal);
 	auto heightTexture = mTextures.find(Core::Height);
 
-	if (diffuseTexture != mTextures.end())
+	if (albedoTexture != mTextures.end())
 	{
-		SetTexture(shader, std::format(DIFFUSE_TEXTURE_NAME, 1), 0, diffuseTexture->second.ID);
+		SetTexture(shader, std::format(ALBEDO_TEXTURE_NAME, 1), 0, albedoTexture->second.ID);
 	}
-
-	if (specularTexture != mTextures.end())
+	if (metallicTexture != mTextures.end())
 	{
-		SetTexture(shader, std::format(SPECULAR_TEXTURE_NAME, 1), 1, specularTexture->second.ID);
-		shader.SetUniform1i("uMaterial.useSpecularTexture", 1);
+		SetTexture(shader, std::format(METALLIC_TEXTURE_NAME, 1), 1, metallicTexture->second.ID);
 	}
-	else
+	if (roughnessTexture != mTextures.end())
 	{
-		shader.SetUniform1i("uMaterial.useSpecularTexture", 0);
+		SetTexture(shader, std::format(ROUGHNESS_TEXTURE_NAME, 1), 2, roughnessTexture->second.ID);
+	}
+	if (ambientTexture != mTextures.end())
+	{
+		SetTexture(shader, std::format(AMBIENT_OCCLUSION_TEXTURE_NAME, 1), 3, ambientTexture->second.ID);
 	}
 
 	if (normalTexture != mTextures.end())
 	{
-		SetTexture(shader, std::format(NORMAL_TEXTURE_NAME, 1), 2, normalTexture->second.ID);
+		SetTexture(shader, std::format(NORMAL_TEXTURE_NAME, 1), 4, normalTexture->second.ID);
 		shader.SetUniform1i("uMaterial.useNormalTexture", 1);
 	}
 	else
@@ -112,7 +117,7 @@ void Mesh::BindTextures(ShaderProgram& shader)
 
 	if (heightTexture != mTextures.end())
 	{
-		SetTexture(shader, std::format(HEIGHT_TEXTURE_NAME, 1), 3, heightTexture->second.ID);
+		SetTexture(shader, std::format(HEIGHT_TEXTURE_NAME, 1), 5, heightTexture->second.ID);
 		shader.SetUniform1i("uMaterial.useHeightTexture", 1);
 	}
 	else

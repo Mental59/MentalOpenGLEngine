@@ -16,32 +16,25 @@
 
 Graphics::Engine* Graphics::Engine::mInstance(nullptr);
 
-static Model ASTEROID_MODEL;
-static Model MARS_MODEL;
 static Model SPHERE_MODEL;
-static Model CUBE_MODEL;
-static Model FLOOR_MODEL;
-static Model NANOSUIT_MODEL;
-static Model SPONZA_MODEL;
-static Model BACKPACK_MODEL(true);
 
 static glm::vec3 LIGHT_DIRECTION = glm::normalize(glm::vec3(1.0f, -0.5f, 1.0f));
 static glm::mat4 DIR_LIGHT_SPACE_MAT;
 static glm::vec3 DIR_LIGHT_POS;
 
-static constexpr int NUM_POINT_LIGHTS = 4;
+static constexpr int NUM_POINT_LIGHTS = 1;
 static glm::vec3 POINT_LIGHT_POSITIONS[NUM_POINT_LIGHTS]{
-	glm::vec3(-10.0f,  10.0f, 5.0f),
+	//glm::vec3(-10.0f,  10.0f, 5.0f),
 	glm::vec3(10.0f,  10.0f, 5.0f),
-	glm::vec3(-10.0f, -10.0f, 5.0f),
-	glm::vec3(10.0f, -10.0f, 5.0f),
+	//glm::vec3(-10.0f, -10.0f, 5.0f),
+	//glm::vec3(10.0f, -10.0f, 5.0f),
 };
 
 static glm::vec3 POINT_LIGHT_COLORS[NUM_POINT_LIGHTS]{
+	//glm::vec3(1.0f, 1.0f, 1.0f) * 300.0f,
 	glm::vec3(1.0f, 1.0f, 1.0f) * 300.0f,
-	glm::vec3(1.0f, 1.0f, 1.0f) * 300.0f,
-	glm::vec3(1.0f, 1.0f, 1.0f) * 300.0f,
-	glm::vec3(1.0f, 1.0f, 1.0f) * 300.0f,
+	//glm::vec3(1.0f, 1.0f, 1.0f) * 300.0f,
+	//glm::vec3(1.0f, 1.0f, 1.0f) * 300.0f,
 };
 
 static std::vector<glm::vec3> BACKPACK_POSITIONS{
@@ -89,7 +82,7 @@ Graphics::Engine::Engine(const int windowWidth, const int windowHeight, const ch
 	mTitle(title),
 	mWindow(nullptr),
 	mBaseShaderProgram(),
-	mCamera(glm::vec3(0.0f, 0.0f, 0.0f), 5.0f, 0.1f),
+	mCamera(glm::vec3(0.0f, 0.0f, 15.0f), 5.0f, 0.1f),
 	mLastMouseXPos(0.0f), mLastMouseYPos(0.0f), mIsFirstMouseMove(true),
 	mDefaultTexture{},
 	mUBOMatrices(0u)
@@ -322,9 +315,9 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	//}
 
 	// Load default diffuse texture
-	unsigned int defaultDiffuseTextureId = GLLoadTextureFromFile("resources/textures/default.png", false, true);
-	mLoadedTextures["resources/textures/default.png"] = defaultDiffuseTextureId;
-	mDefaultTexture = { defaultDiffuseTextureId, Core::Diffuse };
+	unsigned int defaultAlbedoTextureId = GLLoadTextureFromFile("resources/textures/default.png", false, true);
+	mLoadedTextures["resources/textures/default.png"] = defaultAlbedoTextureId;
+	mDefaultTexture = { defaultAlbedoTextureId, Core::Albedo };
 
 	mDeferredLightingFrameBuffer.Create(mWindowWidth, mWindowHeight);
 	mGFrameBuffer.Create(mWindowWidth, mWindowHeight);
@@ -350,29 +343,11 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 			std::cout << "Ping Pong Framebuffer is not complete!" << std::endl;
 	}
 
-	CUBE_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/container2.png", false, true), Core::Diffuse });
-	CUBE_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/container2_specular.png"), Core::Specular });
-	CUBE_MODEL.Load("resources/objects/cube/cube.obj");
-
-	FLOOR_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/wood.png", false, true), Core::Diffuse });
-	//FLOOR_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/bricks2_normal.jpg", false, false), Core::Normal });
-	//FLOOR_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/bricks2_disp.jpg", false, false), Core::Height });
-	FLOOR_MODEL.Load("resources/objects/cube/cube.obj");
-
-	//instance model matrices for backpack model
-	//glm::mat4* instanceModelMatrices = new glm::mat4[BACKPACK_POSITIONS.size()];
-	//for (unsigned int i = 0; i < BACKPACK_POSITIONS.size(); i++)
-	//{
-	//	glm::mat4 model = glm::translate(glm::mat4(1.0f), BACKPACK_POSITIONS[i]);
-	//	model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-	//	//model = glm::scale(model, glm::vec3(1.0f, 2.0f, 1.0f));
-	//	instanceModelMatrices[i] = model;
-	//}
-
-	//BACKPACK_MODEL.Load("resources/objects/backpack/backpack.obj");
-	//BACKPACK_MODEL.SetupInstancedDrawing(instanceModelMatrices, BACKPACK_POSITIONS.size(), 4);
-	//delete[] instanceModelMatrices;
-
+	SPHERE_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/rusted_iron/albedo.png"), Core::Albedo });
+	SPHERE_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/rusted_iron/metallic.png"), Core::Metallic });
+	SPHERE_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/rusted_iron/roughness.png"), Core::Roughness });
+	SPHERE_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/rusted_iron/ao.png"), Core::AmbientOcclusion });
+	SPHERE_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/rusted_iron/normal.png"), Core::Normal });
 	SPHERE_MODEL.Load("resources/objects/sphere/sphere.obj");
 
 	//ssao kernel
@@ -462,6 +437,10 @@ void Graphics::Engine::Run()
 
 void Graphics::Engine::Update()
 {
+	//static float yaw = 0.0f;
+	//mCamera.SetYaw(yaw);
+	//yaw += -Time::DeltaTime * 30.0f;
+
 	for (int i = 0; i < NUM_POINT_LIGHTS; i++)
 	{
 		//POINT_LIGHT_POSITIONS[i].x = sin(Time::LastFrame) * 4.0f;
@@ -740,15 +719,15 @@ void Graphics::Engine::DrawScene(
 	constexpr float spacing = 2.5;
 	for (int i = 0; i < nRows; i++)
 	{
-		shader.SetUniform1f("uMaterial.metallic", (float)i / (float)nRows); // increases from top to the bottom
+		//shader.SetUniform1f("uMaterial.metallic", (float)i / (float)nRows); // increases from bottom to the top
 		for (int j = 0; j < nColumns; j++)
 		{
-			shader.SetUniform1f("uMaterial.roughness", (float)j / (float)nColumns); // increases from left to right
+			//shader.SetUniform1f("uMaterial.roughness", (float)j / (float)nColumns); // increases from left to right
 
 			model = glm::mat4(1.0f);
 			glm::vec3 pos(
 				(j - (nColumns / 2)) * spacing,
-				((nRows / 2) - i) * spacing,
+				(i - (nRows / 2)) * spacing,
 				0.0f
 			);
 			model = glm::translate(model, pos);
@@ -900,7 +879,7 @@ void Graphics::Engine::ImportModels(const std::vector<Core::ModelImport>& import
 		{
 			auto it = mLoadedTextures.find(textureImport.path);
 
-			bool srgb = textureImport.type == Core::Diffuse;
+			bool srgb = textureImport.type == Core::Albedo;
 
 			if (it != mLoadedTextures.end())
 			{
@@ -914,7 +893,7 @@ void Graphics::Engine::ImportModels(const std::vector<Core::ModelImport>& import
 			}
 		}
 
-		if (!model->HasDefaultTexture(Core::Diffuse))
+		if (!model->HasDefaultTexture(Core::Albedo))
 		{
 			model->SetDefaultTexture(mDefaultTexture);
 		}
