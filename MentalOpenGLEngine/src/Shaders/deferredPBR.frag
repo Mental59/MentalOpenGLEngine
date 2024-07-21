@@ -66,6 +66,8 @@ void main()
 		vec3 lightDirection = normalize(uPointLights[i].position - worldPos);
 		vec3 halfVector = normalize(viewDirection + lightDirection);
 
+		vec3 envLight = texture(uSkybox, lightDirection).rgb;
+
 		float NDF = DistributionGGX(normal, halfVector, roughness);
 		float G = GeometrySmith(normal, viewDirection, lightDirection, roughness);
 		vec3 F = FresnelSchlick(clamp(dot(halfVector, viewDirection), 0.0, 1.0), F0);

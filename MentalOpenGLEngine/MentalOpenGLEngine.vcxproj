@@ -157,6 +157,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Graphics\HDRMap.cpp" />
     <ClCompile Include="src\Graphics\GFrameBuffer.cpp" />
     <ClCompile Include="src\Graphics\DepthMap.cpp" />
     <ClCompile Include="src\Graphics\CubeMap.cpp" />
@@ -174,6 +175,7 @@
     <ClCompile Include="src\Graphics\SSAOFrameBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Graphics\HDRMap.h" />
     <ClInclude Include="src\Array\Sorting\BinarySearch.h" />
     <ClInclude Include="src\Graphics\GFrameBuffer.h" />
     <ClInclude Include="src\Graphics\DepthMap.h" />
@@ -199,6 +201,8 @@
     <None Include="src\Shaders\deferred.vert" />
     <None Include="src\Shaders\deferredPBR.frag" />
     <None Include="src\Shaders\directionalShadowMappingInstanced.vert" />
+    <None Include="src\Shaders\equirectangular_to_cubemap.frag" />
+    <None Include="src\Shaders\equirectangular_to_cubemap.vert" />
     <None Include="src\Shaders\gaussianBlur.frag" />
     <None Include="src\Shaders\cubemap.frag" />
     <None Include="src\Shaders\cubemap.vert" />

@@ -60,6 +60,9 @@
     <ClCompile Include="src\Graphics\SSAOFrameBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Graphics\HDRMap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Graphics\Engine.h">
@@ -113,6 +116,9 @@
     <ClInclude Include="src\Array\Sorting\BinarySearch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Graphics\HDRMap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\Shaders\base.vert" />
@@ -153,5 +159,7 @@
     <None Include="src\Shaders\ssao.frag" />
     <None Include="src\Shaders\ssaoBlur.frag" />
     <None Include="src\Shaders\deferredPBR.frag" />
+    <None Include="src\Shaders\equirectangular_to_cubemap.frag" />
+    <None Include="src\Shaders\equirectangular_to_cubemap.vert" />
   </ItemGroup>
 </Project>

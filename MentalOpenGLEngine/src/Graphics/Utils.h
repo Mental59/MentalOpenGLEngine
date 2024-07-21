@@ -71,6 +71,40 @@ inline unsigned int GLLoadTextureFromFile(const char* texturePath, bool flipVert
 	return textureID;
 }
 
+inline unsigned int GLLoadHDRFromFile(const char* path, bool flipVertically = false)
+{
+	stbi_set_flip_vertically_on_load(flipVertically);
+
+	GLuint textureID = 0;
+
+	int width, height, numChannels;
+	float* data = stbi_loadf(path, &width, &height, &numChannels, 0);
+
+	if (data)
+	{
+		glGenTextures(1, &textureID);
+		glBindTexture(GL_TEXTURE_2D, textureID);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, data);
+
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+	else
+	{
+		const char* reason = stbi_failure_reason();
+		std::cout << "Failed to load texture at path " << path << "\nReason: " << reason << std::endl;
+	}
+
+	stbi_image_free(data);
+
+	return textureID;
+}
+
 inline unsigned int GLLoadCubemap(const char* faces[6], bool srgb = false)
 {
 	unsigned int textureId = 0;

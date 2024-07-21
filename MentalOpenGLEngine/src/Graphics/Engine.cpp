@@ -393,14 +393,15 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	const char* faces[6]{
-		"resources/skyboxes/SnowyForest/right.png",
-		"resources/skyboxes/SnowyForest/left.png",
-		"resources/skyboxes/SnowyForest/top.png",
-		"resources/skyboxes/SnowyForest/bottom.png",
-		"resources/skyboxes/SnowyForest/front.png",
-		"resources/skyboxes/SnowyForest/back.png"
+		"resources/skyboxes/SpaceRed/right.png",
+		"resources/skyboxes/SpaceRed/left.png",
+		"resources/skyboxes/SpaceRed/top.png",
+		"resources/skyboxes/SpaceRed/bottom.png",
+		"resources/skyboxes/SpaceRed/front.png",
+		"resources/skyboxes/SpaceRed/back.png"
 	};
-	mCubemap.Load(faces);
+	mHDRMap.Setup("resources/hdr/little_paris_eiffel_tower_4k.hdr", 2048, 2048);
+	mCubemap.Load(mHDRMap.GetCubeMapTextureId());
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe mode
 

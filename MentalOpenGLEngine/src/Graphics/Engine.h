@@ -14,6 +14,7 @@
 #include "DepthMap.h"
 #include "GFrameBuffer.h"
 #include "SSAOFrameBuffer.h"
+#include "HDRMap.h"
 
 struct GLFWwindow;
 
@@ -88,6 +89,8 @@ namespace Graphics
 		ShaderProgram mGBufferShaderProgram;
 		ShaderProgram mGBufferInstancedShaderProgram;
 		ShaderProgram mDeferredShaderProgram;
+
+		HDRMap mHDRMap;
 
 		FrameBuffer mDeferredLightingFrameBuffer;
 		GFrameBuffer mGFrameBuffer;

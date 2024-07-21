@@ -11,6 +11,18 @@ void CubeMap::Load(const char* faces[6])
 {
 	mTextureId = GLLoadCubemap(faces, true);
 
+	SetupCube();
+}
+
+void CubeMap::Load(unsigned int textureId)
+{
+	mTextureId = textureId;
+
+	SetupCube();
+}
+
+void CubeMap::SetupCube()
+{
 	GLfloat cubeVertices[] = {
 		//right side
 		1.0f, -1.0f, -1.0f,
