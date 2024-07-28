@@ -18,10 +18,8 @@ HDRMap::~HDRMap()
 	glDeleteTextures(1, &mIrradianceMap);
 }
 
-void HDRMap::Setup(const char* hdrTexturePath, int width, int height)
+void HDRMap::Setup(const char* hdrTexturePath, int width, int height, int convolutionWidth, int convolutionHeight)
 {
-	constexpr unsigned int convolutionWidth = 64;
-	constexpr unsigned int convolutionHeight = 64;
 	constexpr unsigned int numViews = 6;
 
 	unsigned int hdrTexture = GLLoadHDRFromFile(hdrTexturePath, true);
@@ -47,8 +45,8 @@ void HDRMap::Setup(const char* hdrTexturePath, int width, int height)
 
 	equirectangularToCubemapShaderProgram.Bind();
 	equirectangularToCubemapShaderProgram.SetUniform1i("equirectangularMap", 0);
-	equirectangularToCubemapShaderProgram.SetUniform1f("uGamma", 1.0);
-	equirectangularToCubemapShaderProgram.SetUniform1f("uExposure", 1.0);
+	equirectangularToCubemapShaderProgram.SetUniform1f("uGamma", 1.0f);
+	equirectangularToCubemapShaderProgram.SetUniform1f("uExposure", 1.0f);
 	equirectangularToCubemapShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(captureProjection));
 
 	glActiveTexture(GL_TEXTURE0);

@@ -4,7 +4,7 @@ class HDRMap
 {
 public:
 	~HDRMap();
-	void Setup(const char* hdrTexturePath, int width, int height);
+	void Setup(const char* hdrTexturePath, int width, int height, int convolutionWidth, int convolutionHeight);
 	inline unsigned int GetCubeMapTextureId() const { return mEnvCubemap; }
 	inline unsigned int GetIrradianceMapTextureId() const { return mIrradianceMap; }
 

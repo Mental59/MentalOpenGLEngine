@@ -17,7 +17,7 @@ void main()
 
 //    screenTextureColor += bloomTextureColor; // additive blending
     
-    // exposure tone mapping
+    //exposure tone mapping
     vec3 mapped = vec3(1.0) - exp(-screenTextureColor * uExposure);
     // gamma correction 
     mapped = pow(mapped, vec3(1.0 / uGamma));

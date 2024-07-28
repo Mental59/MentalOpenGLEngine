@@ -400,7 +400,7 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	//	"resources/skyboxes/SpaceRed/front.png",
 	//	"resources/skyboxes/SpaceRed/back.png"
 	//};
-	mHDRMap.Setup("resources/hdr/little_paris_eiffel_tower_4k.hdr", 2048, 2048);
+	mHDRMap.Setup("resources/hdr/newport_loft.hdr", 1024, 1024, 64, 64);
 	mCubemap.Load(mHDRMap.GetCubeMapTextureId());
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe mode
@@ -596,8 +596,8 @@ void Graphics::Engine::OnRender()
 	mSkyboxShaderProgram.Bind();
 	mSkyboxShaderProgram.SetUniformMat4("uView", glm::value_ptr(glm::mat4(glm::mat3(viewMatrix))));
 	mSkyboxShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(projectionMatrix));
-	mSkyboxShaderProgram.SetUniform1f("uGamma", 2.2f);
-	mSkyboxShaderProgram.SetUniform1f("uExposure", 1.0f);
+	//mSkyboxShaderProgram.SetUniform1f("uGamma", 2.2f);
+	//mSkyboxShaderProgram.SetUniform1f("uExposure", 1.0f);
 	mCubemap.BindTexture(0);
 	mCubemap.Draw();
 	mCubemap.UnbindTexture();
