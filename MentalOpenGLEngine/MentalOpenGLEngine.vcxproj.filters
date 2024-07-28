@@ -159,7 +159,8 @@
     <None Include="src\Shaders\ssao.frag" />
     <None Include="src\Shaders\ssaoBlur.frag" />
     <None Include="src\Shaders\deferredPBR.frag" />
-    <None Include="src\Shaders\equirectangular_to_cubemap.frag" />
-    <None Include="src\Shaders\equirectangular_to_cubemap.vert" />
+    <None Include="src\Shaders\equirectangularToCubemap.frag" />
+    <None Include="src\Shaders\equirectangularToCubemap.vert" />
+    <None Include="src\Shaders\irradianceConvolution.frag" />
   </ItemGroup>
 </Project>

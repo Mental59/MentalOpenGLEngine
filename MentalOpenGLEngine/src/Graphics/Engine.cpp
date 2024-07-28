@@ -22,19 +22,19 @@ static glm::vec3 LIGHT_DIRECTION = glm::normalize(glm::vec3(1.0f, -0.5f, 1.0f));
 static glm::mat4 DIR_LIGHT_SPACE_MAT;
 static glm::vec3 DIR_LIGHT_POS;
 
-static constexpr int NUM_POINT_LIGHTS = 1;
+static constexpr int NUM_POINT_LIGHTS = 4;
 static glm::vec3 POINT_LIGHT_POSITIONS[NUM_POINT_LIGHTS]{
-	//glm::vec3(-10.0f,  10.0f, 5.0f),
+	glm::vec3(-10.0f,  10.0f, 5.0f),
 	glm::vec3(10.0f,  10.0f, 5.0f),
-	//glm::vec3(-10.0f, -10.0f, 5.0f),
-	//glm::vec3(10.0f, -10.0f, 5.0f),
+	glm::vec3(-10.0f, -10.0f, 5.0f),
+	glm::vec3(10.0f, -10.0f, 5.0f),
 };
 
 static glm::vec3 POINT_LIGHT_COLORS[NUM_POINT_LIGHTS]{
-	//glm::vec3(1.0f, 1.0f, 1.0f) * 300.0f,
 	glm::vec3(1.0f, 1.0f, 1.0f) * 300.0f,
-	//glm::vec3(1.0f, 1.0f, 1.0f) * 300.0f,
-	//glm::vec3(1.0f, 1.0f, 1.0f) * 300.0f,
+	glm::vec3(1.0f, 1.0f, 1.0f) * 300.0f,
+	glm::vec3(1.0f, 1.0f, 1.0f) * 300.0f,
+	glm::vec3(1.0f, 1.0f, 1.0f) * 300.0f,
 };
 
 static std::vector<glm::vec3> BACKPACK_POSITIONS{
@@ -268,7 +268,7 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	mDeferredShaderProgram.SetUniform1i("gAlbedoSpec", 2);
 	mDeferredShaderProgram.SetUniform1i("uPointLights[0].shadowCubeMap", 4);
 	mDeferredShaderProgram.SetUniform1i("uSSAOTexture", 5);
-	mDeferredShaderProgram.SetUniform1i("uSkybox", 6);
+	mDeferredShaderProgram.SetUniform1i("uIrradianceMap", 6);
 	mDeferredShaderProgram.SetUniform1i("gMetallicRoughnessAO", 7);
 	mDeferredShaderProgram.Unbind();
 	mSSAOShaderProgram.Bind();
@@ -392,14 +392,14 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	const char* faces[6]{
-		"resources/skyboxes/SpaceRed/right.png",
-		"resources/skyboxes/SpaceRed/left.png",
-		"resources/skyboxes/SpaceRed/top.png",
-		"resources/skyboxes/SpaceRed/bottom.png",
-		"resources/skyboxes/SpaceRed/front.png",
-		"resources/skyboxes/SpaceRed/back.png"
-	};
+	//const char* faces[6]{
+	//	"resources/skyboxes/SpaceRed/right.png",
+	//	"resources/skyboxes/SpaceRed/left.png",
+	//	"resources/skyboxes/SpaceRed/top.png",
+	//	"resources/skyboxes/SpaceRed/bottom.png",
+	//	"resources/skyboxes/SpaceRed/front.png",
+	//	"resources/skyboxes/SpaceRed/back.png"
+	//};
 	mHDRMap.Setup("resources/hdr/little_paris_eiffel_tower_4k.hdr", 2048, 2048);
 	mCubemap.Load(mHDRMap.GetCubeMapTextureId());
 
@@ -442,11 +442,11 @@ void Graphics::Engine::Update()
 	//mCamera.SetYaw(yaw);
 	//yaw += -Time::DeltaTime * 30.0f;
 
-	for (int i = 0; i < NUM_POINT_LIGHTS; i++)
-	{
-		//POINT_LIGHT_POSITIONS[i].x = sin(Time::LastFrame) * 4.0f;
-		//POINT_LIGHT_POSITIONS[i].z = cos(Time::LastFrame) * 4.0f;
-	}
+	//for (int i = 0; i < NUM_POINT_LIGHTS; i++)
+	//{
+	//	POINT_LIGHT_POSITIONS[i].x = sin(Time::LastFrame) * 4.0f;
+	//	POINT_LIGHT_POSITIONS[i].z = cos(Time::LastFrame) * 4.0f;
+	//}
 }
 
 void Graphics::Engine::UpdateTimer()
@@ -568,7 +568,7 @@ void Graphics::Engine::OnRender()
 	glActiveTexture(GL_TEXTURE5);
 	glBindTexture(GL_TEXTURE_2D, mSSAOBlurFrameBuffer.GetTextureColorId());
 	glActiveTexture(GL_TEXTURE6);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, mCubemap.GetTextureID());
+	glBindTexture(GL_TEXTURE_CUBE_MAP, mHDRMap.GetIrradianceMapTextureId());
 	glActiveTexture(GL_TEXTURE7);
 	glBindTexture(GL_TEXTURE_2D, mGFrameBuffer.GetMetallicRoughnessAOTextureId());
 
@@ -596,6 +596,8 @@ void Graphics::Engine::OnRender()
 	mSkyboxShaderProgram.Bind();
 	mSkyboxShaderProgram.SetUniformMat4("uView", glm::value_ptr(glm::mat4(glm::mat3(viewMatrix))));
 	mSkyboxShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(projectionMatrix));
+	mSkyboxShaderProgram.SetUniform1f("uGamma", 2.2f);
+	mSkyboxShaderProgram.SetUniform1f("uExposure", 1.0f);
 	mCubemap.BindTexture(0);
 	mCubemap.Draw();
 	mCubemap.UnbindTexture();
@@ -720,10 +722,10 @@ void Graphics::Engine::DrawScene(
 	constexpr float spacing = 2.5;
 	for (int i = 0; i < nRows; i++)
 	{
-		//shader.SetUniform1f("uMaterial.metallic", (float)i / (float)nRows); // increases from bottom to the top
+		shader.SetUniform1f("uMaterial.metallic", (float)i / (float)nRows); // increases from bottom to the top
 		for (int j = 0; j < nColumns; j++)
 		{
-			//shader.SetUniform1f("uMaterial.roughness", (float)j / (float)nColumns); // increases from left to right
+			shader.SetUniform1f("uMaterial.roughness", (float)j / (float)nColumns); // increases from left to right
 
 			model = glm::mat4(1.0f);
 			glm::vec3 pos(
@@ -764,8 +766,9 @@ void Graphics::Engine::SetupScene(
 
 	mGBufferShaderProgram.Bind();
 	mGBufferShaderProgram.SetUniformVec3("uViewPos", glm::value_ptr(mCamera.GetWorldPosition()));
-	mGBufferShaderProgram.SetUniformVec3("uMaterial.specular", glm::value_ptr(glm::vec3(0.1f)));
-	mGBufferShaderProgram.SetUniform1f("uMaterial.ao", 1.0f);
+	mGBufferShaderProgram.SetUniform1f("uMaterial.ambientOcclusion", 1.0f);
+	mGBufferShaderProgram.SetUniformVec3("uMaterial.albedo", 0.5f, 0.0f, 0.0f);
+	mGBufferShaderProgram.SetUniform1i("useTextures", false);
 
 	mDeferredShaderProgram.Bind();
 	mDeferredShaderProgram.SetUniformVec3("uViewPos", glm::value_ptr(mCamera.GetWorldPosition()));

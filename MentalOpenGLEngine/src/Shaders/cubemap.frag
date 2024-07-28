@@ -6,7 +6,7 @@ in vec3 vTexCoords;
 
 uniform samplerCube uSkybox;
 
-uniform float uGamma = 1.5;
+uniform float uGamma = 2.2;
 uniform float uExposure = 1.0;
 
 void main()

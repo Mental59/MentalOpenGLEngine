@@ -201,8 +201,8 @@
     <None Include="src\Shaders\deferred.vert" />
     <None Include="src\Shaders\deferredPBR.frag" />
     <None Include="src\Shaders\directionalShadowMappingInstanced.vert" />
-    <None Include="src\Shaders\equirectangular_to_cubemap.frag" />
-    <None Include="src\Shaders\equirectangular_to_cubemap.vert" />
+    <None Include="src\Shaders\equirectangularToCubemap.frag" />
+    <None Include="src\Shaders\equirectangularToCubemap.vert" />
     <None Include="src\Shaders\gaussianBlur.frag" />
     <None Include="src\Shaders\cubemap.frag" />
     <None Include="src\Shaders\cubemap.vert" />
@@ -214,6 +214,7 @@
     <None Include="src\Shaders\gBuffer.frag" />
     <None Include="src\Shaders\gBuffer.vert" />
     <None Include="src\Shaders\gBufferInstanced.vert" />
+    <None Include="src\Shaders\irradianceConvolution.frag" />
     <None Include="src\Shaders\multipleLights.frag" />
     <None Include="src\Shaders\directionalLight.frag" />
     <None Include="src\Shaders\lightSource.frag" />

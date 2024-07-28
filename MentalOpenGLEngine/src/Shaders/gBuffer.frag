@@ -19,6 +19,11 @@ struct Material
 	sampler2D roughnessTexture1;
 	sampler2D ambientOcclusionTexture1;
 
+	vec3 albedo;
+	float metallic;
+	float roughness;
+	float ambientOcclusion;
+
 	sampler2D normalTexture1;
 	sampler2D heightTexture1;
 
@@ -33,6 +38,7 @@ layout (location = 3) out vec3 gMetallicRoughnessAO;
 
 uniform Material uMaterial;
 uniform float uHeightScale = 0.1;
+uniform bool useTextures = true;
 
 vec2 ParallaxOcclusionMapping(const vec2 texCoords, const vec3 viewDirection, const float minLayers, const float maxLayers);
 
@@ -43,7 +49,7 @@ void main()
 	vec2 texCoords = uMaterial.useHeightTexture ? ParallaxOcclusionMapping(fs_in.texCoords, viewDirectionTangent, 8.0, 32.0) : fs_in.texCoords;
 
 	vec3 normal = normalize(fs_in.normal);
-	if (uMaterial.useNormalTexture)
+	if (uMaterial.useNormalTexture && useTextures)
 	{
 		normal = texture(uMaterial.normalTexture1, texCoords).rgb;
 		normal = normalize(normal * 2.0 - 1.0); // transform to range [-1, 1]
@@ -51,13 +57,26 @@ void main()
 		normal *= fs_in.normalsMultiplier;
 	}
 
-	vec3 albedo = texture(uMaterial.albedoTexture1, texCoords).rgb;
-	albedo = pow(albedo, vec3(2.2));
+	vec3 albedo;
+	float metallic;
+	float roughness;
+	float ao;
 
-	float metallic = texture(uMaterial.metallicTexture1, texCoords).r;
-	float roughness = texture(uMaterial.roughnessTexture1, texCoords).r;
-
-	float ao = texture(uMaterial.ambientOcclusionTexture1, texCoords).r;
+	if (useTextures)
+	{
+		albedo = texture(uMaterial.albedoTexture1, texCoords).rgb;
+		albedo = pow(albedo, vec3(2.2));
+		metallic = texture(uMaterial.metallicTexture1, texCoords).r;
+		roughness = texture(uMaterial.roughnessTexture1, texCoords).r;
+		ao = texture(uMaterial.ambientOcclusionTexture1, texCoords).r;
+	}
+	else
+	{
+		albedo = uMaterial.albedo;
+		metallic = uMaterial.metallic;
+		roughness = uMaterial.roughness;
+		ao = uMaterial.ambientOcclusion;
+	}
 
 	gPosition = fs_in.worldPos;
 	gNormal = normal;

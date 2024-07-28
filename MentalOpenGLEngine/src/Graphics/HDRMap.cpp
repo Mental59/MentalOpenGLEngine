@@ -13,47 +13,76 @@ HDRMap::~HDRMap()
 
 	glDeleteFramebuffers(1, &mCaptureFBO);
 	glDeleteRenderbuffers(1, &mCaptureRBO);
+
+	glDeleteTextures(1, &mEnvCubemap);
+	glDeleteTextures(1, &mIrradianceMap);
 }
 
 void HDRMap::Setup(const char* hdrTexturePath, int width, int height)
 {
+	constexpr unsigned int convolutionWidth = 64;
+	constexpr unsigned int convolutionHeight = 64;
+	constexpr unsigned int numViews = 6;
+
 	unsigned int hdrTexture = GLLoadHDRFromFile(hdrTexturePath, true);
 
-	ShaderProgram mEquirectangularToCubemapShaderProgram = SetupShader();
+	ShaderProgram equirectangularToCubemapShaderProgram = SetupEquirectangularToCubemapShader();
+	ShaderProgram irradianceConvolutionShaderProgram = SetupIrradianceConvolutionShader();
 	SetupCube();
 	SetupFramebuffer(width, height);
-	SetupEnvCubemap(width, height);
+	mEnvCubemap = SetupCubemap(width, height);
+	mIrradianceMap = SetupCubemap(convolutionWidth, convolutionHeight);
 
-	mEquirectangularToCubemapShaderProgram.Bind();
-	mEquirectangularToCubemapShaderProgram.SetUniform1i("equirectangularMap", 0);
+	float aspect = static_cast<float>(width) / static_cast<float>(height);
+	glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), aspect, 0.1f, 10.0f);
+	glm::mat4 captureViews[numViews] =
+	{
+	   glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f,  0.0f,  0.0f),  glm::vec3(0.0f, -1.0f,  0.0f)),
+	   glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+	   glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  1.0f,  0.0f),  glm::vec3(0.0f,  0.0f,  1.0f)),
+	   glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f,  0.0f),  glm::vec3(0.0f,  0.0f, -1.0f)),
+	   glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f,  1.0f),  glm::vec3(0.0f, -1.0f,  0.0f)),
+	   glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f, -1.0f),  glm::vec3(0.0f, -1.0f,  0.0f))
+	};
+
+	equirectangularToCubemapShaderProgram.Bind();
+	equirectangularToCubemapShaderProgram.SetUniform1i("equirectangularMap", 0);
+	equirectangularToCubemapShaderProgram.SetUniform1f("uGamma", 1.0);
+	equirectangularToCubemapShaderProgram.SetUniform1f("uExposure", 1.0);
+	equirectangularToCubemapShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(captureProjection));
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, hdrTexture);
-
-	constexpr unsigned int numViews = 6;
-	glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
-	glm::mat4 captureViews[numViews] =
-	{
-	   glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-	   glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-	   glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),
-	   glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),
-	   glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-	   glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
-	};
-	mEquirectangularToCubemapShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(captureProjection));
 	glBindFramebuffer(GL_FRAMEBUFFER, mCaptureFBO);
 	glViewport(0, 0, width, height);
 	for (int i = 0; i < numViews; i++)
 	{
-		mEquirectangularToCubemapShaderProgram.SetUniformMat4("uView", glm::value_ptr(captureViews[i]));
+		equirectangularToCubemapShaderProgram.SetUniformMat4("uView", glm::value_ptr(captureViews[i]));
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, mEnvCubemap, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		DrawCube();
 	}
 
+	RescaleFramebuffer(convolutionWidth, convolutionHeight);
+	irradianceConvolutionShaderProgram.Bind();
+	irradianceConvolutionShaderProgram.SetUniform1i("uEnvironmentMap", 0);
+	irradianceConvolutionShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(captureProjection));
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, mEnvCubemap);
+	glBindFramebuffer(GL_FRAMEBUFFER, mCaptureFBO);
+	glViewport(0, 0, convolutionWidth, convolutionHeight);
+	for (int i = 0; i < numViews; i++)
+	{
+		irradianceConvolutionShaderProgram.SetUniformMat4("uView", glm::value_ptr(captureViews[i]));
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, mIrradianceMap, 0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		DrawCube();
+	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 	glDeleteTextures(1, &hdrTexture);
-	mEquirectangularToCubemapShaderProgram.Unbind();
+	equirectangularToCubemapShaderProgram.Unbind();
 }
 
 void HDRMap::SetupCube()
@@ -130,21 +159,34 @@ void HDRMap::DrawCube()
 	glBindVertexArray(0);
 }
 
-ShaderProgram HDRMap::SetupShader()
+ShaderProgram HDRMap::SetupEquirectangularToCubemapShader()
 {
-	Shader equirectangularToCubemapVertShader("src/Shaders/equirectangular_to_cubemap.vert", Shader::Vertex);
-	Shader equirectangularToCubemapFragShader("src/Shaders/equirectangular_to_cubemap.frag", Shader::Fragment);
+	Shader equirectangularToCubemapVertShader("src/Shaders/equirectangularToCubemap.vert", Shader::Vertex);
+	Shader equirectangularToCubemapFragShader("src/Shaders/equirectangularToCubemap.frag", Shader::Fragment);
 
-	ShaderProgram mEquirectangularToCubemapShaderProgram;
-	mEquirectangularToCubemapShaderProgram.Build({ equirectangularToCubemapVertShader, equirectangularToCubemapFragShader });
+	ShaderProgram equirectangularToCubemapShaderProgram;
+	equirectangularToCubemapShaderProgram.Build({ equirectangularToCubemapVertShader, equirectangularToCubemapFragShader });
 
-	return mEquirectangularToCubemapShaderProgram;
+	return equirectangularToCubemapShaderProgram;
 }
 
-void HDRMap::SetupEnvCubemap(int width, int height)
+ShaderProgram HDRMap::SetupIrradianceConvolutionShader()
 {
-	glGenTextures(1, &mEnvCubemap);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, mEnvCubemap);
+	Shader irradianceConvolutionVertShader("src/Shaders/equirectangularToCubemap.vert", Shader::Vertex);
+	Shader irradianceConvolutionFragShader("src/Shaders/irradianceConvolution.frag", Shader::Fragment);
+
+	ShaderProgram irradianceConvolutionShaderProgram;
+	irradianceConvolutionShaderProgram.Build({ irradianceConvolutionVertShader, irradianceConvolutionFragShader });
+
+	return irradianceConvolutionShaderProgram;
+}
+
+unsigned int HDRMap::SetupCubemap(int width, int height)
+{
+	unsigned int cubeMap;
+
+	glGenTextures(1, &cubeMap);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
 
 	for (unsigned int i = 0; i < 6; ++i)
 	{
@@ -156,6 +198,8 @@ void HDRMap::SetupEnvCubemap(int width, int height)
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	return cubeMap;
 }
 
 void HDRMap::SetupFramebuffer(int width, int height)
@@ -167,4 +211,11 @@ void HDRMap::SetupFramebuffer(int width, int height)
 	glBindRenderbuffer(GL_RENDERBUFFER, mCaptureRBO);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, mCaptureRBO);
+}
+
+void HDRMap::RescaleFramebuffer(int width, int height)
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, mCaptureFBO);
+	glBindRenderbuffer(GL_RENDERBUFFER, mCaptureRBO);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
 }
