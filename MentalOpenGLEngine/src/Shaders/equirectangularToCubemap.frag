@@ -7,8 +7,8 @@ uniform sampler2D equirectangularMap;
 uniform float uGamma = 2.2;
 uniform float uExposure = 1.0;
 
-const vec2 invAtan = vec2(0.1591, 0.3183);
-vec2 SampleSphericalMap(vec3 v)
+const vec2 invAtan = vec2(0.1591, 0.3183); // (1/(2*Pi), 1/Pi)
+vec2 SampleSphericalMap(vec3 v) // mapping from a sphere onto uv-space
 {
     vec2 uv = vec2(atan(v.z, v.x), asin(v.y));
     uv *= invAtan;
@@ -19,7 +19,7 @@ vec2 SampleSphericalMap(vec3 v)
 
 void main()
 {		
-    vec2 uv = SampleSphericalMap(normalize(WorldPos));
+    vec2 uv = SampleSphericalMap(normalize(WorldPos)); // normalize(WorldPos) is actually a mapping from cubemap to a sphere
     vec3 color = texture(equirectangularMap, uv).rgb;
 
     // exposure tone mapping
