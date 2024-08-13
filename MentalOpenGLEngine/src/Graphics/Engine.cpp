@@ -1,11 +1,8 @@
 #include "Engine.h"
-
 #include <iostream>
 #include <format>
 #include <glad/glad.h>
 #include <glfw3.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <random>
 #include <map>
@@ -725,7 +722,7 @@ void Graphics::Engine::DrawScene(
 		shader.SetUniform1f("uMaterial.metallic", (float)i / (float)nRows); // increases from bottom to the top
 		for (int j = 0; j < nColumns; j++)
 		{
-			shader.SetUniform1f("uMaterial.roughness", (float)j / (float)nColumns); // increases from left to right
+			shader.SetUniform1f("uMaterial.roughness", glm::clamp((float)j / (float)nColumns, 0.05f, 1.0f)); // increases from left to right
 
 			model = glm::mat4(1.0f);
 			glm::vec3 pos(

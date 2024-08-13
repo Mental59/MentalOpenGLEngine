@@ -7,6 +7,14 @@ uniform samplerCube uEnvironmentMap;
 
 const float PI = 3.14159265359;
 
+vec3 computeIrradiance();
+
+void main()
+{
+    vec3 irradiance = computeIrradiance();
+    FragColor = vec4(irradiance, 1.0);
+}
+
 vec3 computeIrradiance()
 {
     vec3 normal = normalize(WorldPos);
@@ -35,10 +43,4 @@ vec3 computeIrradiance()
 
     irradiance = PI * irradiance / float(nrSamples);
     return irradiance;
-}
-
-void main()
-{
-    vec3 irradiance = computeIrradiance();
-    FragColor = vec4(irradiance, 1.0);
 }

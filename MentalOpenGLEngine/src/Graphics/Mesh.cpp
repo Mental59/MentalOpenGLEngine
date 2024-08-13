@@ -1,5 +1,4 @@
 #include "Mesh.h"
-#include <iostream>
 #include <format>
 
 Mesh::Mesh() : mVAO(0), mVBO(0), mEBO(0), mNumIndices(0), mNumVertices(0)
