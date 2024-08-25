@@ -215,6 +215,7 @@
     <None Include="src\Shaders\gBuffer.frag" />
     <None Include="src\Shaders\gBuffer.vert" />
     <None Include="src\Shaders\gBufferInstanced.vert" />
+    <None Include="src\Shaders\hdrPrefilter.frag" />
     <None Include="src\Shaders\irradianceConvolution.frag" />
     <None Include="src\Shaders\multipleLights.frag" />
     <None Include="src\Shaders\directionalLight.frag" />

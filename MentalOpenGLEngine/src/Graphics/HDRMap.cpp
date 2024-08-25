@@ -14,23 +14,27 @@ HDRMap::~HDRMap()
 
 	glDeleteTextures(1, &mEnvCubemap);
 	glDeleteTextures(1, &mIrradianceMap);
+	glDeleteTextures(1, &mPrefilterMap);
 }
 
-void HDRMap::Setup(const char* hdrTexturePath, int width, int height, int convolutionWidth, int convolutionHeight)
+void HDRMap::Setup(const char* hdrTexturePath, int envMapSize, int convolutionSize)
 {
 	constexpr unsigned int numViews = 6;
+	constexpr unsigned int prefilterMapSize = 128;
 
 	unsigned int hdrTexture = GLLoadHDRFromFile(hdrTexturePath, true);
 
 	ShaderProgram equirectangularToCubemapShaderProgram = SetupEquirectangularToCubemapShader();
 	ShaderProgram irradianceConvolutionShaderProgram = SetupIrradianceConvolutionShader();
+	ShaderProgram prefilterShaderProgram = SetupHDRPrefilterShader();
 	SetupCube();
-	SetupFramebuffer(width, height);
-	mEnvCubemap = SetupCubemap(width, height);
-	mIrradianceMap = SetupCubemap(convolutionWidth, convolutionHeight);
+	SetupFramebuffer(envMapSize, envMapSize);
+	mEnvCubemap = SetupCubemap(envMapSize, envMapSize, false);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	mIrradianceMap = SetupCubemap(convolutionSize, convolutionSize, false);
+	mPrefilterMap = SetupCubemap(prefilterMapSize, prefilterMapSize, true);
 
-	float aspect = static_cast<float>(width) / static_cast<float>(height);
-	glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), aspect, 0.1f, 10.0f);
+	glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
 	glm::mat4 captureViews[numViews] =
 	{
 	   glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f,  0.0f,  0.0f),  glm::vec3(0.0f, -1.0f,  0.0f)),
@@ -50,7 +54,7 @@ void HDRMap::Setup(const char* hdrTexturePath, int width, int height, int convol
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, hdrTexture);
 	glBindFramebuffer(GL_FRAMEBUFFER, mCaptureFBO);
-	glViewport(0, 0, width, height);
+	glViewport(0, 0, envMapSize, envMapSize);
 	for (int i = 0; i < numViews; i++)
 	{
 		equirectangularToCubemapShaderProgram.SetUniformMat4("uView", glm::value_ptr(captureViews[i]));
@@ -59,7 +63,10 @@ void HDRMap::Setup(const char* hdrTexturePath, int width, int height, int convol
 		DrawCube();
 	}
 
-	RescaleFramebuffer(convolutionWidth, convolutionHeight);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, mEnvCubemap);
+	glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+
+	RescaleFramebuffer(convolutionSize, convolutionSize);
 	irradianceConvolutionShaderProgram.Bind();
 	irradianceConvolutionShaderProgram.SetUniform1i("uEnvironmentMap", 0);
 	irradianceConvolutionShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(captureProjection));
@@ -67,7 +74,7 @@ void HDRMap::Setup(const char* hdrTexturePath, int width, int height, int convol
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, mEnvCubemap);
 	glBindFramebuffer(GL_FRAMEBUFFER, mCaptureFBO);
-	glViewport(0, 0, convolutionWidth, convolutionHeight);
+	glViewport(0, 0, convolutionSize, convolutionSize);
 	for (int i = 0; i < numViews; i++)
 	{
 		irradianceConvolutionShaderProgram.SetUniformMat4("uView", glm::value_ptr(captureViews[i]));
@@ -75,8 +82,37 @@ void HDRMap::Setup(const char* hdrTexturePath, int width, int height, int convol
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		DrawCube();
 	}
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+	prefilterShaderProgram.Bind();
+	prefilterShaderProgram.SetUniform1i("environmentMap", 0);
+	prefilterShaderProgram.SetUniform1f("environmentMapSize", envMapSize);
+	prefilterShaderProgram.SetUniformMat4("uProjection", glm::value_ptr(captureProjection));
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, mEnvCubemap);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, mCaptureFBO);
+	unsigned int maxMipLevels = 5;
+	for (unsigned int mipLevel = 0; mipLevel < maxMipLevels; mipLevel++)
+	{
+		unsigned int mipWidth = prefilterMapSize * std::pow(0.5, mipLevel);
+		unsigned int mipHeight = prefilterMapSize * std::pow(0.5, mipLevel);
+
+		glBindRenderbuffer(GL_RENDERBUFFER, mCaptureRBO);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight);
+		glViewport(0, 0, mipWidth, mipHeight);
+
+		float roughness = static_cast<float>(mipLevel) / static_cast<float>(maxMipLevels - 1);
+		prefilterShaderProgram.SetUniform1f("roughness", roughness);
+		for (unsigned int i = 0; i < numViews; i++)
+		{
+			prefilterShaderProgram.SetUniformMat4("uView", glm::value_ptr(captureViews[i]));
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, mPrefilterMap, mipLevel);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			DrawCube();
+		}
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDeleteTextures(1, &hdrTexture);
 	equirectangularToCubemapShaderProgram.Unbind();
 }
@@ -177,7 +213,18 @@ ShaderProgram HDRMap::SetupIrradianceConvolutionShader()
 	return irradianceConvolutionShaderProgram;
 }
 
-unsigned int HDRMap::SetupCubemap(int width, int height)
+ShaderProgram HDRMap::SetupHDRPrefilterShader()
+{
+	Shader vertShader("src/Shaders/equirectangularToCubemap.vert", Shader::Vertex);
+	Shader fragShader("src/Shaders/hdrPrefilter.frag", Shader::Fragment);
+
+	ShaderProgram shaderProgram;
+	shaderProgram.Build({ vertShader, fragShader });
+
+	return shaderProgram;
+}
+
+unsigned int HDRMap::SetupCubemap(int width, int height, bool generateMipMap)
 {
 	unsigned int cubeMap;
 
@@ -192,8 +239,17 @@ unsigned int HDRMap::SetupCubemap(int width, int height)
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	if (generateMipMap)
+	{
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+	}
+	else
+	{
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	}
 
 	return cubeMap;
 }

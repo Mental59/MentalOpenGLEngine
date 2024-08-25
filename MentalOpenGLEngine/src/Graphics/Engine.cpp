@@ -397,7 +397,7 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	//	"resources/skyboxes/SpaceRed/front.png",
 	//	"resources/skyboxes/SpaceRed/back.png"
 	//};
-	mHDRMap.Setup("resources/hdr/newport_loft.hdr", 1024, 1024, 64, 64);
+	mHDRMap.Setup("resources/hdr/little_paris_eiffel_tower_4k.hdr", 1024, 64);
 	mCubemap.Load(mHDRMap.GetCubeMapTextureId());
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe mode
@@ -417,6 +417,8 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	//glEnable(GL_MULTISAMPLE);
 	//glEnable(GL_FRAMEBUFFER_SRGB);
 	glDisable(GL_MULTISAMPLE);
+
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
 	return true;
 }
