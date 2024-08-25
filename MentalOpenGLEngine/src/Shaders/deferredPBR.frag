@@ -23,6 +23,8 @@ uniform sampler2D gMetallicRoughnessAO;
 
 uniform sampler2D uSSAOTexture;
 uniform samplerCube uIrradianceMap;
+uniform samplerCube uPrefilterMap;
+uniform sampler2D uBrdfLutMap;
 
 uniform vec3 uViewPos;
 
@@ -37,6 +39,8 @@ float GeometrySchlickGGX(float NdotV, float roughness);
 float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness);
 vec3 FresnelSchlick(float cosTheta, vec3 F0);
 vec3 FresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness);
+
+const float MAX_REFLECTION_LOD = 4.0;
 
 void main()
 {
@@ -82,16 +86,22 @@ void main()
 		Lo += (kD * albedo / PI + specular) * radiance * NdotL;
 	}
 
-	vec3 kS = FresnelSchlickRoughness(max(dot(normal, viewDirection), 0.0), F0, roughness);
+	vec3 F = FresnelSchlickRoughness(max(dot(normal, viewDirection), 0.0), F0, roughness);
+	vec3 kS = F;
 	vec3 kD = 1.0 - kS;
+	kD *= 1.0 - metallic;
+
 	vec3 irradiance = texture(uIrradianceMap, normal).rgb;
 	vec3 diffuse = irradiance * albedo;
-	vec3 ambient = kD * diffuse * ao;
 
-//	vec3 ambient = vec3(0.03) * albedo * ao;
+	vec3 R = reflect(-viewDirection, normal);
+	vec3 prefilteredColor = textureLod(uPrefilterMap, R, roughness * MAX_REFLECTION_LOD).rgb;
+	vec2 envBRDF = texture(uBrdfLutMap, vec2(max(dot(normal, viewDirection), 0.0), roughness)).rg;
+	vec3 specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
+
+	vec3 ambient = (kD * diffuse + specular) * ao;
 
 	vec3 color = ambient + Lo;
-
 	FragColor = vec4(color, 1.0);
 
 	float brightness = dot(FragColor.rgb, vec3(0.2126, 0.7152, 0.0722));
