@@ -3,6 +3,7 @@
 #include "Shader.h"
 #include "ShaderProgram.h"
 #include <glm/gtc/type_ptr.hpp>
+#include "Graphics/Primitives/ScreenQuad.h"
 
 HDRMap::~HDRMap()
 {
@@ -21,12 +22,14 @@ void HDRMap::Setup(const char* hdrTexturePath, int envMapSize, int convolutionSi
 {
 	constexpr unsigned int numViews = 6;
 	constexpr unsigned int prefilterMapSize = 128;
+	constexpr unsigned int brdfLutTextureSize = 512;
 
 	unsigned int hdrTexture = GLLoadHDRFromFile(hdrTexturePath, true);
 
 	ShaderProgram equirectangularToCubemapShaderProgram = SetupEquirectangularToCubemapShader();
 	ShaderProgram irradianceConvolutionShaderProgram = SetupIrradianceConvolutionShader();
 	ShaderProgram prefilterShaderProgram = SetupHDRPrefilterShader();
+	ShaderProgram brdfPrecomputingShaderProgram = SetupBRDFPrecomputingShader();
 	SetupCube();
 	SetupFramebuffer(envMapSize, envMapSize);
 	mEnvCubemap = SetupCubemap(envMapSize, envMapSize, false);
@@ -112,9 +115,31 @@ void HDRMap::Setup(const char* hdrTexturePath, int envMapSize, int convolutionSi
 		}
 	}
 
+	glGenTextures(1, &mBrdfLutTexture);
+	// pre-allocate enough memory for the LUT texture.
+	glBindTexture(GL_TEXTURE_2D, mBrdfLutTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, brdfLutTextureSize, brdfLutTextureSize, 0, GL_RG, GL_FLOAT, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, mCaptureFBO);
+	glBindRenderbuffer(GL_RENDERBUFFER, mCaptureRBO);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, brdfLutTextureSize, brdfLutTextureSize);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mBrdfLutTexture, 0);
+
+	glViewport(0, 0, brdfLutTextureSize, brdfLutTextureSize);
+	brdfPrecomputingShaderProgram.Bind();
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	ScreenQuad screenQuad;
+	screenQuad.Create();
+	glDisable(GL_DEPTH_TEST);
+	screenQuad.Draw();
+	glEnable(GL_DEPTH_TEST);
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDeleteTextures(1, &hdrTexture);
-	equirectangularToCubemapShaderProgram.Unbind();
 }
 
 void HDRMap::SetupCube()
@@ -217,6 +242,17 @@ ShaderProgram HDRMap::SetupHDRPrefilterShader()
 {
 	Shader vertShader("src/Shaders/equirectangularToCubemap.vert", Shader::Vertex);
 	Shader fragShader("src/Shaders/hdrPrefilter.frag", Shader::Fragment);
+
+	ShaderProgram shaderProgram;
+	shaderProgram.Build({ vertShader, fragShader });
+
+	return shaderProgram;
+}
+
+ShaderProgram HDRMap::SetupBRDFPrecomputingShader()
+{
+	Shader vertShader("src/Shaders/brdfPrecomputing.vert", Shader::Vertex);
+	Shader fragShader("src/Shaders/brdfPrecomputing.frag", Shader::Fragment);
 
 	ShaderProgram shaderProgram;
 	shaderProgram.Build({ vertShader, fragShader });

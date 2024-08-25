@@ -10,6 +10,7 @@ public:
 	inline unsigned int GetCubeMapTextureId() const { return mEnvCubemap; }
 	inline unsigned int GetIrradianceMapTextureId() const { return mIrradianceMap; }
 	inline unsigned int GetPrefilterMapTextureId() const { return mPrefilterMap; }
+	inline unsigned int GetBRDFLutTextureId() const { return mBrdfLutTexture; }
 
 private:
 	void SetupCube();
@@ -17,6 +18,7 @@ private:
 	ShaderProgram SetupEquirectangularToCubemapShader();
 	ShaderProgram SetupIrradianceConvolutionShader();
 	ShaderProgram SetupHDRPrefilterShader();
+	ShaderProgram SetupBRDFPrecomputingShader();
 	unsigned int SetupCubemap(int width, int height, bool generateMipMap);
 	void SetupFramebuffer(int width, int height);
 	void RescaleFramebuffer(int width, int height);
@@ -26,6 +28,7 @@ private:
 	unsigned int mEnvCubemap;
 	unsigned int mIrradianceMap;
 	unsigned int mPrefilterMap;
+	unsigned int mBrdfLutTexture;
 
 	unsigned int mCaptureFBO, mCaptureRBO;
 };

@@ -163,5 +163,7 @@
     <None Include="src\Shaders\equirectangularToCubemap.vert" />
     <None Include="src\Shaders\irradianceConvolution.frag" />
     <None Include="src\Shaders\hdrPrefilter.frag" />
+    <None Include="src\Shaders\brdfPrecomputing.vert" />
+    <None Include="src\Shaders\brdfPrecomputing.frag" />
   </ItemGroup>
 </Project>

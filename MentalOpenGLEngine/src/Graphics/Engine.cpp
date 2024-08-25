@@ -389,17 +389,6 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	//const char* faces[6]{
-	//	"resources/skyboxes/SpaceRed/right.png",
-	//	"resources/skyboxes/SpaceRed/left.png",
-	//	"resources/skyboxes/SpaceRed/top.png",
-	//	"resources/skyboxes/SpaceRed/bottom.png",
-	//	"resources/skyboxes/SpaceRed/front.png",
-	//	"resources/skyboxes/SpaceRed/back.png"
-	//};
-	mHDRMap.Setup("resources/hdr/little_paris_eiffel_tower_4k.hdr", 1024, 64);
-	mCubemap.Load(mHDRMap.GetCubeMapTextureId());
-
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe mode
 
 	glEnable(GL_DEPTH_TEST);
@@ -419,6 +408,9 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	glDisable(GL_MULTISAMPLE);
 
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
+	mHDRMap.Setup("resources/hdr/little_paris_eiffel_tower_4k.hdr", 1024, 64);
+	mCubemap.Load(mHDRMap.GetCubeMapTextureId());
 
 	return true;
 }
