@@ -42,6 +42,7 @@ private:
 	Core::Transform mTransform;
 	std::vector <std::shared_ptr<Mesh>> mMeshes;
 	std::string mDirectory;
+	std::string mPath;
 	std::unordered_map<std::string, unsigned int> mLoadedTextures;
 	std::unordered_map<Core::TextureType, Core::Texture> mDefaultTextures;
 };

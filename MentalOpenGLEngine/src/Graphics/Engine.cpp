@@ -14,6 +14,15 @@
 Graphics::Engine* Graphics::Engine::mInstance(nullptr);
 
 static Model SPHERE_MODEL;
+static Model CERBERUS_MODEL;
+
+static Model SPHERE_MODEL_1;
+static Model SPHERE_MODEL_2;
+static Model SPHERE_MODEL_3;
+static Model SPHERE_MODEL_4;
+static Model SPHERE_MODEL_5;
+static Model SPHERE_MODEL_6;
+static Model SPHERE_MODEL_7;
 
 static glm::vec3 LIGHT_DIRECTION = glm::normalize(glm::vec3(1.0f, -0.5f, 1.0f));
 static glm::mat4 DIR_LIGHT_SPACE_MAT;
@@ -342,12 +351,73 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 			std::cout << "Ping Pong Framebuffer is not complete!" << std::endl;
 	}
 
-	SPHERE_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/rusted_iron/albedo.png"), Core::Albedo });
+	SPHERE_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/pbr/rusted_iron/albedo.png"), Core::Albedo });
 	SPHERE_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/rusted_iron/metallic.png"), Core::Metallic });
 	SPHERE_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/rusted_iron/roughness.png"), Core::Roughness });
 	SPHERE_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/rusted_iron/ao.png"), Core::AmbientOcclusion });
 	SPHERE_MODEL.SetDefaultTexture({ LoadTexture("resources/textures/rusted_iron/normal.png"), Core::Normal });
 	SPHERE_MODEL.Load("resources/objects/sphere/sphere.obj");
+
+	CERBERUS_MODEL.SetDefaultTexture({ LoadTexture("resources/objects/cerberus/textures/Cerberus_A.tga"), Core::Albedo });
+	CERBERUS_MODEL.SetDefaultTexture({ LoadTexture("resources/objects/cerberus/textures/Cerberus_M.tga"), Core::Metallic });
+	CERBERUS_MODEL.SetDefaultTexture({ LoadTexture("resources/objects/cerberus/textures/Cerberus_N.tga"), Core::Normal });
+	CERBERUS_MODEL.SetDefaultTexture({ LoadTexture("resources/objects/cerberus/textures/Cerberus_R.tga"), Core::Roughness });
+	CERBERUS_MODEL.SetDefaultTexture({ LoadTexture("resources/objects/cerberus/textures/Raw/Cerberus_AO.tga"), Core::AmbientOcclusion });
+	CERBERUS_MODEL.Load("resources/objects/cerberus/cerberus.FBX");
+
+	SPHERE_MODEL_1.SetDefaultTexture({ LoadTexture("resources/textures/pbr/cloudy-veined-quartz-bl/cloudy-veined-quartz_albedo.png"), Core::Albedo });
+	SPHERE_MODEL_1.SetDefaultTexture({ LoadTexture("resources/textures/pbr/cloudy-veined-quartz-bl/cloudy-veined-quartz_ao.png"), Core::AmbientOcclusion });
+	SPHERE_MODEL_1.SetDefaultTexture({ LoadTexture("resources/textures/pbr/cloudy-veined-quartz-bl/cloudy-veined-quartz_metallic.png"), Core::Metallic });
+	SPHERE_MODEL_1.SetDefaultTexture({ LoadTexture("resources/textures/pbr/cloudy-veined-quartz-bl/cloudy-veined-quartz_normal-ogl.png"), Core::Normal });
+	SPHERE_MODEL_1.SetDefaultTexture({ LoadTexture("resources/textures/pbr/cloudy-veined-quartz-bl/cloudy-veined-quartz_roughness.png"), Core::Roughness });
+	SPHERE_MODEL_1.Load("resources/objects/sphere/sphere.obj");
+
+	SPHERE_MODEL_2.SetDefaultTexture({ LoadTexture("resources/textures/pbr/cloudy-veined-quartz-light-bl/cloudy-veined-quartz-light_albedo.png"), Core::Albedo });
+	SPHERE_MODEL_2.SetDefaultTexture({ LoadTexture("resources/textures/pbr/cloudy-veined-quartz-light-bl/cloudy-veined-quartz-light_ao.png"), Core::AmbientOcclusion });
+	SPHERE_MODEL_2.SetDefaultTexture({ LoadTexture("resources/textures/pbr/cloudy-veined-quartz-light-bl/cloudy-veined-quartz-light_metallic.png"), Core::Metallic });
+	SPHERE_MODEL_2.SetDefaultTexture({ LoadTexture("resources/textures/pbr/cloudy-veined-quartz-light-bl/cloudy-veined-quartz-light_normal-ogl.png"), Core::Normal });
+	SPHERE_MODEL_2.SetDefaultTexture({ LoadTexture("resources/textures/pbr/cloudy-veined-quartz-light-bl/cloudy-veined-quartz-light_roughness.png"), Core::Roughness });
+	SPHERE_MODEL_2.Load("resources/objects/sphere/sphere.obj");
+
+	SPHERE_MODEL_3.SetDefaultTexture({ LoadTexture("resources/textures/pbr/columned-lava-rock-bl/columned-lava-rock_albedo.png"), Core::Albedo });
+	SPHERE_MODEL_3.SetDefaultTexture({ LoadTexture("resources/textures/pbr/columned-lava-rock-bl/columned-lava-rock_ao.png"), Core::AmbientOcclusion });
+	SPHERE_MODEL_3.SetDefaultTexture({ LoadTexture("resources/textures/pbr/columned-lava-rock-bl/columned-lava-rock_height.png"), Core::Height });
+	SPHERE_MODEL_3.SetDefaultTexture({ LoadTexture("resources/textures/pbr/columned-lava-rock-bl/columned-lava-rock_metallic.png"), Core::Metallic });
+	SPHERE_MODEL_3.SetDefaultTexture({ LoadTexture("resources/textures/pbr/columned-lava-rock-bl/columned-lava-rock_normal-ogl.png"), Core::Normal });
+	SPHERE_MODEL_3.SetDefaultTexture({ LoadTexture("resources/textures/pbr/columned-lava-rock-bl/columned-lava-rock_roughness.png"), Core::Roughness });
+	SPHERE_MODEL_3.Load("resources/objects/sphere/sphere.obj");
+
+	SPHERE_MODEL_4.SetDefaultTexture({ LoadTexture("resources/textures/pbr/gold-nugget-bl/gold-nugget1_albedo.png"), Core::Albedo });
+	SPHERE_MODEL_4.SetDefaultTexture({ LoadTexture("resources/textures/pbr/gold-nugget-bl/gold-nugget1_ao.png"), Core::AmbientOcclusion });
+	SPHERE_MODEL_4.SetDefaultTexture({ LoadTexture("resources/textures/pbr/gold-nugget-bl/gold-nugget1_height.png"), Core::Height });
+	SPHERE_MODEL_4.SetDefaultTexture({ LoadTexture("resources/textures/pbr/gold-nugget-bl/gold-nugget1_metallic.png"), Core::Metallic });
+	SPHERE_MODEL_4.SetDefaultTexture({ LoadTexture("resources/textures/pbr/gold-nugget-bl/gold-nugget1_normal-ogl.png"), Core::Normal });
+	SPHERE_MODEL_4.SetDefaultTexture({ LoadTexture("resources/textures/pbr/gold-nugget-bl/gold-nugget1_roughness.png"), Core::Roughness });
+	SPHERE_MODEL_4.Load("resources/objects/sphere/sphere.obj");
+
+	SPHERE_MODEL_5.SetDefaultTexture({ LoadTexture("resources/textures/pbr/ice-field-bl/ice_field_albedo.png"), Core::Albedo });
+	SPHERE_MODEL_5.SetDefaultTexture({ LoadTexture("resources/textures/pbr/ice-field-bl/ice_field_ao.png"), Core::AmbientOcclusion });
+	SPHERE_MODEL_5.SetDefaultTexture({ LoadTexture("resources/textures/pbr/ice-field-bl/ice_field_height.png"), Core::Height });
+	SPHERE_MODEL_5.SetDefaultTexture({ LoadTexture("resources/textures/pbr/ice-field-bl/ice_field_metallic.png"), Core::Metallic });
+	SPHERE_MODEL_5.SetDefaultTexture({ LoadTexture("resources/textures/pbr/ice-field-bl/ice_field_normal-ogl.png"), Core::Normal });
+	SPHERE_MODEL_5.SetDefaultTexture({ LoadTexture("resources/textures/pbr/ice-field-bl/ice_field_roughness.png"), Core::Roughness });
+	SPHERE_MODEL_5.Load("resources/objects/sphere/sphere.obj");
+
+	SPHERE_MODEL_6.SetDefaultTexture({ LoadTexture("resources/textures/pbr/patchy-meadow1-bl/patchy-meadow1_albedo.png"), Core::Albedo });
+	SPHERE_MODEL_6.SetDefaultTexture({ LoadTexture("resources/textures/pbr/patchy-meadow1-bl/patchy-meadow1_ao.png"), Core::AmbientOcclusion });
+	SPHERE_MODEL_6.SetDefaultTexture({ LoadTexture("resources/textures/pbr/patchy-meadow1-bl/patchy-meadow1_height.png"), Core::Height });
+	SPHERE_MODEL_6.SetDefaultTexture({ LoadTexture("resources/textures/pbr/patchy-meadow1-bl/patchy-meadow1_metallic.png"), Core::Metallic });
+	SPHERE_MODEL_6.SetDefaultTexture({ LoadTexture("resources/textures/pbr/patchy-meadow1-bl/patchy-meadow1_normal-ogl.png"), Core::Normal });
+	SPHERE_MODEL_6.SetDefaultTexture({ LoadTexture("resources/textures/pbr/patchy-meadow1-bl/patchy-meadow1_roughness.png"), Core::Roughness });
+	SPHERE_MODEL_6.Load("resources/objects/sphere/sphere.obj");
+
+	SPHERE_MODEL_7.SetDefaultTexture({ LoadTexture("resources/textures/pbr/white-quilted-diamond-bl/white-quilted-diamond_albedo.png"), Core::Albedo });
+	SPHERE_MODEL_7.SetDefaultTexture({ LoadTexture("resources/textures/pbr/white-quilted-diamond-bl/white-quilted-diamond_ao.png"), Core::AmbientOcclusion });
+	SPHERE_MODEL_7.SetDefaultTexture({ LoadTexture("resources/textures/pbr/white-quilted-diamond-bl/white-quilted-diamond_height.png"), Core::Height });
+	SPHERE_MODEL_7.SetDefaultTexture({ LoadTexture("resources/textures/pbr/white-quilted-diamond-bl/white-quilted-diamond_metallic.png"), Core::Metallic });
+	SPHERE_MODEL_7.SetDefaultTexture({ LoadTexture("resources/textures/pbr/white-quilted-diamond-bl/white-quilted-diamond_normal-ogl.png"), Core::Normal });
+	SPHERE_MODEL_7.SetDefaultTexture({ LoadTexture("resources/textures/pbr/white-quilted-diamond-bl/white-quilted-diamond_roughness.png"), Core::Roughness });
+	SPHERE_MODEL_7.Load("resources/objects/sphere/sphere.obj");
 
 	//ssao kernel
 	std::uniform_real_distribution<float> randomFloats(0.0, 1.0); // random floats between [0.0, 1.0]
@@ -411,7 +481,7 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
-	mHDRMap.Setup("resources/hdr/little_paris_eiffel_tower_4k.hdr", 1024, 64);
+	mHDRMap.Setup("resources/hdr/little_paris_eiffel_tower_4k.hdr", 4096, 64);
 	mCubemap.Load(mHDRMap.GetCubeMapTextureId());
 
 	return true;
@@ -716,24 +786,58 @@ void Graphics::Engine::DrawScene(
 	//shader.SetUniform1f("uTexTiling", 1.0f);
 	//shader.SetUniform1f("uNormalsMultiplier", 1.0f);
 
-	constexpr float spacing = 2.5;
-	for (int i = 0; i < nRows; i++)
-	{
-		shader.SetUniform1f("uMaterial.metallic", (float)i / (float)nRows); // increases from bottom to the top
-		for (int j = 0; j < nColumns; j++)
-		{
-			shader.SetUniform1f("uMaterial.roughness", glm::clamp((float)j / (float)nColumns, 0.05f, 1.0f)); // increases from left to right
+	//constexpr float spacing = 2.5;
+	//for (int i = 0; i < nRows; i++)
+	//{
+	//	shader.SetUniform1f("uMaterial.metallic", (float)i / (float)nRows); // increases from bottom to the top
+	//	for (int j = 0; j < nColumns; j++)
+	//	{
+	//		shader.SetUniform1f("uMaterial.roughness", glm::clamp((float)j / (float)nColumns, 0.05f, 1.0f)); // increases from left to right
 
-			model = glm::mat4(1.0f);
-			glm::vec3 pos(
-				(j - (nColumns / 2)) * spacing,
-				(i - (nRows / 2)) * spacing,
-				0.0f
-			);
-			model = glm::translate(model, pos);
-			SPHERE_MODEL.Draw(shader, model);
-		}
-	}
+	//		model = glm::mat4(1.0f);
+	//		glm::vec3 pos(
+	//			(j - (nColumns / 2)) * spacing,
+	//			(i - (nRows / 2)) * spacing,
+	//			0.0f
+	//		);
+	//		model = glm::translate(model, pos);
+	//		SPHERE_MODEL.Draw(shader, model);
+	//	}
+	//}
+
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(20.0f, 0.0f, 0.0f));
+	model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	model = glm::scale(model, glm::vec3(0.25f));
+	CERBERUS_MODEL.Draw(shader, model);
+
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+	SPHERE_MODEL_1.Draw(shader, model);
+
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(-2.5f, 0.0f, 0.0f));
+	SPHERE_MODEL_2.Draw(shader, model);
+
+	//model = glm::mat4(1.0f);
+	//model = glm::translate(model, glm::vec3(-5.0f, 0.0f, 0.0f));
+	//SPHERE_MODEL_3.Draw(shader, model);
+
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(-5.0f, 0.0f, 0.0f));
+	SPHERE_MODEL_4.Draw(shader, model);
+
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(-7.5f, 0.0f, 0.0f));
+	SPHERE_MODEL_5.Draw(shader, model);
+
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(-10.0f, 0.0f, 0.0f));
+	SPHERE_MODEL_6.Draw(shader, model);
+
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(-12.5f, 0.0f, 0.0f));
+	SPHERE_MODEL_7.Draw(shader, model);
 
 	//if (shaderInstanced)
 	//{
@@ -765,7 +869,7 @@ void Graphics::Engine::SetupScene(
 	mGBufferShaderProgram.SetUniformVec3("uViewPos", glm::value_ptr(mCamera.GetWorldPosition()));
 	mGBufferShaderProgram.SetUniform1f("uMaterial.ambientOcclusion", 1.0f);
 	mGBufferShaderProgram.SetUniformVec3("uMaterial.albedo", 0.5f, 0.0f, 0.0f);
-	mGBufferShaderProgram.SetUniform1i("useTextures", false);
+	mGBufferShaderProgram.SetUniform1i("useTextures", true);
 
 	mDeferredShaderProgram.Bind();
 	mDeferredShaderProgram.SetUniformVec3("uViewPos", glm::value_ptr(mCamera.GetWorldPosition()));

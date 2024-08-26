@@ -126,6 +126,8 @@ void Model::SetupInstancedDrawing(glm::mat4* instanceMatrices, size_t size, unsi
 
 void Model::Load(const std::string& path)
 {
+	mPath = path;
+
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace);
 
@@ -208,6 +210,13 @@ void Model::ProcessMesh(aiMesh* mesh, const aiScene* scene, std::shared_ptr<Mesh
 		std::vector<Core::Texture> normalMaps = LoadMaterialTextures(material, aiTextureType_HEIGHT, Core::Normal);
 		std::vector<Core::Texture> heightMaps = LoadMaterialTextures(material, aiTextureType_AMBIENT, Core::Height);
 
+		std::cout << "Model [" << mPath << "] found " << albedoMaps.size() << " albedo maps" << std::endl;
+		std::cout << "Model [" << mPath << "] found " << metallicMaps.size() << " metallic maps" << std::endl;
+		std::cout << "Model [" << mPath << "] found " << roughnessMaps.size() << " roughness maps" << std::endl;
+		std::cout << "Model [" << mPath << "] found " << aoMaps.size() << " ao maps" << std::endl;
+		std::cout << "Model [" << mPath << "] found " << normalMaps.size() << " normal maps" << std::endl;
+		std::cout << "Model [" << mPath << "] found " << heightMaps.size() << " height maps" << std::endl;
+
 		if (albedoMaps.size() == 0) AddDefaultTexture(&albedoMaps, Core::Albedo);
 		if (metallicMaps.size() == 0) AddDefaultTexture(&metallicMaps, Core::Metallic);
 		if (roughnessMaps.size() == 0) AddDefaultTexture(&roughnessMaps, Core::Roughness);
@@ -215,6 +224,13 @@ void Model::ProcessMesh(aiMesh* mesh, const aiScene* scene, std::shared_ptr<Mesh
 
 		if (normalMaps.size() == 0) AddDefaultTexture(&normalMaps, Core::Normal);
 		if (heightMaps.size() == 0) AddDefaultTexture(&heightMaps, Core::Height);
+
+		std::cout << "Model [" << mPath << "] found " << albedoMaps.size() << " albedo maps after adding default maps" << std::endl;
+		std::cout << "Model [" << mPath << "] found " << metallicMaps.size() << " metallic maps after adding default maps" << std::endl;
+		std::cout << "Model [" << mPath << "] found " << roughnessMaps.size() << " roughness maps after adding default maps" << std::endl;
+		std::cout << "Model [" << mPath << "] found " << aoMaps.size() << " ao maps after adding default maps" << std::endl;
+		std::cout << "Model [" << mPath << "] found " << normalMaps.size() << " normal maps after adding default maps" << std::endl;
+		std::cout << "Model [" << mPath << "] found " << heightMaps.size() << " height maps after adding default maps" << std::endl;
 
 		textures.insert(textures.end(), albedoMaps.begin(), albedoMaps.end());
 		textures.insert(textures.end(), metallicMaps.begin(), metallicMaps.end());
