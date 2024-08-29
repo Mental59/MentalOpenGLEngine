@@ -8,8 +8,8 @@ int main()
 
 	Graphics::Engine engine(1920, 1080, "OpenGLEngine");
 
-	bool vsync = false;
-	bool windowedFullscreen = true;
+	bool vsync = true;
+	bool windowedFullscreen = false;
 
 	if (!engine.Init(vsync, windowedFullscreen))
 	{
