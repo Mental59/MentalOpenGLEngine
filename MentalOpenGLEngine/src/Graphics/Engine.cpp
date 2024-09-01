@@ -13,6 +13,9 @@
 
 Graphics::Engine* Graphics::Engine::mInstance(nullptr);
 
+static float FPS_COUNT = 0.0f;
+static float LAST_FPS_SHOW_SECONDS_ELAPSED = 0.0f;
+
 static Model SPHERE_MODEL;
 static Model CERBERUS_MODEL;
 
@@ -114,7 +117,8 @@ Graphics::Engine::~Engine()
 
 static void OnResizeCallback(GLFWwindow* window, int width, int height)
 {
-	Graphics::Engine::GetInstance()->OnResize(window, width, height);
+	// TODO	: Needs to be fixed
+	//Graphics::Engine::GetInstance()->OnResize(window, width, height);
 }
 
 static void OnCursorPoseCallback(GLFWwindow* window, double xpos, double ypos)
@@ -221,6 +225,11 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
 		std::cout << "Failed to initialize GLAD" << std::endl;
+		return false;
+	}
+
+	if (!mTextRenderer.Build(mWindowWidth, mWindowHeight))
+	{
 		return false;
 	}
 
@@ -528,10 +537,10 @@ bool Graphics::Engine::Init(bool vsync, bool windowedFullscreen)
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
-	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBlendEquation(GL_FUNC_ADD);
-	glDisable(GL_BLEND);
+	//glEnable(GL_BLEND);
+	//glDisable(GL_BLEND);
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
@@ -579,6 +588,13 @@ void Graphics::Engine::UpdateTimer()
 	float currentFrame = static_cast<float>(glfwGetTime());
 	Time::DeltaTime = currentFrame - Time::LastFrame;
 	Time::LastFrame = currentFrame;
+
+	LAST_FPS_SHOW_SECONDS_ELAPSED += Time::DeltaTime;
+	if (LAST_FPS_SHOW_SECONDS_ELAPSED >= 0.25f)
+	{
+		FPS_COUNT = 1.0f / Time::DeltaTime;
+		LAST_FPS_SHOW_SECONDS_ELAPSED = 0.0f;
+	}
 }
 
 void Graphics::Engine::OnResize(GLFWwindow* window, int width, int height)
@@ -762,6 +778,15 @@ void Graphics::Engine::OnRender()
 
 	glDisable(GL_DEPTH_TEST);
 	mScreenQuad.Draw();
+	glEnable(GL_BLEND);
+	mTextRenderer.Draw("(C) LearnOpenGL.com", glm::vec2(25.0f, 25.0f), glm::vec3(0.5, 0.8f, 0.2f), 0.5f);
+	mTextRenderer.Draw(
+		std::format("FPS: {}", static_cast<int>(FPS_COUNT)),
+		glm::vec2(20.0f, static_cast<float>(mWindowHeight) - 30.0f),
+		glm::vec3(0.5, 0.8f, 0.2f),
+		0.5f
+	);
+	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
 
 	glfwSwapBuffers(mWindow);
@@ -854,6 +879,7 @@ void Graphics::Engine::DrawScene(
 	//	shader.SetUniform1f("uMaterial.metallic", (float)i / (float)nRows); // increases from bottom to the top
 	//	for (int j = 0; j < nColumns; j++)
 	//	{
+	//		shader.SetUniform1f("uMaterial.roughness", glm::clamp((float)j / (float)nColumns, 0.05f, 1.0f)); // increases from left to right
 	//		shader.SetUniform1f("uMaterial.roughness", glm::clamp((float)j / (float)nColumns, 0.05f, 1.0f)); // increases from left to right
 
 	//		model = glm::mat4(1.0f);

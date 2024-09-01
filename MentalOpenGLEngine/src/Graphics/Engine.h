@@ -15,6 +15,8 @@
 #include "GFrameBuffer.h"
 #include "SSAOFrameBuffer.h"
 #include "HDRMap.h"
+#include "Text/TextCharacter.h"
+#include "TextRenderer.h"
 
 struct GLFWwindow;
 
@@ -106,6 +108,8 @@ namespace Graphics
 		std::unordered_map<std::string, unsigned int> mLoadedTextures;
 
 		Core::Texture mDefaultTexture;
+
+		TextRenderer mTextRenderer;
 
 		float mLastMouseXPos, mLastMouseYPos;
 		bool mIsFirstMouseMove;

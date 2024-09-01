@@ -63,6 +63,9 @@
     <ClCompile Include="src\Graphics\HDRMap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Graphics\TextRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Graphics\Engine.h">
@@ -119,6 +122,12 @@
     <ClInclude Include="src\Graphics\HDRMap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Graphics\Text\TextCharacter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\TextRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\Shaders\base.vert" />
@@ -165,5 +174,7 @@
     <None Include="src\Shaders\hdrPrefilter.frag" />
     <None Include="src\Shaders\brdfPrecomputing.vert" />
     <None Include="src\Shaders\brdfPrecomputing.frag" />
+    <None Include="src\Shaders\text.vert" />
+    <None Include="src\Shaders\text.frag" />
   </ItemGroup>
 </Project>
