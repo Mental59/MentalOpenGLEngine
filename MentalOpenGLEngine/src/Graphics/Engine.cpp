@@ -779,12 +779,12 @@ void Graphics::Engine::OnRender()
 	glDisable(GL_DEPTH_TEST);
 	mScreenQuad.Draw();
 	glEnable(GL_BLEND);
-	mTextRenderer.Draw("(C) LearnOpenGL.com", glm::vec2(25.0f, 25.0f), glm::vec3(0.5, 0.8f, 0.2f), 0.5f);
+	mTextRenderer.Draw("(C) LearnOpenGL.com", glm::vec2(25.0f, 25.0f), glm::vec3(0.5, 0.8f, 0.2f), 0.75f);
 	mTextRenderer.Draw(
 		std::format("FPS: {}", static_cast<int>(FPS_COUNT)),
 		glm::vec2(20.0f, static_cast<float>(mWindowHeight) - 30.0f),
 		glm::vec3(0.5, 0.8f, 0.2f),
-		0.5f
+		0.75f
 	);
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
