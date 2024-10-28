@@ -657,41 +657,41 @@ void Graphics::Engine::OnRender()
 	DrawScene(mGBufferShaderProgram, &mGBufferInstancedShaderProgram);
 
 	// SSAO
-	mSSAOFrameBuffer.Bind();
-	glClear(GL_COLOR_BUFFER_BIT);
-	mSSAOShaderProgram.Bind();
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, mGFrameBuffer.GetPositionTextureId());
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, mGFrameBuffer.GetNormalTextureId());
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, mNoiseTexture);
+	//mSSAOFrameBuffer.Bind();
+	//glClear(GL_COLOR_BUFFER_BIT);
+	//mSSAOShaderProgram.Bind();
+	//glActiveTexture(GL_TEXTURE0);
+	//glBindTexture(GL_TEXTURE_2D, mGFrameBuffer.GetPositionTextureId());
+	//glActiveTexture(GL_TEXTURE1);
+	//glBindTexture(GL_TEXTURE_2D, mGFrameBuffer.GetNormalTextureId());
+	//glActiveTexture(GL_TEXTURE2);
+	//glBindTexture(GL_TEXTURE_2D, mNoiseTexture);
 
-	glm::vec2 noiseScale(
-		static_cast<float>(mWindowWidth) / static_cast<float>(SSAO_NOISE_TEXTURE_SIZE),
-		static_cast<float>(mWindowHeight) / static_cast<float>(SSAO_NOISE_TEXTURE_SIZE)
-	);
-	mSSAOShaderProgram.SetUniformVec2("uNoiseScale", glm::value_ptr(noiseScale));
-	mSSAOShaderProgram.SetUniform1i("uNumSamples", NUM_SSAO_KERNEL_SAMPLES);
-	mSSAOShaderProgram.SetUniform1f("uPower", 5.0f);
-	for (int i = 0; i < NUM_SSAO_KERNEL_SAMPLES; i++)
-	{
-		mSSAOShaderProgram.SetUniformVec3(std::format("uSamples[{}]", i), glm::value_ptr(SSAO_KERNEL[i]));
-	}
+	//glm::vec2 noiseScale(
+	//	static_cast<float>(mWindowWidth) / static_cast<float>(SSAO_NOISE_TEXTURE_SIZE),
+	//	static_cast<float>(mWindowHeight) / static_cast<float>(SSAO_NOISE_TEXTURE_SIZE)
+	//);
+	//mSSAOShaderProgram.SetUniformVec2("uNoiseScale", glm::value_ptr(noiseScale));
+	//mSSAOShaderProgram.SetUniform1i("uNumSamples", NUM_SSAO_KERNEL_SAMPLES);
+	//mSSAOShaderProgram.SetUniform1f("uPower", 5.0f);
+	//for (int i = 0; i < NUM_SSAO_KERNEL_SAMPLES; i++)
+	//{
+	//	mSSAOShaderProgram.SetUniformVec3(std::format("uSamples[{}]", i), glm::value_ptr(SSAO_KERNEL[i]));
+	//}
 
-	glDisable(GL_DEPTH_TEST);
-	mScreenQuad.Draw();
-	glEnable(GL_DEPTH_TEST);
+	//glDisable(GL_DEPTH_TEST);
+	//mScreenQuad.Draw();
+	//glEnable(GL_DEPTH_TEST);
 
-	mSSAOBlurFrameBuffer.Bind();
-	glClear(GL_COLOR_BUFFER_BIT);
-	mSSAOBlurShaderProgram.Bind();
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, mSSAOFrameBuffer.GetTextureColorId());
+	//mSSAOBlurFrameBuffer.Bind();
+	//glClear(GL_COLOR_BUFFER_BIT);
+	//mSSAOBlurShaderProgram.Bind();
+	//glActiveTexture(GL_TEXTURE0);
+	//glBindTexture(GL_TEXTURE_2D, mSSAOFrameBuffer.GetTextureColorId());
 
-	glDisable(GL_DEPTH_TEST);
-	mScreenQuad.Draw();
-	glEnable(GL_DEPTH_TEST);
+	//glDisable(GL_DEPTH_TEST);
+	//mScreenQuad.Draw();
+	//glEnable(GL_DEPTH_TEST);
 
 	// Lighting pass
 	mDeferredLightingFrameBuffer.Bind();
